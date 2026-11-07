@@ -1,0 +1,157 @@
+"""LangGraph agent for the Malayalam voice helpdesk (reply stage).
+
+    router ──► weather ──┐
+           ├─► news ─────┤
+           ├─► retrieve ─┼─► answer ─► END
+           └─► other ────┘
+
+Small models (Gemma 4 E2B) are unreliable at free-form tool calling, so the
+graph makes the routing explicit: keyword rules first, LLM classification
+only when no rule fires. Tool numbers go out through templates; the LLM only
+writes service answers, and only from retrieved passages.
+"""
+from __future__ import annotations
+
+import os
+import re
+from typing import Literal, TypedDict
+
+from langgraph.graph import END, StateGraph
+
+from . import llm, tools
+from .normalise import normalise
+from .retriever import Retriever
+
+Route = Literal["weather", "news", "service_faq", "other"]
+CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
+ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "120"))
+
+REFUSAL = ("ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. "
+           "നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ.")
+SCOPE = ("ഞാൻ തദ്ദേശ സ്ഥാപന സേവനങ്ങൾ (ജനന, മരണ, വിവാഹ രജിസ്ട്രേഷൻ, ട്രേഡ് ലൈസൻസ്, കെട്ടിട നികുതി, "
+         "കെട്ടിട അനുമതി), കേരളത്തിലെ കാലാവസ്ഥ, ഇന്നത്തെ വാർത്തകൾ എന്നിവയെക്കുറിച്ച് സഹായിക്കാം.")
+TOOL_FAIL = "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+
+# Stems, not full words: Malayalam inflects heavily (മഴ / മഴയുണ്ടോ, വാർത്ത / വാർത്തകൾ).
+RULES: list[tuple[Route, list[str]]] = [
+    ("weather", ["കാലാവസ്ഥ", "മഴ", "ചൂട്", "താപനില", "ഡിഗ്രി", "weather", "rain", "temperature"]),
+    ("news", ["വാർത്ത", "news", "headline", "സംഭവ"]),
+    ("service_faq", ["സർട്ടിഫിക്കറ്റ", "ലൈസൻസ", "ഫീസ", "രജിസ്ട്രേഷ", "രജിസ്റ്റ", "നികുതി", "ടാക്സ",
+                     "പെർമിറ്റ", "അനുമതി", "പരാതി", "ജനന", "മരണ", "വിവാഹ", "കല്യാണ", "അക്ഷയ",
+                     "ksmart", "കെ-സ്മാർട്ട", "കെ സ്മാർട്ട", "പഞ്ചായത്ത", "നഗരസഭ", "മുനിസിപ്പാലിറ്റി",
+                     "certificate", "licence", "license", "permit", "tax", "fee", "trade", "ട്രേഡ"]),
+]
+CLASSIFY_PROMPT = (
+    "Classify the user's Malayalam question into exactly one label: weather, news, service_faq, other. "
+    "service_faq = Kerala local-body services (certificates, licences, property tax, building permits, "
+    "complaints, K-SMART, Akshaya). Reply with the label only.")
+ANSWER_PROMPT = (
+    "നീ കേരളത്തിലെ തദ്ദേശ സ്ഥാപന സേവനങ്ങളെക്കുറിച്ചുള്ള ഒരു വോയ്സ് ഹെൽപ്ഡെസ്ക് ആണ്. "
+    "താഴെ കൊടുത്ത വിവരങ്ങൾ മാത്രം ഉപയോഗിച്ച് ലളിതമായ സംസാര മലയാളത്തിൽ 2-3 ചെറിയ വാക്യങ്ങളിൽ ഉത്തരം പറയുക. "
+    "തുകകളും ദിവസങ്ങളും വിവരങ്ങളിൽ ഉള്ളതുപോലെ തന്നെ പറയുക. Markdown, ലിസ്റ്റ്, ലിങ്ക് എന്നിവ വേണ്ട. "
+    "ഉത്തരം വിവരങ്ങളിൽ ഇല്ലെങ്കിൽ UNSURE എന്ന് മാത്രം എഴുതുക.")
+
+
+class State(TypedDict, total=False):
+    query: str
+    route: Route
+    route_by: str            # "rule" | "llm" | "default"
+    context: str
+    sources: list[dict]
+    answer: str
+    refused: bool
+
+
+def rule_route(query: str) -> Route | None:
+    q = normalise(query)
+    for route, stems in RULES:
+        if any(normalise(s) in q for s in stems):
+            return route
+    return None
+
+
+def build_graph(retriever: Retriever | None = None):
+    retriever = retriever or Retriever()
+
+    def router(s: State) -> State:
+        r = rule_route(s["query"])
+        if r:
+            return {"route": r, "route_by": "rule"}
+        if llm.enabled():
+            try:
+                label = llm.chat(CLASSIFY_PROMPT, s["query"], max_tokens=5, temperature=0).lower()
+                m = re.search(r"weather|news|service_faq|other", label)
+                if m:
+                    return {"route": m.group(0), "route_by": "llm"}
+            except Exception:
+                pass
+        # Unknown: try retrieval; the confidence check refuses if nothing matches.
+        return {"route": "service_faq", "route_by": "default"}
+
+    def weather(s: State) -> State:
+        try:
+            w = tools.weather(s["query"])
+            return {"context": w["text"], "sources": [{"title": w["source"]}]}
+        except Exception:
+            return {"context": ""}
+
+    def news(s: State) -> State:
+        try:
+            n = tools.news(s["query"])
+            return {"context": n["text"],
+                    "sources": [{"title": i["title"], "url": i["link"]} for i in n["items"]]}
+        except Exception:
+            return {"context": ""}
+
+    def retrieve(s: State) -> State:
+        hits = retriever.search(s["query"], k=3)
+        if not retriever.confident(hits):
+            return {"context": "", "sources": []}
+        # Only the top CTX_K passages go to the LLM (prefill dominates CPU latency),
+        # and without the English 'Keywords:' line, which exists only for BM25.
+        ctx = "\n\n".join(f"[{h.doc['id']}] {h.doc['title']}\n{h.doc['text'].split(' Keywords:')[0]}"
+                          for h in hits[:CTX_K])
+        return {"context": ctx, "sources": [
+            {"id": h.doc["id"], "title": h.doc["title"], "url": h.doc["source"],
+             "verify": h.doc.get("verify", False), "bm25": round(h.bm25, 2),
+             "cos": None if h.cos is None else round(h.cos, 3)} for h in hits[:CTX_K]]}
+
+    def other(s: State) -> State:
+        return {"answer": SCOPE, "refused": False}
+
+    def answer(s: State) -> State:
+        route, ctx = s["route"], s.get("context", "")
+        if route in ("weather", "news"):
+            return {"answer": ctx or TOOL_FAIL, "refused": not ctx}
+        if not ctx:
+            return {"answer": REFUSAL, "refused": True}
+        if not llm.enabled():
+            # Extractive fallback: read out the best passage.
+            best = ctx.split("\n\n")[0].split("\n", 1)[1]
+            return {"answer": best.split(" Keywords:")[0], "refused": False}
+        try:
+            out = llm.chat(ANSWER_PROMPT, f"വിവരങ്ങൾ:\n{ctx}\n\nചോദ്യം: {s['query']}",
+                           max_tokens=ANSWER_TOKENS)
+        except Exception:
+            return {"answer": TOOL_FAIL, "refused": True}
+        if "UNSURE" in out.upper() or not out:
+            return {"answer": REFUSAL, "refused": True}
+        return {"answer": out, "refused": False}
+
+    g = StateGraph(State)
+    for name, fn in [("router", router), ("weather", weather), ("news", news),
+                     ("retrieve", retrieve), ("other", other), ("answer", answer)]:
+        g.add_node(name, fn)
+    g.set_entry_point("router")
+    g.add_conditional_edges("router", lambda s: s["route"], {
+        "weather": "weather", "news": "news", "service_faq": "retrieve", "other": "other"})
+    for n in ("weather", "news", "retrieve"):
+        g.add_edge(n, "answer")
+    g.add_edge("other", END)
+    g.add_edge("answer", END)
+    return g.compile()
+
+
+def ask(query: str, graph=None) -> State:
+    graph = graph or build_graph()
+    return graph.invoke({"query": query})

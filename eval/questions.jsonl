@@ -1,0 +1,20 @@
+{"id":"q01","question":"കുഞ്ഞ് ജനിച്ച് പത്ത് ദിവസമായി, ജനനം രജിസ്റ്റർ ചെയ്യാൻ ഫീസ് എത്രയാണ്?","route":"service_faq","expect":["cr-fee-01"],"must_contain":"ഇല്ല"}
+{"id":"q02","question":"മരണം നടന്ന് രണ്ട് മാസം കഴിഞ്ഞു, ഇപ്പോൾ രജിസ്റ്റർ ചെയ്യാൻ എത്ര രൂപ ആകും?","route":"service_faq","expect":["cr-fee-01"],"must_contain":"5"}
+{"id":"q03","question":"ജനന സർട്ടിഫിക്കറ്റിൽ കുട്ടിയുടെ പേര് ചേർക്കാൻ എത്ര രൂപ?","route":"service_faq","expect":["cr-fee-02"],"must_contain":"5"}
+{"id":"q04","question":"അക്ഷയ വഴി ജനന രജിസ്ട്രേഷന് സർവീസ് ചാർജ് എത്ര?","route":"service_faq","expect":["svc-charge-01"],"must_contain":"40"}
+{"id":"q05","question":"വിവാഹ രജിസ്ട്രേഷന് അക്ഷയയിൽ എത്ര രൂപ കൊടുക്കണം?","route":"service_faq","expect":["svc-charge-01"],"must_contain":"70"}
+{"id":"q06","question":"ഒരു ചെറിയ ചായക്കട തുടങ്ങാൻ ട്രേഡ് ലൈസൻസിന് എന്തൊക്കെ രേഖകൾ വേണം?","route":"service_faq","expect":["trade-02"],"must_contain":"നികുതി"}
+{"id":"q07","question":"വാടക കെട്ടിടത്തിലാണ് കട, ലൈസൻസിന് ഉടമയുടെ സമ്മതപത്രം വേണോ?","route":"service_faq","expect":["trade-02"],"must_contain":"200"}
+{"id":"q08","question":"ട്രേഡ് ലൈസൻസ് പുതുക്കാൻ എന്ത് ചെയ്യണം?","route":"service_faq","expect":["trade-04"],"must_contain":"30"}
+{"id":"q09","question":"ട്രേഡ് ലൈസൻസ് കിട്ടാൻ എത്ര ദിവസം എടുക്കും?","route":"service_faq","expect":["trade-04"],"must_contain":"5"}
+{"id":"q10","question":"പത്ത് ലക്ഷം രൂപ മുതൽമുടക്കുള്ള സർവീസ് സ്ഥാപനത്തിന് ലൈസൻസ് ഫീസ് എത്ര?","route":"service_faq","expect":["trade-03-svc"],"must_contain":"500"}
+{"id":"q11","question":"ഞാൻ ഗൾഫിലാണ്, നാട്ടിൽ വരാതെ വിവാഹം രജിസ്റ്റർ ചെയ്യാമോ?","route":"service_faq","expect":["marriage-01"],"must_contain":"വീഡിയോ"}
+{"id":"q12","question":"കെട്ടിട നികുതി ഓൺലൈനായി എങ്ങനെ അടയ്ക്കാം?","route":"service_faq","expect":["ptax-01"],"must_contain":"Quick Pay"}
+{"id":"q13","question":"വീട് പണിയാനുള്ള പെർമിറ്റിന് ആര് വഴിയാണ് അപേക്ഷിക്കേണ്ടത്?","route":"service_faq","expect":["building-01"],"must_contain":"ലൈസൻസി"}
+{"id":"q14","question":"പഞ്ചായത്തിനെതിരെ പരാതി എങ്ങനെ കൊടുക്കാം?","route":"service_faq","expect":["grievance-01"],"must_contain":"K-SMART"}
+{"id":"q15","question":"കെ സ്മാർട്ട് ആപ്പ് എവിടെ കിട്ടും?","route":"service_faq","expect":["ksmart-01","ksmart-02"],"must_contain":"Play Store"}
+{"id":"q16","question":"റേഷൻ കാർഡിൽ പേര് ചേർക്കാൻ എന്ത് ചെയ്യണം?","route":"service_faq","expect":"refuse"}
+{"id":"q17","question":"പാസ്പോർട്ട് പുതുക്കാൻ എത്ര ഫീസ് ആകും?","route":"service_faq","expect":"refuse"}
+{"id":"q18","question":"കൊച്ചിയിൽ ഇന്ന് മഴയുണ്ടോ?","route":"weather","district":"ernakulam"}
+{"id":"q19","question":"തൃശ്ശൂരിലെ കാലാവസ്ഥ എങ്ങനെയുണ്ട്?","route":"weather","district":"thrissur"}
+{"id":"q20","question":"ഇന്നത്തെ പ്രധാന വാർത്തകൾ എന്തൊക്കെ?","route":"news"}
