@@ -5,16 +5,20 @@ LangGraph agent that answers Malayalam questions about Kerala local-body
 stage between Whisper v2 (ASR) and VITS (TTS) in the voice assistant.
 
 ```
-router ──► weather (Open-Meteo) ──┐
-       ├─► news (RSS headlines) ──┤
-       ├─► retrieve (BM25+BGE-M3)─┼─► answer ─► END
-       └─► other (scope message) ─┘
+router ─► weather (Open-Meteo) ──────────────────────► answer ─► END
+       ├► news (RSS headlines) ──────────────────────► answer
+       ├► calc (fee bands, in code) ─────────────────────────► END
+       │     └─ not a fee question ─► retrieve (BM25+dense) ─► answer
+       └► other (scope message) ─────────────────────────────► END
 ```
 
 Design choices
 - Routing is explicit (keyword stems first, LLM label only if no rule fires):
   Gemma 4 E2B is unreliable at free-form tool calling.
 - Weather/news numbers go out through templates, never through the LLM.
+- Fee questions that need band arithmetic (late birth/death registration,
+  licence fee by investment and sector) are computed in code: Gemma got
+  these wrong, and the calculator needs no LLM call, so it answers instantly.
 - Service answers use only retrieved passages; the LLM must reply `UNSURE`
   when the answer is not there, which becomes a refusal.
 - One Malayalam normaliser (old chillu → atomic chillu, then strip ZWJ/ZWNJ)
@@ -35,8 +39,14 @@ Most reply time on a CPU is prefill (reading system prompt + passages).
 Start the server with a disk cache, then warm it once:
 ```bash
 python -m llama_cpp.server --model gemma-4-E2B-it-Q4_0.gguf --port 8080 \
-    --n_ctx 4096 --n_threads 2 --cache true --cache_type disk
-python -m helpdesk.warmup        # one pass over the KB; re-run after KB/prompt changes
+    --n_ctx 4096 --n_threads 2 --cache true --cache_type ram
+HELPDESK_CTX_K=1 python -m helpdesk.warmup    # after every server start
+```
+Use `ram`, not `disk`: llama-cpp-python 0.3.x's disk cache deletes an entry
+when it is read, so warm-up entries evict each other. With `HELPDESK_CTX_K=1`
+every prompt is system prompt + one passage + question, so one warm-up per
+KB entry covers all questions.
+```
 ```
 
 ## Test
@@ -47,27 +57,14 @@ python -m eval.run_eval --dense               # same with BGE-M3; use it to tune
 python -m eval.run_eval --dense --full        # end-to-end with LLM + live tools
 ```
 
-## Status (7 Nov 2026, day 1)
-
-**Setup:** Gemma 4 E2B (Q4_0) via llama-cpp-python, BM25 retrieval only,
-2 passages per answer, Intel MacBook Air (2 cores).
-
-| Check | Result |
-|---|---|
-| Routing (keyword rules) | 20/20 |
-| Retrieval hit@1 / hit@2 | 14/15, 15/15 (after adding example questions) |
-| Out-of-scope questions refused | 2/2 (ration card, passport) |
-| End-to-end correct, first run | 15/20 |
-
-**What failed and why**
-- 3 timeouts (120 s): CPU prefill is the bottleneck. A prompt is ~340 tokens,
-  of which the 112-token system prompt is reused from cache.
-- 2 wrong fees: Gemma mapped "2 months" and "₹10 lakh" to the wrong fee band.
-  Fix planned: compute fee bands in code (a tool), not in the LLM.
-- 1 wrong passage: fixed by indexing example questions per entry.
-
-**Latency note:** the MacBook throttled to 66% CPU speed under sustained load
-(`pmset -g therm`), so latency will be measured on the Hugging Face Space.
-
-**Next:** integrate into the voice-assistant Space, a fee-calculator tool,
-expand the KB to 50+ entries, and a second held-out test set.
+## Status (7 Nov 2026)
+- BM25 only, offline: route 20/20, retrieval hit@3 15/15, district 2/2.
+- Known gap: the BM25 score cannot tell answerable from unanswerable
+  questions (ration card and passport questions score as high as real ones),
+  so the retrieval gate lets them through: 15/17. Refusal for these depends
+  on the dense cosine threshold and the LLM's `UNSURE`; measure with `--full`.
+- Knowledge base: 15 entries, each with example questions that are indexed
+  for retrieval but never sent to the LLM (written independently of the eval set).
+- Knowledge base: Entries with `verify: true` come from a 2018
+  SOP or a secondary site; check them against current official pages.
+- Open-Meteo free API is non-commercial only.

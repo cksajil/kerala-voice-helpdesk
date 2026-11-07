@@ -1,9 +1,10 @@
 """LangGraph agent for the Malayalam voice helpdesk (reply stage).
 
-    router ──► weather ──┐
-           ├─► news ─────┤
-           ├─► retrieve ─┼─► answer ─► END
-           └─► other ────┘
+    router ─► weather ───────────────────────► answer ─► END
+           ├► news ──────────────────────────► answer
+           ├► calc ─ fee computed in code ───────────────► END
+           │    └─ not a fee question ─► retrieve ► answer
+           └► other (scope message) ─────────────────────► END
 
 Small models (Gemma 4 E2B) are unreliable at free-form tool calling, so the
 graph makes the routing explicit: keyword rules first, LLM classification
@@ -18,13 +19,13 @@ from typing import Literal, TypedDict
 
 from langgraph.graph import END, StateGraph
 
-from . import llm, tools
+from . import fees, llm, tools
 from .normalise import normalise
 from .retriever import Retriever
 
 Route = Literal["weather", "news", "service_faq", "other"]
 CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
-ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "120"))
+ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "80"))   # ~0.34 s per token on a 2-core CPU
 
 REFUSAL = ("ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. "
            "നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ.")
@@ -47,7 +48,7 @@ CLASSIFY_PROMPT = (
     "complaints, K-SMART, Akshaya). Reply with the label only.")
 ANSWER_PROMPT = (
     "നീ കേരളത്തിലെ തദ്ദേശ സ്ഥാപന സേവനങ്ങളെക്കുറിച്ചുള്ള ഒരു വോയ്സ് ഹെൽപ്ഡെസ്ക് ആണ്. "
-    "താഴെ കൊടുത്ത വിവരങ്ങൾ മാത്രം ഉപയോഗിച്ച് ലളിതമായ സംസാര മലയാളത്തിൽ 2-3 ചെറിയ വാക്യങ്ങളിൽ ഉത്തരം പറയുക. "
+    "താഴെ കൊടുത്ത വിവരങ്ങൾ മാത്രം ഉപയോഗിച്ച് ലളിതമായ സംസാര മലയാളത്തിൽ 1-2 ചെറിയ വാക്യങ്ങളിൽ ഉത്തരം പറയുക. "
     "തുകകളും ദിവസങ്ങളും വിവരങ്ങളിൽ ഉള്ളതുപോലെ തന്നെ പറയുക. Markdown, ലിസ്റ്റ്, ലിങ്ക് എന്നിവ വേണ്ട. "
     "ഉത്തരം വിവരങ്ങളിൽ ഇല്ലെങ്കിൽ UNSURE എന്ന് മാത്രം എഴുതുക.")
 
@@ -56,10 +57,22 @@ class State(TypedDict, total=False):
     query: str
     route: Route
     route_by: str            # "rule" | "llm" | "default"
+    tool: str                # set when a deterministic tool answered (e.g. "fee_calc")
     context: str
     sources: list[dict]
     answer: str
     refused: bool
+
+
+def passage(doc: dict) -> str:
+    """How one KB entry appears in the LLM prompt (without the BM25-only Keywords line)."""
+    return f"[{doc['id']}] {doc['title']}\n{doc['text'].split(' Keywords:')[0]}"
+
+
+def answer_message(ctx: str, query: str) -> str:
+    """User message for the answer step. Passages come first so that a prompt
+    cache can reuse 'system prompt + passage' across different questions."""
+    return f"വിവരങ്ങൾ:\n{ctx}\n\nചോദ്യം: {query}"
 
 
 def rule_route(query: str) -> Route | None:
@@ -103,14 +116,24 @@ def build_graph(retriever: Retriever | None = None):
         except Exception:
             return {"context": ""}
 
+    by_id = {d["id"]: d for d in retriever.docs}
+
+    def calc(s: State) -> State:
+        """Fee questions that need band arithmetic are answered in code, not by the LLM."""
+        out = fees.answer(s["query"])
+        if not out:
+            return {}
+        return {"answer": out["answer"], "refused": False, "tool": "fee_calc",
+                "sources": [{"id": i, "title": by_id[i]["title"], "url": by_id[i]["source"],
+                             "verify": by_id[i].get("verify", False)} for i in out["source_ids"] if i in by_id]}
+
     def retrieve(s: State) -> State:
         hits = retriever.search(s["query"], k=3)
         if not retriever.confident(hits):
             return {"context": "", "sources": []}
         # Only the top CTX_K passages go to the LLM (prefill dominates CPU latency),
         # and without the English 'Keywords:' line, which exists only for BM25.
-        ctx = "\n\n".join(f"[{h.doc['id']}] {h.doc['title']}\n{h.doc['text'].split(' Keywords:')[0]}"
-                          for h in hits[:CTX_K])
+        ctx = "\n\n".join(passage(h.doc) for h in hits[:CTX_K])
         return {"context": ctx, "sources": [
             {"id": h.doc["id"], "title": h.doc["title"], "url": h.doc["source"],
              "verify": h.doc.get("verify", False), "bm25": round(h.bm25, 2),
@@ -130,8 +153,8 @@ def build_graph(retriever: Retriever | None = None):
             best = ctx.split("\n\n")[0].split("\n", 1)[1]
             return {"answer": best.split(" Keywords:")[0], "refused": False}
         try:
-            out = llm.chat(ANSWER_PROMPT, f"വിവരങ്ങൾ:\n{ctx}\n\nചോദ്യം: {s['query']}",
-                           max_tokens=ANSWER_TOKENS)
+            out = llm.chat(ANSWER_PROMPT, answer_message(ctx, s["query"]),
+                           max_tokens=ANSWER_TOKENS, temperature=0)
         except Exception:
             return {"answer": TOOL_FAIL, "refused": True}
         if "UNSURE" in out.upper() or not out:
@@ -140,11 +163,13 @@ def build_graph(retriever: Retriever | None = None):
 
     g = StateGraph(State)
     for name, fn in [("router", router), ("weather", weather), ("news", news),
-                     ("retrieve", retrieve), ("other", other), ("answer", answer)]:
+                     ("calc", calc), ("retrieve", retrieve), ("other", other), ("answer", answer)]:
         g.add_node(name, fn)
     g.set_entry_point("router")
     g.add_conditional_edges("router", lambda s: s["route"], {
-        "weather": "weather", "news": "news", "service_faq": "retrieve", "other": "other"})
+        "weather": "weather", "news": "news", "service_faq": "calc", "other": "other"})
+    g.add_conditional_edges("calc", lambda s: "done" if s.get("tool") else "retrieve",
+                            {"done": END, "retrieve": "retrieve"})
     for n in ("weather", "news", "retrieve"):
         g.add_edge(n, "answer")
     g.add_edge("other", END)

@@ -29,6 +29,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--full", action="store_true", help="run the whole graph (needs LLM + network)")
     ap.add_argument("--dense", action="store_true", help="use BGE-M3 dense retrieval too")
+    ap.add_argument("--only", help="comma-separated question ids for the full run, e.g. q01,q05,q08")
     args = ap.parse_args()
 
     qs = [json.loads(l) for l in Q_PATH.open(encoding="utf-8") if l.strip()]
@@ -71,9 +72,12 @@ def main():
     if args.full:
         graph = build_graph(ret)
         good = 0
-        llm_times, rows = [], []
+        llm_times, tool_times, rows = [], [], []
         print("\n--- full graph ---")
+        only = set(args.only.split(",")) if args.only else None
         for q in qs:
+            if only and q["id"] not in only:
+                continue
             t = time.perf_counter()
             s = graph.invoke({"query": q["question"]})
             dt = time.perf_counter() - t
@@ -85,15 +89,15 @@ def main():
                 ok = not s.get("refused")
             good += ok
             if s["route"] == "service_faq":
-                llm_times.append(dt)
+                (tool_times if s.get("tool") else llm_times).append(dt)
             rows.append({"id": q["id"], "ok": bool(ok), "seconds": round(dt, 1), "route": s["route"],
-                         "route_by": s.get("route_by"), "answer": s["answer"],
+                         "route_by": s.get("route_by"), "tool": s.get("tool"), "answer": s["answer"],
                          "sources": [x.get("id") for x in s.get("sources", [])]})
-            print(f"{q['id']} {'✓' if ok else '✗'} {dt:5.1f}s [{s['route']}/{s.get('route_by')}] {s['answer'][:120]}")
-        print(f"\nend-to-end correct  {good}/{len(qs)}")
-        if llm_times:
-            print(f"service answer latency  median {statistics.median(llm_times):.1f}s, "
-                  f"max {max(llm_times):.1f}s (n={len(llm_times)})")
+            print(f"{q['id']} {'✓' if ok else '✗'} {dt:5.1f}s [{s['route']}/{s.get('tool') or s.get('route_by')}] {s['answer'][:120]}")
+        print(f"\nend-to-end correct  {good}/{len(rows)}")
+        for name, ts in (("LLM answers", llm_times), ("tool answers", tool_times)):
+            if ts:
+                print(f"{name:13} latency  median {statistics.median(ts):.1f}s, max {max(ts):.1f}s (n={len(ts)})")
         out = Path(__file__).with_name("out.jsonl")
         with out.open("w", encoding="utf-8") as f:
             for r in rows:

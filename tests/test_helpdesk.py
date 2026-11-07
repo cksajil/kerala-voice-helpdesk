@@ -128,3 +128,69 @@ def test_in_process_llama_backend():
         assert llm.chat("s", "u") == "ശരി"
     finally:
         llm.use_llama_cpp(None)
+
+
+# --- fee calculator ---------------------------------------------------------
+from helpdesk import fees
+
+
+@pytest.mark.parametrize("q,expected", [
+    ("കുഞ്ഞ് ജനിച്ച് പത്ത് ദിവസമായി, ജനനം രജിസ്റ്റർ ചെയ്യാൻ ഫീസ് എത്രയാണ്?", "ഫീസ് ഇല്ല"),
+    ("മരണം നടന്ന് രണ്ട് മാസം കഴിഞ്ഞു, ഇപ്പോൾ രജിസ്റ്റർ ചെയ്യാൻ എത്ര രൂപ ആകും?", "ഫീസ് 5 രൂപ"),
+    ("ജനിച്ചിട്ട് 25 ദിവസം, രജിസ്ട്രേഷന് എത്ര?", "ഫീസ് 2 രൂപ"),
+    ("മൂന്ന് ആഴ്ച മുൻപ് ജനിച്ച കുട്ടിയുടെ ജനന രജിസ്ട്രേഷൻ ഫീസ്", "ഫീസ് ഇല്ല"),        # 21 days
+    ("ഒന്നര വർഷം മുൻപ് മരിച്ചു, മരണം രജിസ്റ്റർ ചെയ്യാൻ ഫീസ്", "ഫീസ് 10 രൂപ"),
+    ("birth registration fee after 2months", "ഫീസ് 5 രൂപ"),
+])
+def test_registration_fee(q, expected):
+    out = fees.answer(q)
+    assert out and expected in out["answer"] and "cr-fee-01" in out["source_ids"]
+
+
+@pytest.mark.parametrize("q,expected", [
+    ("പത്ത് ലക്ഷം രൂപ മുതൽമുടക്കുള്ള സർവീസ് സ്ഥാപനത്തിന് ലൈസൻസ് ഫീസ് എത്ര?", "500 രൂപ"),
+    ("30 ലക്ഷം മുതൽമുടക്കുള്ള ഫാക്ടറിക്ക് ലൈസൻസ് ഫീസ്", "1,000 രൂപ"),
+    ("ഒന്നര കോടി രൂപയുടെ സേവന സ്ഥാപനത്തിന് ലൈസൻസിന് എത്ര രൂപ", "5,000 രൂപ"),
+    ("12 ലക്ഷം രൂപ മുതൽമുടക്ക്, ലൈസൻസ് ഫീസ് എത്ര?", "സേവന മേഖലയിൽ 1,000 രൂപ, നിർമ്മാണ മേഖലയിൽ 500 രൂപ"),
+])
+def test_licence_fee(q, expected):
+    out = fees.answer(q)
+    assert out and expected in out["answer"]
+
+
+@pytest.mark.parametrize("q", [
+    "ജനന സർട്ടിഫിക്കറ്റിൽ കുട്ടിയുടെ പേര് ചേർക്കാൻ എത്ര രൂപ?",      # name inclusion, not registration
+    "ഒരു വർഷം മുൻപ് മരിച്ച ആളുടെ സർട്ടിഫിക്കറ്റ് കോപ്പി എടുക്കാൻ ഫീസ്",  # copy, not registration
+    "ജനന സർട്ടിഫിക്കറ്റ് കിട്ടാൻ എത്ര ദിവസം എടുക്കും?",               # no number
+    "ട്രേഡ് ലൈസൻസ് കിട്ടാൻ എത്ര ദിവസം എടുക്കും?",                   # licence, but no amount
+    "അക്ഷയ വഴി ജനന രജിസ്ട്രേഷന് സർവീസ് ചാർജ് എത്ര?",
+    "പാസ്പോർട്ട് പുതുക്കാൻ എത്ര ഫീസ് ആകും?",
+])
+def test_fee_calculator_does_not_fire(q):
+    assert fees.answer(q) is None
+
+
+def test_band_edges():
+    assert [fees.registration_fee(d)[0] for d in (21, 22, 30, 31, 365, 366)] == [0, 2, 2, 5, 5, 10]
+    assert fees.licence_fee(10e5, "svc") == 500 and fees.licence_fee(10e5 + 1, "svc") == 1000
+    assert fees.licence_fee(25e5, "mfg") == 500 and fees.licence_fee(25e5 + 1, "mfg") == 1000
+
+
+def test_fee_question_skips_llm(app, monkeypatch):
+    def no_llm(*a, **k):
+        raise AssertionError("LLM must not be called for computed fees")
+    monkeypatch.setattr(llm, "enabled", lambda: True)
+    monkeypatch.setattr(llm, "chat", no_llm)
+    s = app.invoke({"query": "മരണം നടന്ന് രണ്ട് മാസം കഴിഞ്ഞു, ഇപ്പോൾ രജിസ്റ്റർ ചെയ്യാൻ എത്ര രൂപ ആകും?"})
+    assert s["tool"] == "fee_calc" and "5 രൂപ" in s["answer"]
+    assert [x["id"] for x in s["sources"]] == ["cr-fee-01", "svc-charge-01"]
+
+
+def test_warmup_prompt_matches_answer_prompt_prefix():
+    """The cache only helps if warm-up and real answers share the same prefix."""
+    from helpdesk.retriever import load_kb
+    d = load_kb()[0]
+    warm = G.answer_message(G.passage(d), "x")
+    real = G.answer_message(G.passage(d), "മറ്റൊരു ചോദ്യം")
+    shared = warm[: warm.index("ചോദ്യം:")]
+    assert real.startswith(shared) and G.passage(d) in shared
