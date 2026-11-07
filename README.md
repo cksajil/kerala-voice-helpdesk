@@ -47,14 +47,27 @@ python -m eval.run_eval --dense               # same with BGE-M3; use it to tune
 python -m eval.run_eval --dense --full        # end-to-end with LLM + live tools
 ```
 
-## Status (7 Nov 2026)
-- BM25 only, offline: route 20/20, retrieval hit@3 15/15, district 2/2.
-- Known gap: the BM25 score cannot tell answerable from unanswerable
-  questions (ration card and passport questions score as high as real ones),
-  so the retrieval gate lets them through: 15/17. Refusal for these depends
-  on the dense cosine threshold and the LLM's `UNSURE`; measure with `--full`.
-- Knowledge base: 15 entries, each with example questions that are indexed
-  for retrieval but never sent to the LLM (written independently of the eval set).
-- Knowledge base: Entries with `verify: true` come from a 2018
-  SOP or a secondary site; check them against current official pages.
-- Open-Meteo free API is non-commercial only.
+## Status (7 Nov 2026, day 1)
+
+**Setup:** Gemma 4 E2B (Q4_0) via llama-cpp-python, BM25 retrieval only,
+2 passages per answer, Intel MacBook Air (2 cores).
+
+| Check | Result |
+|---|---|
+| Routing (keyword rules) | 20/20 |
+| Retrieval hit@1 / hit@2 | 14/15, 15/15 (after adding example questions) |
+| Out-of-scope questions refused | 2/2 (ration card, passport) |
+| End-to-end correct, first run | 15/20 |
+
+**What failed and why**
+- 3 timeouts (120 s): CPU prefill is the bottleneck. A prompt is ~340 tokens,
+  of which the 112-token system prompt is reused from cache.
+- 2 wrong fees: Gemma mapped "2 months" and "₹10 lakh" to the wrong fee band.
+  Fix planned: compute fee bands in code (a tool), not in the LLM.
+- 1 wrong passage: fixed by indexing example questions per entry.
+
+**Latency note:** the MacBook throttled to 66% CPU speed under sustained load
+(`pmset -g therm`), so latency will be measured on the Hugging Face Space.
+
+**Next:** integrate into the voice-assistant Space, a fee-calculator tool,
+expand the KB to 50+ entries, and a second held-out test set.
