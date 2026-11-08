@@ -27,7 +27,7 @@ Design choices
 ## Run
 ```bash
 pip install -r requirements.txt
-python data/build_kb.py                       # writes data/kb.jsonl
+python data/build_kb.py                       # data/kb.csv (you edit) -> data/kb.jsonl (app loads)
 python -m llama_cpp.server --model gemma-4-E2B-it-Q4_0.gguf --port 8080 --n_ctx 4096   # separate terminal
 python -m helpdesk.cli "ട്രേഡ് ലൈസൻസ് പുതുക്കാൻ എന്ത് ചെയ്യണം?"
 ```
@@ -63,7 +63,7 @@ python -m eval.run_eval --dense --full        # end-to-end with LLM + live tools
   questions (ration card and passport questions score as high as real ones),
   so the retrieval gate lets them through: 15/17. Refusal for these depends
   on the dense cosine threshold and the LLM's `UNSURE`; measure with `--full`.
-- Knowledge base: 17 entries, each with example questions that are indexed
+- Knowledge base: 45 entries (28 from two panchayat citizen charters, 8 Nov), each with example questions that are indexed
   for retrieval but never sent to the LLM (written independently of the eval set).
 - Knowledge base: Entries with `verify: true` come from a 2018
   SOP or a secondary site; check them against current official pages.
@@ -84,3 +84,18 @@ and passport refusals behaved as intended. Fixed after reading the log:
 - Still open: ASR mishears (e.g. "ജനന സർട്ടിഫിക്കറ്റ്" heard as "ജനങ്ങൾ സർട്ടിപ്പിക്ക്ഷ്")
   pull the wrong passage; the prompt now asks Gemma to answer UNSURE when the passage
   is about a different service.
+
+## Knowledge base from citizen charters (8 Nov 2026)
+Kadanad and Thachanattukara Grama Panchayat Pauravakasa Rekha 2026 (PDFs on
+lsgkerala.gov.in). Kadanad's PDF uses the legacy ML-TT ASCII font, so its text was
+converted with a Python 3 port of SMC's Payyans maps and checked against page
+images; Thachanattukara's pages were read as images. Each entry cites the PDF page.
+`verify=no` only where both charters agree (birth/death procedure and fees, marriage
+documents and fees, building-permit documents, residence certificate, RTI).
+Fee-band questions for marriage registration are computed in code like the birth/death
+ones. Retrieval now boosts entries of the service named in the question (hit@1 12/15;
+the three misses: two are answered by the fee calculator first, one combines a
+marriage fee with the Akshaya service charge, which one passage cannot hold).
+Known risk: "റേഷൻ കാർഡിൽ പേര് ചേർക്കാൻ" now retrieves the panchayat's
+"name not in ration card" certificate; the answer prompt must decline it (Civil
+Supplies handles adding names). Check q16 in the next `--full` run.

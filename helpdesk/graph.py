@@ -40,7 +40,10 @@ RULES: list[tuple[Route, list[str]]] = [
     ("service_faq", ["സർട്ടി", "ലൈസൻസ", "ഫീസ", "രജിസ്ട്രേഷ", "രജിസ്റ്റ", "നികുതി", "ടാക്സ",
                      "പെർമിറ്റ", "അനുമതി", "പരാതി", "ജനന", "മരണ", "വിവാഹ", "കല്യാണ", "അക്ഷയ",
                      "ksmart", "കെ-സ്മാർട്ട", "കെ സ്മാർട്ട", "പഞ്ചായത്ത", "നഗരസഭ", "മുനിസിപ്പാലിറ്റി",
-                     "certificate", "licence", "license", "permit", "tax", "fee", "trade", "ട്രേഡ"]),
+                     "certificate", "licence", "license", "permit", "tax", "fee", "trade", "ട്രേഡ",
+                     # topics added from the panchayat citizen charters (8 Nov)
+                     "പെൻഷ", "pension", "വേതനം", "വിവരാവകാശ", "ആർ.ടി.ഐ", "rti", "പട്ടി", "നായ",
+                     "ഹെൽത്ത് കാർഡ", "മെഡിക്കൽ സർട്ടിഫിക്കറ്റ", "ദത്തെടു", "വീട്ടുകര", "ഉടമസ്ഥ"]),
 ]
 CLASSIFY_PROMPT = (
     "Classify the user's Malayalam question into exactly one label: weather, news, service_faq, other. "

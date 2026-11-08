@@ -32,6 +32,8 @@ DAY_UNITS = [("ദിവസ", 1), ("ആഴ്ച", 7), ("മാസ", 30), ("വ�
              ("day", 1), ("week", 7), ("month", 30), ("year", 365)]
 MONEY_UNITS = [("ലക്ഷ", 1e5), ("lakh", 1e5), ("lac", 1e5), ("കോടി", 1e7), ("crore", 1e7)]
 
+MARRIAGE = ["വിവാഹ", "കല്യാണ", "മാര്യേജ", "marriage"]
+POOR = ["ബി.പി.എൽ", "ബിപിഎൽ", "bpl", "ദാരിദ്ര്യ", "പട്ടികജാതി", "പട്ടികവർഗ", "sc/st", "എസ്.സി", "എസ്.ടി"]
 BIRTH = ["ജനന", "ജനിച്ച", "പ്രസവ", "birth"]
 DEATH = ["മരണ", "മരിച്ച", "death"]
 REGISTER = ["രജിസ്റ്റ", "രജിസ്ട്രേഷ", "register"]
@@ -72,6 +74,17 @@ def _quantity(q: str, units: list[tuple[str, float]]) -> float | None:
     return None
 
 
+def marriage_fee(days: float) -> tuple[int, str]:
+    """Kerala Registration of Marriages (Common) Rules 2008, as both charters state it:
+    registration fee 100 + certificate fee 20; +100 fine after 45 days; +250 fine after 5 years."""
+    if days <= 45:
+        return 120, "വിവാഹം കഴിഞ്ഞ് 45 ദിവസത്തിനകമായതിനാൽ രജിസ്ട്രേഷൻ ഫീ 100 രൂപയും സർട്ടിഫിക്കറ്റ് ഫീ 20 രൂപയും, ആകെ 120 രൂപ."
+    if days <= 5 * 365:
+        return 220, ("45 ദിവസം കഴിഞ്ഞതിനാൽ 120 രൂപ ഫീസിനൊപ്പം 100 രൂപ പിഴ കൂടി, ആകെ 220 രൂപ.")
+    return 370, ("5 വർഷം കഴിഞ്ഞതിനാൽ 120 രൂപ ഫീസിനൊപ്പം 250 രൂപ പിഴ, ആകെ 370 രൂപ. "
+                 "രജിസ്ട്രാർ ജനറലിന്റെ അനുമതിയും വേണം.")
+
+
 def registration_fee(days: float) -> tuple[int, str]:
     if days <= 21:
         return 0, "21 ദിവസത്തിനുള്ളിൽ ആയതിനാൽ രജിസ്ട്രേഷൻ ഫീസ് ഇല്ല."
@@ -109,6 +122,16 @@ def answer(query: str) -> dict | None:
     """Return {'answer', 'source_ids'} if this is a fee question we can compute, else None."""
     q = normalise(query)
     q = re.sub(r"(\d)([^\d\s.,])", r"\1 \2", q)  # '2മാസം' -> '2 മാസം'
+
+    # Marriage registration fee: marriage + a delay + registration or fee intent.
+    if _has(q, MARRIAGE) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
+        days = _quantity(q, DAY_UNITS)
+        if days is not None:
+            _, rule = marriage_fee(days)
+            if _has(q, POOR):
+                rule += " ദമ്പതികൾ ദാരിദ്ര്യരേഖയ്ക്ക് താഴെയോ പട്ടികജാതി-പട്ടികവർഗക്കാരോ ആണെങ്കിൽ ഫീസ് 10 രൂപ മാത്രം."
+            return {"answer": rule + " ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ സർവീസ് ചാർജ് വേറെ.",
+                    "source_ids": ["ch-marr-fee-01", "svc-charge-01"]}
 
     # Birth/death late-registration fee: needs the event, a delay and registration intent.
     is_birth, is_death = _has(q, BIRTH), _has(q, DEATH)

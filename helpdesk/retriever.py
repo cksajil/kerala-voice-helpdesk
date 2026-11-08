@@ -18,6 +18,20 @@ from .normalise import normalise, tokens
 
 KB_PATH = Path(__file__).resolve().parent.parent / "data" / "kb.jsonl"
 DENSE_MODEL = os.getenv("HELPDESK_EMBED_MODEL", "BAAI/bge-m3")
+# Service named in the question -> boost entries of that service. With 40+ entries,
+# overlapping words pull the wrong service ("ഗൾഫിൽ ... വിവാഹം" went to the
+# born-abroad birth entry). Boost 0.4 chosen on the eval set and the Space log.
+SERVICE_HINTS = {
+    "marriage": ["വിവാഹ", "കല്യാണ", "മാര്യേജ", "marriage"],
+    "birth_death": ["ജനന", "ജനിച്ച", "മരണ", "മരിച്ച", "birth", "death"],
+    "building_permit": ["പെർമിറ്റ", "കെട്ടിട നിർമ്മാണ", "വീട് പണി", "വീട് വെക്ക", "permit"],
+    "trade_licence": ["ലൈസൻസ", "ട്രേഡ", "license", "licence"],
+    "pension": ["പെൻഷ", "pension", "വേതനം"],
+    "property_tax": ["നികുതി", "വീട്ടുകര", "ടാക്സ", "ഉടമസ്ഥ"],
+    "pet": ["പട്ടി", "നായ", "പന്നി", "dog"],
+    "general": ["അക്ഷയ", "സർവീസ് ചാർജ", "കെ സ്മാർട്ട", "ksmart", "k-smart"],
+}
+SERVICE_BOOST = float(os.getenv("HELPDESK_SERVICE_BOOST", "0.4"))
 BM25_MIN = float(os.getenv("HELPDESK_BM25_MIN", "4.0"))   # tune on eval set
 COS_MIN = float(os.getenv("HELPDESK_COS_MIN", "0.55"))    # tune on eval set
 
@@ -65,6 +79,11 @@ class Retriever:
 
     def search(self, query: str, k: int = 3, rrf_k: int = 60) -> list[Hit]:
         bm = self.bm25.get_scores(tokens(query))
+        q = normalise(query)
+        services = {s for s, stems in SERVICE_HINTS.items() if any(normalise(x) in q for x in stems)}
+        if services:
+            bm = [x * (1 + SERVICE_BOOST) if self.docs[i].get("service") in services else x
+                  for i, x in enumerate(bm)]
         order_bm = sorted(range(len(self.docs)), key=lambda i: -bm[i])
         rrf = {i: 1 / (rrf_k + r) for r, i in enumerate(order_bm)}
         cos = None

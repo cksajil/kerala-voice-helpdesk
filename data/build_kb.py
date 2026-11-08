@@ -1,166 +1,57 @@
-"""Seed knowledge base for the LSGD / K-SMART helpdesk.
+"""Build data/kb.jsonl (what the app loads) from data/kb.csv (what you edit).
 
-Each entry is one answerable fact block with its source URL and the date it
-was checked. Extend this to 50-150 entries; keep one topic per entry.
-Entries marked verify=True come from an old or secondary source and should be
-re-checked against an official page before the demo.
-Run:  python data/build_kb.py   -> writes data/kb.jsonl
+Edit kb.csv in any spreadsheet (Google Sheets: File > Import, then
+File > Download > CSV) and run   python data/build_kb.py
+
+Columns
+  id         unique, lowercase, e.g. cr-fee-01, charter-pension-01
+  service    birth_death | marriage | trade_licence | building_permit | property_tax |
+             grievance | pension | certificate | general | ...
+  title      short Malayalam title (counts double in retrieval)
+  text       the answerable fact block, one topic, Malayalam; this is what Gemma reads
+  questions  example questions separated by " | " (retrieval only, never sent to the LLM;
+             do NOT copy eval/questions.jsonl here)
+  source     URL, or "file.pdf p.14" for a charter page
+  verify     yes = old, secondary or single-panchayat source: re-check before relying on it
+  checked    date the source was read (YYYY-MM-DD)
+  notes      anything for you; not used by the app
+The build stops on duplicate ids, empty text, or a missing source.
 """
+import csv
 import json
+import sys
 from pathlib import Path
 
-CHECKED = "2026-11-07"
-CR_FEES = "https://cr.lsgkerala.gov.in/BirthRegnFee.php"
-SERVICE_CHARGES = "https://www.onmanorama.com/news/kerala/2025/08/06/kerala-govt-online-service-charges-akshaya-centres.html"
-TRADE_SOP = "https://www.ksidc.org/wp-content/uploads/2018/06/SOP-Checklist-for-Licence-for-Industries-Factories-Trades-Entrepreneurship-and-Other-Services.pdf"
-IKM = "https://ikm.gov.in/en/node/1107"
-IKM_KSMART = "https://ikm.gov.in/en/node/1103"
-KSMART_MINISTER = "https://www.onmanorama.com/news/kerala/2024/01/06/minister-mb-rajesh-on-ksmart-app-local-self-government-services.html"
-KSMART_FEATURES = "https://www.onmanorama.com/news/kerala/2024/01/01/k-smart-e-governance-tool-features.amp.html"
-TRADE_NAMES = "https://calcguru.in/?p=5364"
+HERE = Path(__file__).parent
+REQUIRED = ["id", "service", "title", "text", "source"]
 
-KB = [
-    dict(id="cr-fee-01", service="birth_death", title="ജനന/മരണ രജിസ്ട്രേഷൻ ഫീസ് (വൈകിയുള്ള രജിസ്ട്രേഷൻ)",
-         text="ജനനം അല്ലെങ്കിൽ മരണം നടന്ന് 21 ദിവസത്തിനുള്ളിൽ രജിസ്ട്രാറെ അറിയിച്ചാൽ രജിസ്ട്രേഷന് ഫീസ് ഇല്ല. "
-              "21 ദിവസത്തിനു ശേഷം 30 ദിവസത്തിനുള്ളിൽ ആണെങ്കിൽ 2 രൂപ. 30 ദിവസത്തിനു ശേഷം ഒരു വർഷത്തിനുള്ളിൽ 5 രൂപ. "
-              "ഒരു വർഷം കഴിഞ്ഞാൽ 10 രൂപ. (Registration of Births and Deaths Act 1969, Kerala Rules 1999). "
-              "Keywords: birth registration fee, death registration fee, late registration, delayed registration.",
-         source=CR_FEES),
-    dict(id="cr-fee-02", service="birth_death", title="ജനന രജിസ്റ്ററിൽ കുട്ടിയുടെ പേര് ചേർക്കൽ, സർട്ടിഫിക്കറ്റ് പകർപ്പ്, Non-availability",
-         text="പേര് ഇല്ലാതെ ജനനം രജിസ്റ്റർ ചെയ്ത് 12 മാസം കഴിഞ്ഞ് കുട്ടിയുടെ പേര് ചേർക്കാൻ 5 രൂപ. "
-              "ജനന/മരണ രേഖയുടെ എക്സ്ട്രാക്റ്റ് (സർട്ടിഫിക്കറ്റ്) ഒന്നിന് 5 രൂപ. "
-              "Non-availability certificate (രേഖ ഇല്ലെന്ന സർട്ടിഫിക്കറ്റ്) 2 രൂപ. "
-              "രജിസ്റ്ററിൽ ഒരു എൻട്രി തിരയാൻ ആദ്യ വർഷത്തിന് 2 രൂപ, തുടർന്നുള്ള ഓരോ വർഷത്തിനും 2 രൂപ വീതം. "
-              "Keywords: name inclusion, birth certificate copy, extract, non-availability certificate, search fee.",
-         source=CR_FEES),
-    dict(id="svc-charge-01", service="general", title="ഓൺലൈൻ / അക്ഷയ സർവീസ് ചാർജ്: ജനനം, മരണം, വിവാഹം",
-         text="ഓൺലൈനായോ അക്ഷയ കേന്ദ്രം വഴിയോ അപേക്ഷിക്കുമ്പോൾ അപേക്ഷാ ഫീസിനു പുറമേ സർവീസ് ചാർജ് ഉണ്ട് (2025 ഓഗസ്റ്റിലെ സർക്കാർ തീരുമാനം). "
-              "ജനന രജിസ്ട്രേഷൻ 40 രൂപ, മരണ രജിസ്ട്രേഷൻ 40 രൂപ, ജനന/മരണ രേഖ തിരുത്തൽ 50 രൂപ. "
-              "വിവാഹ രജിസ്ട്രേഷൻ 70 രൂപയും പ്രിന്റിന് പേജിന് 3 രൂപയും; SC/ST അപേക്ഷകർക്ക് 50 രൂപ (പ്രിന്റ് ഉൾപ്പെടെ). "
-              "വിവാഹ രജിസ്ട്രേഷൻ തിരുത്തൽ 60 രൂപ. ഓൺലൈനായി ചെയ്താൽ ഫീസും സർവീസ് ചാർജും പോർട്ടലിൽ തന്നെ അടയ്ക്കണം.",
-         source=SERVICE_CHARGES),
-    dict(id="svc-charge-02", service="general", title="ഓൺലൈൻ / അക്ഷയ സർവീസ് ചാർജ്: ലൈസൻസ്, പരാതി, സർട്ടിഫിക്കറ്റ് ഡൗൺലോഡ്",
-         text="ലൈസൻസ് അപേക്ഷ 40 രൂപ, ലൈസൻസ് തിരുത്തൽ 40 രൂപ, പരാതി നൽകൽ 30 രൂപ, സർട്ടിഫിക്കറ്റ്/നോട്ടീസ് ഡൗൺലോഡ് പേജിന് 10 രൂപ, "
-              "ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് (ownership certificate) 50 രൂപ, BPL സർട്ടിഫിക്കറ്റ് 10 രൂപ, മറ്റ് അപേക്ഷകൾ 20 രൂപ. "
-              "പണമടയ്ക്കൽ ചാർജ്: 1,000 രൂപ വരെ 10 രൂപ; 1,001 മുതൽ 5,000 വരെ 20 രൂപ; 5,000-ന് മുകളിൽ 0.5% (പരമാവധി 100 രൂപ).",
-         source=SERVICE_CHARGES),
-    dict(id="trade-01", service="trade_licence", title="ട്രേഡ് ലൈസൻസിന് K-SMART-ൽ അപേക്ഷിക്കൽ",
-         text="ട്രേഡ് ലൈസൻസിന് K-SMART-ൽ 'Application for New Enterprises License' എന്ന സേവനം വഴി അപേക്ഷിക്കാം. "
-              "ഓഫീസ് ജീവനക്കാർ ഇതിനെ 'IFTE and OS License' എന്ന് വിളിക്കുന്നു. മൂന്നും ഒരേ ലൈസൻസ് ആണ്. "
-              "മുനിസിപ്പാലിറ്റി/കോർപ്പറേഷനിൽ Kerala Municipality Act 1994 വകുപ്പ് 447, ഗ്രാമപഞ്ചായത്തിൽ Kerala Panchayat Raj Act 1994 വകുപ്പ് 232.",
-         source=TRADE_NAMES, verify=True),
-    dict(id="trade-02", service="trade_licence", title="ട്രേഡ് ലൈസൻസ്: പുതിയ അപേക്ഷയ്ക്ക് വേണ്ട രേഖകൾ",
-         text="നിർദ്ദിഷ്ട ഫോമിലുള്ള അപേക്ഷ; കെട്ടിടത്തിന്റെ ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ്; കെട്ടിട നികുതി (property tax) രസീത്; "
-              "അപേക്ഷകൻ കെട്ടിട ഉടമ അല്ലെങ്കിൽ ഉടമയുടെ സമ്മതപത്രം 200 രൂപയുടെ മുദ്രപ്പത്രത്തിൽ; "
-              "Red, Orange വിഭാഗം വ്യവസായങ്ങൾക്ക് മലിനീകരണ നിയന്ത്രണ ബോർഡിന്റെ NOC; സ്ഫോടകവസ്തുക്കൾക്ക് കളക്ടറുടെ അനുമതി; "
-              "ആവശ്യമെങ്കിൽ മറ്റ് വകുപ്പുകളുടെ ക്ലിയറൻസ്. പുതിയ സ്ഥാപനം തുടങ്ങുന്നതിന് 30 ദിവസം മുൻപ് അപേക്ഷിക്കണം.",
-         source=TRADE_SOP, verify=True),
-    # One sector per entry, bands in ascending order: the combined table made
-    # Gemma pick the wrong band (q10: answered 10,000 instead of 500).
-    dict(id="trade-03-svc", service="trade_licence", title="ട്രേഡ് ലൈസൻസ് ഫീസ്: സേവന മേഖല (service sector)",
-         text="സേവന മേഖലയിലെ സ്ഥാപനങ്ങൾക്ക് മൂലധന നിക്ഷേപം അനുസരിച്ചുള്ള പരമാവധി വാർഷിക ലൈസൻസ് ഫീസ്: "
-              "10 ലക്ഷം രൂപ വരെ നിക്ഷേപം: 500 രൂപ. "
-              "10 ലക്ഷത്തിനു മുകളിൽ 25 ലക്ഷം വരെ: 1,000 രൂപ. "
-              "25 ലക്ഷത്തിനു മുകളിൽ 2 കോടി വരെ: 5,000 രൂപ. "
-              "2 കോടിക്കു മുകളിൽ 5 കോടി വരെ: 10,000 രൂപ. "
-              "5 കോടിക്കു മുകളിൽ: 15,000 രൂപ.",
-         questions=["സർവീസ് സ്ഥാപനത്തിന് ലൈസൻസ് ഫീസ് എത്ര", "മുതൽമുടക്ക് അനുസരിച്ച് ലൈസൻസ് ഫീസ്",
-                    "ചെറിയ കടയ്ക്ക് ട്രേഡ് ലൈസൻസിന് എത്ര രൂപ", "license fee for service business"],
-         source=TRADE_SOP, verify=True),
-    dict(id="trade-03-mfg", service="trade_licence", title="ട്രേഡ് ലൈസൻസ് ഫീസ്: നിർമ്മാണ മേഖല (manufacturing)",
-         text="നിർമ്മാണ (manufacturing) മേഖലയിലെ സ്ഥാപനങ്ങൾക്ക് മൂലധന നിക്ഷേപം അനുസരിച്ചുള്ള പരമാവധി വാർഷിക ലൈസൻസ് ഫീസ്: "
-              "25 ലക്ഷം രൂപ വരെ നിക്ഷേപം: 500 രൂപ. "
-              "25 ലക്ഷത്തിനു മുകളിൽ 1 കോടി വരെ: 1,000 രൂപ. "
-              "1 കോടിക്കു മുകളിൽ 5 കോടി വരെ: 5,000 രൂപ. "
-              "5 കോടിക്കു മുകളിൽ 10 കോടി വരെ: 10,000 രൂപ. "
-              "10 കോടിക്കു മുകളിൽ: 15,000 രൂപ.",
-         questions=["ഫാക്ടറിക്ക് ലൈസൻസ് ഫീസ് എത്ര", "നിർമ്മാണ യൂണിറ്റ് തുടങ്ങാൻ ലൈസൻസ് ഫീസ്",
-                    "license fee for manufacturing unit"],
-         source=TRADE_SOP, verify=True),
-    dict(id="trade-04", service="trade_licence", title="ട്രേഡ് ലൈസൻസ്: സമയപരിധി, കാലാവധി, പുതുക്കൽ",
-         text="എല്ലാ രേഖകളും ക്ലിയറൻസുകളും നൽകിയാൽ 5 ദിവസത്തിനുള്ളിൽ ലൈസൻസ്; കൗൺസിൽ അനുമതി വേണമെങ്കിൽ 30 ദിവസം. "
-              "മറ്റൊന്ന് പറഞ്ഞിട്ടില്ലെങ്കിൽ കാലാവധി 5 വർഷം. പുതുക്കാൻ പ്രത്യേക അപേക്ഷ വേണ്ട: കാലാവധി തീരുന്നതിന് 30 ദിവസം മുൻപ് ഫീസ് അടച്ചാൽ "
-              "സ്വയം പുതുക്കപ്പെടും. അതിനു കഴിഞ്ഞില്ലെങ്കിൽ 90 ദിവസത്തിനുള്ളിൽ പുതുക്കൽ അപേക്ഷ നൽകണം. "
-              "ബന്ധപ്പെടേണ്ട ഉദ്യോഗസ്ഥൻ: ഹെൽത്ത് ഇൻസ്പെക്ടർ. ആവശ്യമെങ്കിൽ സ്ഥലപരിശോധന ഉണ്ടാകും.",
-         source=TRADE_SOP, verify=True),
-    dict(id="ksmart-01", service="general", title="K-SMART എന്താണ്, എന്തെല്ലാം സേവനങ്ങൾ",
-         text="തദ്ദേശ സ്ഥാപനങ്ങളുടെ സേവനങ്ങൾക്കായി ഇൻഫർമേഷൻ കേരള മിഷൻ (IKM) തയ്യാറാക്കിയ പ്ലാറ്റ്ഫോം ആണ് K-SMART. 2024 ജനുവരി 1-ന് തുടങ്ങി. "
-              "ജനന-മരണ-വിവാഹ രജിസ്ട്രേഷൻ, വ്യാപാര/വ്യവസായ ലൈസൻസ്, കെട്ടിട നികുതി, കെട്ടിട നിർമ്മാണ അനുമതി, പൊതു പരാതി പരിഹാരം എന്നിവ ലഭ്യമാണ്. "
-              "വെബ്സൈറ്റ്: ksmart.lsgkerala.gov.in. Google Play Store-ലും App Store-ലും KSMART ആപ്പ് ഉണ്ട്.",
-         source=IKM),
-    dict(id="ksmart-02", service="general", title="K-SMART-ൽ രജിസ്റ്റർ ചെയ്യൽ",
-         text="പൊതുജനങ്ങൾക്ക് ksmart.lsgkerala.gov.in/ui/webportal വഴിയോ Play Store-ലെ ആപ്പ് വഴിയോ രജിസ്റ്റർ ചെയ്ത് സേവനങ്ങൾ ഉപയോഗിക്കാം. "
-              "പ്രൊഫഷണൽ ടാക്സും ആപ്പ് വഴി അടയ്ക്കാം. അക്ഷയ കേന്ദ്രങ്ങൾ വഴിയും അപേക്ഷിക്കാം.",
-         source=KSMART_MINISTER),
-    dict(id="cr-cert-01", service="birth_death", title="ജനന, മരണ, വിവാഹ സർട്ടിഫിക്കറ്റ് K-SMART വഴി",
-         text="ജനന, മരണ, വിവാഹ രജിസ്ട്രേഷനും സർട്ടിഫിക്കറ്റുകളും K-SMART-ലെ Civil Registration സേവനത്തിലാണ്. "
-              "അപേക്ഷ ഓൺലൈനായി നൽകാം, അതിന്റെ സ്ഥിതി ഓൺലൈനായി അറിയാം. സർട്ടിഫിക്കറ്റുകൾ ഓൺലൈനായി download ചെയ്യാം. "
-              "അപേക്ഷ ലഭിച്ചതിന്റെ അറിയിപ്പ് K-SMART ലോഗിനിലും WhatsApp, email വഴിയും കിട്ടും.",
-         source=IKM_KSMART),
-    dict(id="access-01", service="general", title="അക്ഷയ കേന്ദ്രം, കുടുംബശ്രീ ഹെൽപ്‌ഡെസ്ക് വഴി K-SMART സേവനങ്ങൾ",
-         text="സ്വന്തമായി ഓൺലൈനായി അപേക്ഷിക്കാൻ കഴിയാത്തവർക്ക് K-SMART സേവനങ്ങൾ അക്ഷയ കേന്ദ്രങ്ങൾ വഴിയും "
-              "കുടുംബശ്രീ ഹെൽപ്‌ഡെസ്കുകൾ വഴിയും ചെറിയ സർവീസ് ചാർജിൽ ലഭിക്കും: ജനന-മരണ-വിവാഹ രജിസ്ട്രേഷൻ, "
-              "ലൈസൻസ്, കെട്ടിട നികുതി, കെട്ടിട അനുമതി, പരാതി എന്നിവ.",
-         source=IKM_KSMART),
-    dict(id="marriage-01", service="marriage", title="വിവാഹ രജിസ്ട്രേഷൻ ഓൺലൈനായി (വീഡിയോ KYC)",
-         text="K-SMART വഴി വിവാഹ രജിസ്ട്രേഷൻ ലോകത്ത് എവിടെ നിന്നും ഓൺലൈനായി ചെയ്യാം. വീഡിയോ KYC വഴിയാണ് തിരിച്ചറിയൽ. "
-              "ഭാര്യയ്ക്കും ഭർത്താവിനും രണ്ട് വ്യത്യസ്ത സ്ഥലങ്ങളിൽ നിന്ന് പൂർത്തിയാക്കാം; പ്രവാസികൾക്ക് ഓഫീസിൽ വരേണ്ടതില്ല.",
-         source=KSMART_FEATURES),
-    dict(id="building-01", service="building_permit", title="കെട്ടിട നിർമ്മാണ അനുമതി (Building permit) K-SMART-ൽ",
-         text="കെട്ടിട നിർമ്മാണ അനുമതി അപേക്ഷകൾ K-SMART-ൽ രജിസ്റ്റർ ചെയ്ത ലൈസൻസികൾ (എഞ്ചിനീയർ/സൂപ്പർവൈസർ) വഴിയാണ് സമർപ്പിക്കുന്നത്. "
-              "പ്ലാൻ ചട്ടങ്ങൾക്ക് അനുസൃതമാണോ എന്ന് eDCR, GIS സംവിധാനങ്ങൾ സ്വയം പരിശോധിക്കും. "
-              "അപകടസാധ്യത കുറഞ്ഞ (low-risk) നിർമ്മാണങ്ങൾക്ക് എല്ലാ വിവരങ്ങളും നൽകിയാൽ മിനിറ്റുകൾക്കകം അനുമതി ലഭിക്കും. "
-              "നിർമ്മാണം നടത്താനുദ്ദേശിക്കുന്ന ഭൂമിയുടെ നില (land status) പരിശോധിക്കാനും സൗകര്യമുണ്ട്.",
-         source=KSMART_MINISTER, verify=True),
-    dict(id="ptax-01", service="property_tax", title="കെട്ടിട നികുതി ഓൺലൈനായി അടയ്ക്കൽ",
-         text="K-SMART-ലെ Quick Pay വഴി കെട്ടിട നികുതി (property tax) ഓൺലൈനായി അടയ്ക്കാം; രസീത് ഡൗൺലോഡ് ചെയ്യാം. "
-              "നികുതി നിർണ്ണയം, അപ്പീൽ എന്നിവയും K-SMART-ലെ Property Tax മൊഡ്യൂളിൽ ഉണ്ട്. "
-              "1,000 രൂപ വരെയുള്ള പണമടയ്ക്കലിന് 10 രൂപ സർവീസ് ചാർജ്.",
-         source=IKM),
-    dict(id="grievance-01", service="grievance", title="തദ്ദേശ സ്ഥാപനത്തിനെതിരെ പരാതി നൽകൽ",
-         text="K-SMART-ലെ Public Grievance Redressal മൊഡ്യൂൾ വഴി ഓൺലൈനായി പരാതി നൽകാം; ഒന്നിലധികം പേർ ചേർന്നുള്ള കൂട്ടപ്പരാതിയും നൽകാം. "
-              "പരാതിയുടെ നിലയും സ്വീകരിച്ച നടപടിയും അപേക്ഷകനെ സന്ദേശമായി അറിയിക്കും. പരാതി നൽകാൻ 30 രൂപ സർവീസ് ചാർജ്.",
-         source=KSMART_FEATURES),
-]
 
-# Example questions per entry, indexed for BM25 only (never sent to the LLM).
-# They bridge the gap between how people ask ("ഗൾഫിൽ നിന്ന് കല്യാണം രജിസ്റ്റർ")
-# and how the source is written ("വീഡിയോ KYC"). Written independently of
-# eval/questions.jsonl: do NOT copy eval questions here, or hit@k is leaked.
-QUESTIONS = {
-    "cr-fee-01": ["പ്രസവം കഴിഞ്ഞ് ജനന രജിസ്ട്രേഷന് പണം വേണോ", "മരണ രജിസ്ട്രേഷൻ താമസിച്ചാൽ പിഴ എത്ര",
-                  "21 ദിവസം കഴിഞ്ഞ് രജിസ്റ്റർ ചെയ്താൽ", "late birth registration fee"],
-    "cr-fee-02": ["ജനന സർട്ടിഫിക്കറ്റിന്റെ കോപ്പി എടുക്കാൻ", "രജിസ്റ്ററിൽ കുഞ്ഞിന്റെ പേര് പിന്നീട് ചേർക്കൽ",
-                  "നോൺ അവൈലബിലിറ്റി സർട്ടിഫിക്കറ്റ്", "പഴയ ജനന രേഖ തിരയാൻ ഫീസ്"],
-    "svc-charge-01": ["അക്ഷയ സെന്ററിൽ സർവീസ് ചാർജ്", "ഓൺലൈൻ അപേക്ഷയ്ക്ക് അധിക ചാർജ് ഉണ്ടോ",
-                      "വിവാഹ സർട്ടിഫിക്കറ്റ് തിരുത്താൻ ചാർജ്", "ജനന രേഖ തിരുത്താൻ എത്ര"],
-    "svc-charge-02": ["പരാതി കൊടുക്കാൻ പണം വേണോ", "ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റിന് ചാർജ്",
-                      "BPL സർട്ടിഫിക്കറ്റ് ചാർജ്", "ഓൺലൈനായി പണമടച്ചാൽ ട്രാൻസാക്ഷൻ ചാർജ്"],
-    "trade-01": ["K-SMART-ൽ ട്രേഡ് ലൈസൻസ് ഏത് പേരിലാണ്", "Enterprises License എന്താണ്", "IFTE and OS License",
-                 "ട്രേഡ് ലൈസൻസിന് എവിടെ അപേക്ഷിക്കണം", "ലൈസൻസ് ഓൺലൈനായി എടുക്കാൻ"],
-    "trade-02": ["കട തുടങ്ങാൻ ലൈസൻസിന് ആവശ്യമായ രേഖകൾ", "വാടകക്കെട്ടിടത്തിൽ സ്ഥാപനം ഉടമയുടെ സമ്മതം",
-                 "പുതിയ ബിസിനസ് ലൈസൻസ് അപേക്ഷ", "documents for trade licence"],
-    "trade-04": ["ലൈസൻസ് കാലാവധി എത്ര വർഷം", "ലൈസൻസ് റിന്യൂ ചെയ്യാൻ", "ലൈസൻസ് കിട്ടാൻ എത്ര സമയം",
-                 "ലൈസൻസ് കാലാവധി കഴിഞ്ഞാൽ"],
-    "ksmart-01": ["K-SMART എന്താണ്", "കെ സ്മാർട്ടിൽ ഏതൊക്കെ സേവനങ്ങൾ", "ksmart വെബ്സൈറ്റ്"],
-    "ksmart-02": ["കെ സ്മാർട്ടിൽ അക്കൗണ്ട് ഉണ്ടാക്കാൻ", "ksmart ആപ്പ് ഡൗൺലോഡ്", "പ്രൊഫഷണൽ ടാക്സ് ഓൺലൈനായി"],
-    "cr-cert-01": ["ജനന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും", "മരണ സർട്ടിഫിക്കറ്റ് ഡൗൺലോഡ് ചെയ്യാൻ",
-                   "സർട്ടിഫിക്കറ്റ് അപേക്ഷയുടെ സ്ഥിതി അറിയാൻ", "birth certificate download"],
-    "access-01": ["അക്ഷയ സെന്ററിൽ എന്തൊക്കെ ചെയ്യാം", "കുടുംബശ്രീ ഹെൽപ്‌ഡെസ്ക്",
-                  "ഓൺലൈനായി അപേക്ഷിക്കാൻ അറിയില്ലെങ്കിൽ", "അക്ഷയ വഴി അപേക്ഷിക്കാമോ"],
-    "marriage-01": ["വിദേശത്തിരുന്ന് വിവാഹം രജിസ്റ്റർ ചെയ്യാൻ", "പ്രവാസിക്ക് ഓൺലൈനായി കല്യാണം രജിസ്റ്റർ ചെയ്യാമോ",
-                    "ഭാര്യയും ഭർത്താവും വേറെ രാജ്യങ്ങളിൽ", "ഓഫീസിൽ പോകാതെ വിവാഹ രജിസ്ട്രേഷൻ"],
-    "building-01": ["വീട് പണിയാൻ അനുമതി", "ബിൽഡിംഗ് പെർമിറ്റ് എങ്ങനെ കിട്ടും", "കെട്ടിട പ്ലാൻ അംഗീകാരം"],
-    "ptax-01": ["വീട്ടുകരം അടയ്ക്കാൻ", "property tax ഓൺലൈൻ", "കെട്ടിട നികുതി രസീത്"],
-    "grievance-01": ["നഗരസഭയ്ക്കെതിരെ പരാതി", "പരാതിയുടെ സ്ഥിതി അറിയാൻ", "കൂട്ടപ്പരാതി നൽകാൻ"],
-}
+def main():
+    rows, errors, seen = [], [], set()
+    with (HERE / "kb.csv").open(encoding="utf-8", newline="") as f:
+        for n, r in enumerate(csv.DictReader(f), start=2):
+            r = {k: (v or "").strip() for k, v in r.items()}
+            if not any(r.values()):
+                continue
+            for k in REQUIRED:
+                if not r.get(k):
+                    errors.append(f"line {n}: empty '{k}'")
+            if r["id"] in seen:
+                errors.append(f"line {n}: duplicate id {r['id']}")
+            seen.add(r["id"])
+            rows.append({
+                "id": r["id"], "service": r["service"], "title": r["title"], "text": r["text"],
+                "questions": [q.strip() for q in r.get("questions", "").split("|") if q.strip()],
+                "source": r["source"], "verify": r.get("verify", "").lower() in ("yes", "true", "1"),
+                "checked": r.get("checked", ""),
+            })
+    if errors:
+        sys.exit("kb.csv has problems:\n  " + "\n  ".join(errors))
+    with (HERE / "kb.jsonl").open("w", encoding="utf-8") as f:
+        for e in rows:
+            f.write(json.dumps(e, ensure_ascii=False) + "\n")
+    print(f"wrote {len(rows)} entries to {HERE / 'kb.jsonl'}")
+
 
 if __name__ == "__main__":
-    out = Path(__file__).with_name("kb.jsonl")
-    with out.open("w", encoding="utf-8") as f:
-        for e in KB:
-            e.setdefault("questions", QUESTIONS.get(e["id"], []))
-            e.setdefault("verify", False)
-            e["checked"] = CHECKED
-            f.write(json.dumps(e, ensure_ascii=False) + "\n")
-    print(f"wrote {len(KB)} entries to {out}")
+    main()

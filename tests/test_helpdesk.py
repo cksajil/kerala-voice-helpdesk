@@ -267,3 +267,35 @@ def test_to_speech_weather_and_fees():
 def test_to_speech_english_terms_have_no_latin_left():
     out = to_speech("K-SMART-ലെ Quick Pay വഴി; WhatsApp, email; SC/ST, BPL; eDCR, GIS.")
     assert not any("A" <= c <= "z" for c in out), out
+
+
+# --- marriage fee (both charters agree) --------------------------------------
+@pytest.mark.parametrize("q,expected", [
+    ("കല്യാണം കഴിഞ്ഞ് പത്ത് ദിവസമായി, രജിസ്റ്റർ ചെയ്യാൻ എത്ര രൂപ?", "ആകെ 120 രൂപ"),
+    ("കല്യാണം കഴിഞ്ഞ് രണ്ട് മാസമായി, രജിസ്റ്റർ ചെയ്യാൻ എത്ര രൂപ?", "ആകെ 220 രൂപ"),
+    ("വിവാഹം കഴിഞ്ഞ് ആറ് വർഷമായി, രജിസ്ട്രേഷന് എത്ര ഫീസ്?", "ആകെ 370 രൂപ"),
+])
+def test_marriage_fee(q, expected):
+    out = fees.answer(q)
+    assert out and expected in out["answer"] and out["source_ids"][0] == "ch-marr-fee-01"
+
+
+def test_marriage_fee_poor_household_note():
+    out = fees.answer("ബിപിഎൽ കുടുംബമാണ്, വിവാഹം കഴിഞ്ഞ് 20 ദിവസം, ഫീസ് എത്ര?")
+    assert "10 രൂപ മാത്രം" in out["answer"]
+
+
+def test_marriage_edges():
+    assert [fees.marriage_fee(d)[0] for d in (45, 46, 5 * 365, 5 * 365 + 1)] == [120, 220, 220, 370]
+
+
+def test_kb_csv_builds_and_ids_are_unique():
+    from helpdesk.retriever import load_kb
+    ids = [d["id"] for d in load_kb()]
+    assert len(ids) == len(set(ids)) and all(d["source"] for d in load_kb())
+
+
+@pytest.mark.parametrize("q", ["വിധവ പെൻഷന് എന്തൊക്കെ രേഖകൾ വേണം?", "പെൻഷൻ കിട്ടാൻ എന്ത് ചെയ്യണം",
+                               "പട്ടിക്ക് ലൈസൻസ് എടുക്കണോ?", "വിവരാവകാശ അപേക്ഷയ്ക്ക് എത്ര ദിവസം?"])
+def test_charter_topics_route_to_service(q):
+    assert G.rule_route(q) == "service_faq"
