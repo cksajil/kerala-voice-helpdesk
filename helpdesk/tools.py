@@ -86,8 +86,15 @@ def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", html.unescape(_TAG.sub(" ", s or ""))).strip()
 
 
-def news(query: str = "", n: int = 5) -> dict:
-    """Headlines only (no article scraping): fresh, fast, and no copyright issue."""
+def _headline(title: str) -> str:
+    """Google News titles end with ' - Publisher'; drop it for speech (kept in items for the UI)."""
+    head, sep, tail = title.rpartition(" - ")
+    return head if sep and len(tail) <= 40 else title
+
+
+def news(query: str = "", n: int = 3) -> dict:
+    """Headlines only (no article scraping): fresh, fast, and no copyright issue.
+    Three short headlines: five took ~28 s to speak in the voice demo."""
     for name, url in NEWS_FEEDS:
         hit = _CACHE.get(url)
         if hit and time.time() - hit[0] < CACHE_SECONDS:
@@ -105,13 +112,17 @@ def news(query: str = "", n: int = 5) -> dict:
                 continue
             _CACHE[url] = (time.time(), items)
         if items:
-            # Optional district filter: prefer headlines that mention the district.
+            # District filter: prefer headlines that mention the district; say so when none do.
+            intro = "ഇന്നത്തെ പ്രധാന വാർത്തകൾ: "
             key = find_district(query)
             if key:
                 stems = [normalise(s) for s in DISTRICTS[key][1]]
                 local = [i for i in items if any(s in normalise(i["title"]) for s in stems)]
-                items = local or items
+                if local:
+                    items, intro = local, f"{DISTRICTS[key][0]} വാർത്തകൾ: "
+                else:
+                    intro = f"{DISTRICTS[key][0]} ജില്ലയിലെ പ്രത്യേക വാർത്തകൾ കിട്ടിയില്ല. കേരളത്തിലെ പ്രധാന വാർത്തകൾ: "
             top = items[:n]
-            text = "ഇന്നത്തെ പ്രധാന വാർത്തകൾ: " + " | ".join(i["title"] for i in top)
+            text = intro + " ".join(_headline(i["title"]).rstrip(".") + "." for i in top)
             return {"source": name, "items": top, "text": text}
     return {"source": None, "items": [], "text": ""}

@@ -39,7 +39,10 @@ class Retriever:
     def __init__(self, docs: list[dict] | None = None, dense: bool | None = None):
         self.docs = docs or load_kb()
         # Example questions are indexed (BM25 and dense) but never sent to the LLM.
-        texts = [" ".join([d["title"], d["text"], *d.get("questions", [])]) for d in self.docs]
+        # The title counts twice: short, generic entries otherwise outrank the specific one
+        # ("ട്രേഡ് ലൈസൻസ് ലഭിക്കാൻ..." went to the Akshaya entry). Chosen on the eval set and
+        # the 7 Nov Space log together (eval hit@1 15/15, Space 4/6; the 2 misses are ASR errors).
+        texts = [" ".join([d["title"], d["title"], d["text"], *d.get("questions", [])]) for d in self.docs]
         self.bm25 = BM25Okapi([tokens(t) for t in texts])
         if dense is None:
             dense = os.getenv("HELPDESK_DENSE", "1") == "1"

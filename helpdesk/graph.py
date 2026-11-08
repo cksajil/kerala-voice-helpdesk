@@ -25,7 +25,7 @@ from .retriever import Retriever
 
 Route = Literal["weather", "news", "service_faq", "other"]
 CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
-ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "80"))   # ~0.34 s per token on a 2-core CPU
+ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "100"))   # ~0.34 s per token on a 2-core CPU
 
 REFUSAL = ("ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. "
            "നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ.")
@@ -37,7 +37,7 @@ TOOL_FAIL = "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവര
 RULES: list[tuple[Route, list[str]]] = [
     ("weather", ["കാലാവസ്ഥ", "മഴ", "ചൂട്", "താപനില", "ഡിഗ്രി", "weather", "rain", "temperature"]),
     ("news", ["വാർത്ത", "news", "headline", "സംഭവ"]),
-    ("service_faq", ["സർട്ടിഫിക്കറ്റ", "ലൈസൻസ", "ഫീസ", "രജിസ്ട്രേഷ", "രജിസ്റ്റ", "നികുതി", "ടാക്സ",
+    ("service_faq", ["സർട്ടി", "ലൈസൻസ", "ഫീസ", "രജിസ്ട്രേഷ", "രജിസ്റ്റ", "നികുതി", "ടാക്സ",
                      "പെർമിറ്റ", "അനുമതി", "പരാതി", "ജനന", "മരണ", "വിവാഹ", "കല്യാണ", "അക്ഷയ",
                      "ksmart", "കെ-സ്മാർട്ട", "കെ സ്മാർട്ട", "പഞ്ചായത്ത", "നഗരസഭ", "മുനിസിപ്പാലിറ്റി",
                      "certificate", "licence", "license", "permit", "tax", "fee", "trade", "ട്രേഡ"]),
@@ -49,8 +49,26 @@ CLASSIFY_PROMPT = (
 ANSWER_PROMPT = (
     "നീ കേരളത്തിലെ തദ്ദേശ സ്ഥാപന സേവനങ്ങളെക്കുറിച്ചുള്ള ഒരു വോയ്സ് ഹെൽപ്ഡെസ്ക് ആണ്. "
     "താഴെ കൊടുത്ത വിവരങ്ങൾ മാത്രം ഉപയോഗിച്ച് ലളിതമായ സംസാര മലയാളത്തിൽ 1-2 ചെറിയ വാക്യങ്ങളിൽ ഉത്തരം പറയുക. "
-    "തുകകളും ദിവസങ്ങളും വിവരങ്ങളിൽ ഉള്ളതുപോലെ തന്നെ പറയുക. Markdown, ലിസ്റ്റ്, ലിങ്ക് എന്നിവ വേണ്ട. "
-    "ഉത്തരം വിവരങ്ങളിൽ ഇല്ലെങ്കിൽ UNSURE എന്ന് മാത്രം എഴുതുക.")
+    "തുകകളും ദിവസങ്ങളും പേരുകളും വിവരങ്ങളിൽ ഉള്ളതുപോലെ തന്നെ പറയുക. Markdown, ലിസ്റ്റ്, ലിങ്ക് എന്നിവ വേണ്ട. "
+    "വിവരങ്ങൾ ചോദ്യത്തിലെ അതേ സേവനത്തെക്കുറിച്ചല്ലെങ്കിലോ ഉത്തരം വിവരങ്ങളിൽ ഇല്ലെങ്കിലോ UNSURE എന്ന് മാത്രം എഴുതുക.")
+
+# Gemma sometimes refuses in its own words ("...വിവരങ്ങൾ നൽകിയിട്ടില്ല") instead of writing UNSURE.
+# Those leak the RAG plumbing to the caller and are not counted as refusals, so map them to REFUSAL.
+META_REFUSAL = ["നൽകിയിട്ടില്ല", "വിവരങ്ങളിൽ ഇല്ല", "വിവരങ്ങളിൽ പറയുന്നില്ല", "പരാമർശിച്ചിട്ടില്ല",
+                "വിവരം ലഭ്യമല്ല", "വിവരങ്ങൾ ലഭ്യമല്ല", "not provided", "not mentioned"]
+_SENT_END = re.compile(r"[.?!।](?=\s|$)")
+
+
+def clean_answer(out: str) -> tuple[str, bool]:
+    """Returns (answer, refused). Maps meta-refusals to REFUSAL and drops a sentence
+    cut off by the token limit, so TTS never reads half a sentence."""
+    out = out.strip()
+    if not out or "UNSURE" in out.upper() or any(m in out for m in META_REFUSAL):
+        return REFUSAL, True
+    ends = [m.end() for m in _SENT_END.finditer(out)]
+    if ends and ends[-1] < len(out):
+        out = out[: ends[-1]]
+    return out, False
 
 
 class State(TypedDict, total=False):
@@ -157,9 +175,8 @@ def build_graph(retriever: Retriever | None = None):
                            max_tokens=ANSWER_TOKENS, temperature=0)
         except Exception:
             return {"answer": TOOL_FAIL, "refused": True}
-        if "UNSURE" in out.upper() or not out:
-            return {"answer": REFUSAL, "refused": True}
-        return {"answer": out, "refused": False}
+        answer, refused = clean_answer(out)
+        return {"answer": answer, "refused": refused}
 
     g = StateGraph(State)
     for name, fn in [("router", router), ("weather", weather), ("news", news),

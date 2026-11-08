@@ -14,6 +14,7 @@ CR_FEES = "https://cr.lsgkerala.gov.in/BirthRegnFee.php"
 SERVICE_CHARGES = "https://www.onmanorama.com/news/kerala/2025/08/06/kerala-govt-online-service-charges-akshaya-centres.html"
 TRADE_SOP = "https://www.ksidc.org/wp-content/uploads/2018/06/SOP-Checklist-for-Licence-for-Industries-Factories-Trades-Entrepreneurship-and-Other-Services.pdf"
 IKM = "https://ikm.gov.in/en/node/1107"
+IKM_KSMART = "https://ikm.gov.in/en/node/1103"
 KSMART_MINISTER = "https://www.onmanorama.com/news/kerala/2024/01/06/minister-mb-rajesh-on-ksmart-app-local-self-government-services.html"
 KSMART_FEATURES = "https://www.onmanorama.com/news/kerala/2024/01/01/k-smart-e-governance-tool-features.amp.html"
 TRADE_NAMES = "https://calcguru.in/?p=5364"
@@ -43,8 +44,8 @@ KB = [
               "ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് (ownership certificate) 50 രൂപ, BPL സർട്ടിഫിക്കറ്റ് 10 രൂപ, മറ്റ് അപേക്ഷകൾ 20 രൂപ. "
               "പണമടയ്ക്കൽ ചാർജ്: 1,000 രൂപ വരെ 10 രൂപ; 1,001 മുതൽ 5,000 വരെ 20 രൂപ; 5,000-ന് മുകളിൽ 0.5% (പരമാവധി 100 രൂപ).",
          source=SERVICE_CHARGES),
-    dict(id="trade-01", service="trade_licence", title="ട്രേഡ് ലൈസൻസ്: K-SMART-ൽ പേര്",
-         text="K-SMART-ൽ ട്രേഡ് ലൈസൻസ് പൗരന്മാർക്ക് കാണുന്നത് 'Application for New Enterprises License' എന്ന പേരിലാണ്. "
+    dict(id="trade-01", service="trade_licence", title="ട്രേഡ് ലൈസൻസിന് K-SMART-ൽ അപേക്ഷിക്കൽ",
+         text="ട്രേഡ് ലൈസൻസിന് K-SMART-ൽ 'Application for New Enterprises License' എന്ന സേവനം വഴി അപേക്ഷിക്കാം. "
               "ഓഫീസ് ജീവനക്കാർ ഇതിനെ 'IFTE and OS License' എന്ന് വിളിക്കുന്നു. മൂന്നും ഒരേ ലൈസൻസ് ആണ്. "
               "മുനിസിപ്പാലിറ്റി/കോർപ്പറേഷനിൽ Kerala Municipality Act 1994 വകുപ്പ് 447, ഗ്രാമപഞ്ചായത്തിൽ Kerala Panchayat Raj Act 1994 വകുപ്പ് 232.",
          source=TRADE_NAMES, verify=True),
@@ -91,6 +92,16 @@ KB = [
          text="പൊതുജനങ്ങൾക്ക് ksmart.lsgkerala.gov.in/ui/webportal വഴിയോ Play Store-ലെ ആപ്പ് വഴിയോ രജിസ്റ്റർ ചെയ്ത് സേവനങ്ങൾ ഉപയോഗിക്കാം. "
               "പ്രൊഫഷണൽ ടാക്സും ആപ്പ് വഴി അടയ്ക്കാം. അക്ഷയ കേന്ദ്രങ്ങൾ വഴിയും അപേക്ഷിക്കാം.",
          source=KSMART_MINISTER),
+    dict(id="cr-cert-01", service="birth_death", title="ജനന, മരണ, വിവാഹ സർട്ടിഫിക്കറ്റ് K-SMART വഴി",
+         text="ജനന, മരണ, വിവാഹ രജിസ്ട്രേഷനും സർട്ടിഫിക്കറ്റുകളും K-SMART-ലെ Civil Registration സേവനത്തിലാണ്. "
+              "അപേക്ഷ ഓൺലൈനായി നൽകാം, അതിന്റെ സ്ഥിതി ഓൺലൈനായി അറിയാം. സർട്ടിഫിക്കറ്റുകൾ ഓൺലൈനായി download ചെയ്യാം. "
+              "അപേക്ഷ ലഭിച്ചതിന്റെ അറിയിപ്പ് K-SMART ലോഗിനിലും WhatsApp, email വഴിയും കിട്ടും.",
+         source=IKM_KSMART),
+    dict(id="access-01", service="general", title="അക്ഷയ കേന്ദ്രം, കുടുംബശ്രീ ഹെൽപ്‌ഡെസ്ക് വഴി K-SMART സേവനങ്ങൾ",
+         text="സ്വന്തമായി ഓൺലൈനായി അപേക്ഷിക്കാൻ കഴിയാത്തവർക്ക് K-SMART സേവനങ്ങൾ അക്ഷയ കേന്ദ്രങ്ങൾ വഴിയും "
+              "കുടുംബശ്രീ ഹെൽപ്‌ഡെസ്കുകൾ വഴിയും ചെറിയ സർവീസ് ചാർജിൽ ലഭിക്കും: ജനന-മരണ-വിവാഹ രജിസ്ട്രേഷൻ, "
+              "ലൈസൻസ്, കെട്ടിട നികുതി, കെട്ടിട അനുമതി, പരാതി എന്നിവ.",
+         source=IKM_KSMART),
     dict(id="marriage-01", service="marriage", title="വിവാഹ രജിസ്ട്രേഷൻ ഓൺലൈനായി (വീഡിയോ KYC)",
          text="K-SMART വഴി വിവാഹ രജിസ്ട്രേഷൻ ലോകത്ത് എവിടെ നിന്നും ഓൺലൈനായി ചെയ്യാം. വീഡിയോ KYC വഴിയാണ് തിരിച്ചറിയൽ. "
               "ഭാര്യയ്ക്കും ഭർത്താവിനും രണ്ട് വ്യത്യസ്ത സ്ഥലങ്ങളിൽ നിന്ന് പൂർത്തിയാക്കാം; പ്രവാസികൾക്ക് ഓഫീസിൽ വരേണ്ടതില്ല.",
@@ -125,13 +136,18 @@ QUESTIONS = {
                       "വിവാഹ സർട്ടിഫിക്കറ്റ് തിരുത്താൻ ചാർജ്", "ജനന രേഖ തിരുത്താൻ എത്ര"],
     "svc-charge-02": ["പരാതി കൊടുക്കാൻ പണം വേണോ", "ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റിന് ചാർജ്",
                       "BPL സർട്ടിഫിക്കറ്റ് ചാർജ്", "ഓൺലൈനായി പണമടച്ചാൽ ട്രാൻസാക്ഷൻ ചാർജ്"],
-    "trade-01": ["K-SMART-ൽ ട്രേഡ് ലൈസൻസ് ഏത് പേരിലാണ്", "Enterprises License എന്താണ്", "IFTE and OS License"],
+    "trade-01": ["K-SMART-ൽ ട്രേഡ് ലൈസൻസ് ഏത് പേരിലാണ്", "Enterprises License എന്താണ്", "IFTE and OS License",
+                 "ട്രേഡ് ലൈസൻസിന് എവിടെ അപേക്ഷിക്കണം", "ലൈസൻസ് ഓൺലൈനായി എടുക്കാൻ"],
     "trade-02": ["കട തുടങ്ങാൻ ലൈസൻസിന് ആവശ്യമായ രേഖകൾ", "വാടകക്കെട്ടിടത്തിൽ സ്ഥാപനം ഉടമയുടെ സമ്മതം",
                  "പുതിയ ബിസിനസ് ലൈസൻസ് അപേക്ഷ", "documents for trade licence"],
     "trade-04": ["ലൈസൻസ് കാലാവധി എത്ര വർഷം", "ലൈസൻസ് റിന്യൂ ചെയ്യാൻ", "ലൈസൻസ് കിട്ടാൻ എത്ര സമയം",
                  "ലൈസൻസ് കാലാവധി കഴിഞ്ഞാൽ"],
     "ksmart-01": ["K-SMART എന്താണ്", "കെ സ്മാർട്ടിൽ ഏതൊക്കെ സേവനങ്ങൾ", "ksmart വെബ്സൈറ്റ്"],
     "ksmart-02": ["കെ സ്മാർട്ടിൽ അക്കൗണ്ട് ഉണ്ടാക്കാൻ", "ksmart ആപ്പ് ഡൗൺലോഡ്", "പ്രൊഫഷണൽ ടാക്സ് ഓൺലൈനായി"],
+    "cr-cert-01": ["ജനന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും", "മരണ സർട്ടിഫിക്കറ്റ് ഡൗൺലോഡ് ചെയ്യാൻ",
+                   "സർട്ടിഫിക്കറ്റ് അപേക്ഷയുടെ സ്ഥിതി അറിയാൻ", "birth certificate download"],
+    "access-01": ["അക്ഷയ സെന്ററിൽ എന്തൊക്കെ ചെയ്യാം", "കുടുംബശ്രീ ഹെൽപ്‌ഡെസ്ക്",
+                  "ഓൺലൈനായി അപേക്ഷിക്കാൻ അറിയില്ലെങ്കിൽ", "അക്ഷയ വഴി അപേക്ഷിക്കാമോ"],
     "marriage-01": ["വിദേശത്തിരുന്ന് വിവാഹം രജിസ്റ്റർ ചെയ്യാൻ", "പ്രവാസിക്ക് ഓൺലൈനായി കല്യാണം രജിസ്റ്റർ ചെയ്യാമോ",
                     "ഭാര്യയും ഭർത്താവും വേറെ രാജ്യങ്ങളിൽ", "ഓഫീസിൽ പോകാതെ വിവാഹ രജിസ്ട്രേഷൻ"],
     "building-01": ["വീട് പണിയാൻ അനുമതി", "ബിൽഡിംഗ് പെർമിറ്റ് എങ്ങനെ കിട്ടും", "കെട്ടിട പ്ലാൻ അംഗീകാരം"],

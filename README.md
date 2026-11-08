@@ -63,8 +63,24 @@ python -m eval.run_eval --dense --full        # end-to-end with LLM + live tools
   questions (ration card and passport questions score as high as real ones),
   so the retrieval gate lets them through: 15/17. Refusal for these depends
   on the dense cosine threshold and the LLM's `UNSURE`; measure with `--full`.
-- Knowledge base: 15 entries, each with example questions that are indexed
+- Knowledge base: 17 entries, each with example questions that are indexed
   for retrieval but never sent to the LLM (written independently of the eval set).
 - Knowledge base: Entries with `verify: true` come from a 2018
   SOP or a secondary site; check them against current official pages.
 - Open-Meteo free API is non-commercial only.
+
+## Space check (7-8 Nov 2026)
+16 spoken turns on the Hugging Face Space (`REPLY_ENGINE=helpdesk`): reply stage
+0.05-4.4 s (median 1.4 s), whole turn 1.7-6.2 s. Weather, news, out-of-scope
+and passport refusals behaved as intended. Fixed after reading the log:
+- Gemma sometimes refused in its own words ("...വിവരങ്ങൾ നൽകിയിട്ടില്ല") instead of
+  `UNSURE`; these now map to the standard refusal.
+- One answer was cut mid-sentence by the token limit; answers now end at the last
+  full sentence (limit raised to 100 tokens).
+- News read five headlines with publisher names (28 s of speech); now three, without
+  publishers, and it says when a district has no local headline.
+- Two missing topics added from IKM's K-SMART page (certificates online; Akshaya and
+  Kudumbashree help desks), and entry titles weigh double in BM25.
+- Still open: ASR mishears (e.g. "ജനന സർട്ടിഫിക്കറ്റ്" heard as "ജനങ്ങൾ സർട്ടിപ്പിക്ക്ഷ്")
+  pull the wrong passage; the prompt now asks Gemma to answer UNSURE when the passage
+  is about a different service.

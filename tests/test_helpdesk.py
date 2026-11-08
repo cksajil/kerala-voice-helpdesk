@@ -194,3 +194,47 @@ def test_warmup_prompt_matches_answer_prompt_prefix():
     real = G.answer_message(G.passage(d), "മറ്റൊരു ചോദ്യം")
     shared = warm[: warm.index("ചോദ്യം:")]
     assert real.startswith(shared) and G.passage(d) in shared
+
+
+# --- regressions from the Space log (7 Nov) ----------------------------------
+@pytest.mark.parametrize("out", [
+    "പാസ്പോർട്ട് പുതുക്കുന്നതിനെക്കുറിച്ച് വിവരങ്ങൾ നൽകിയിട്ടില്ല.",                 # turn 12
+    "കെട്ടിട നികുതി അടയ്ക്കുന്നതിനെക്കുറിച്ച് പ്രത്യേക തീയതി വിവരങ്ങൾ നൽകിയിട്ടില്ല.",  # turn 9
+    "UNSURE", "", "  unsure  ",
+])
+def test_meta_refusals_become_refusals(out):
+    assert G.clean_answer(out) == (G.REFUSAL, True)
+
+
+def test_cut_off_sentence_is_dropped():
+    # turn 8 ended mid-sentence at the token limit
+    out = ("K-SMART തദ്ദേശ സ്ഥാപനങ്ങളുടെ സേവനങ്ങൾക്കായുള്ള പ്ലാറ്റ്‌ഫോമാണ്. "
+           "ഇതിൽ ജനന-മരണ-വിവാഹ രജിസ്ട്രേഷൻ, വ്യാപാര ലൈസൻസ് തുടങ്ങിയ സേവനങ്ങൾ")
+    ans, refused = G.clean_answer(out)
+    assert not refused and ans.endswith("പ്ലാറ്റ്‌ഫോമാണ്.")
+
+
+def test_complete_answer_is_kept():
+    out = "കാലാവധി തീരുന്നതിന് 30 ദിവസം മുൻപ് ഫീസ് അടച്ചാൽ ലൈസൻസ് സ്വയം പുതുക്കപ്പെടും."
+    assert G.clean_answer(out) == (out, False)
+
+
+def test_asr_garbled_certificate_still_routes_to_service():
+    assert G.rule_route("ജനങ്ങൾ സർട്ടിപ്പിക്ക്ഷ്.") == "service_faq"     # turn 7
+
+
+def test_news_three_headlines_without_publisher(monkeypatch):
+    items = "".join(f"<item><title>വാർത്ത {i} - Publisher {i}</title><link>https://x/{i}</link></item>"
+                    for i in range(5)).encode()
+    rss = b'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>t</title>' + items + b"</channel></rss>"
+
+    class R:
+        content = rss
+        def raise_for_status(self): pass
+    tools._CACHE.clear()
+    monkeypatch.setattr(tools.requests, "get", lambda *a, **k: R())
+    out = tools.news("ഇന്നത്തെ വാർത്തകൾ")
+    assert len(out["items"]) == 3 and "Publisher" not in out["text"]
+    assert out["items"][0]["title"].endswith("Publisher 0")       # kept for the UI
+    out = tools.news("തിരുവനന്തപുരത്തെ വാർത്തകൾ")                 # turn 5: no local headline
+    assert out["text"].startswith("തിരുവനന്തപുരം ജില്ലയിലെ പ്രത്യേക വാർത്തകൾ കിട്ടിയില്ല")
