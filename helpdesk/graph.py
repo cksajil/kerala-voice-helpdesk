@@ -21,7 +21,7 @@ from langgraph.graph import END, StateGraph
 
 from . import fees, llm, tools
 from .normalise import normalise
-from .retriever import Retriever
+from .retriever import Retriever, mentions_service
 
 Route = Literal["weather", "news", "service_faq", "other"]
 CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
@@ -29,8 +29,8 @@ ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "100"))   # ~0.34 s per 
 
 REFUSAL = ("ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. "
            "നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ.")
-SCOPE = ("ഞാൻ തദ്ദേശ സ്ഥാപന സേവനങ്ങൾ (ജനന, മരണ, വിവാഹ രജിസ്ട്രേഷൻ, ട്രേഡ് ലൈസൻസ്, കെട്ടിട നികുതി, "
-         "കെട്ടിട അനുമതി), കേരളത്തിലെ കാലാവസ്ഥ, ഇന്നത്തെ വാർത്തകൾ എന്നിവയെക്കുറിച്ച് സഹായിക്കാം.")
+SCOPE = ("ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. "
+         "ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം.")
 TOOL_FAIL = "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
 
 # Stems, not full words: Malayalam inflects heavily (മഴ / മഴയുണ്ടോ, വാർത്ത / വാർത്തകൾ).
@@ -53,7 +53,9 @@ ANSWER_PROMPT = (
     "നീ കേരളത്തിലെ തദ്ദേശ സ്ഥാപന സേവനങ്ങളെക്കുറിച്ചുള്ള ഒരു വോയ്സ് ഹെൽപ്ഡെസ്ക് ആണ്. "
     "താഴെ കൊടുത്ത വിവരങ്ങൾ മാത്രം ഉപയോഗിച്ച് ലളിതമായ സംസാര മലയാളത്തിൽ 1-2 ചെറിയ വാക്യങ്ങളിൽ ഉത്തരം പറയുക. "
     "തുകകളും ദിവസങ്ങളും പേരുകളും വിവരങ്ങളിൽ ഉള്ളതുപോലെ തന്നെ പറയുക. Markdown, ലിസ്റ്റ്, ലിങ്ക് എന്നിവ വേണ്ട. "
-    "വിവരങ്ങൾ ചോദ്യത്തിലെ അതേ സേവനത്തെക്കുറിച്ചല്ലെങ്കിലോ ഉത്തരം വിവരങ്ങളിൽ ഇല്ലെങ്കിലോ UNSURE എന്ന് മാത്രം എഴുതുക.")
+    "തുകകൾ കൂട്ടുകയോ കുറയ്ക്കുകയോ ചെയ്യരുത്. "
+    "വിവരങ്ങൾ ചോദ്യത്തിലെ അതേ സേവനത്തെക്കുറിച്ചല്ലെങ്കിലോ, ചോദിച്ച കാര്യം (ഉദാഹരണത്തിന് തുക, തീയതി, "
+    "നിർബന്ധമാണോ എന്ന്) വിവരങ്ങളിൽ നേരിട്ട് ഇല്ലെങ്കിലോ UNSURE എന്ന് മാത്രം എഴുതുക.")
 
 # Gemma sometimes refuses in its own words ("...വിവരങ്ങൾ നൽകിയിട്ടില്ല") instead of writing UNSURE.
 # Those leak the RAG plumbing to the caller and are not counted as refusals, so map them to REFUSAL.
@@ -79,6 +81,8 @@ class State(TypedDict, total=False):
     route: Route
     route_by: str            # "rule" | "llm" | "default"
     tool: str                # set when a deterministic tool answered (e.g. "fee_calc")
+    previous: str            # the caller's previous question in this conversation, if any
+    previous_route: Route
     context: str
     sources: list[dict]
     answer: str
@@ -111,6 +115,9 @@ def build_graph(retriever: Retriever | None = None):
         r = rule_route(s["query"])
         if r:
             return {"route": r, "route_by": "rule"}
+        # Short follow-up after a service question ("അതിന് എത്ര ദിവസം എടുക്കും?"): stay on service.
+        if s.get("previous_route") == "service_faq" and len(s["query"].split()) <= 6:
+            return {"route": "service_faq", "route_by": "follow-up"}
         if llm.enabled():
             try:
                 label = llm.chat(CLASSIFY_PROMPT, s["query"], max_tokens=5, temperature=0).lower()
@@ -149,7 +156,11 @@ def build_graph(retriever: Retriever | None = None):
                              "verify": by_id[i].get("verify", False)} for i in out["source_ids"] if i in by_id]}
 
     def retrieve(s: State) -> State:
-        hits = retriever.search(s["query"], k=3)
+        query = s["query"]
+        # A follow-up that names no service borrows the previous question for retrieval only.
+        if s.get("previous") and not mentions_service(query):
+            query = s["previous"] + " " + query
+        hits = retriever.search(query, k=3)
         if not retriever.confident(hits):
             return {"context": "", "sources": []}
         # Only the top CTX_K passages go to the LLM (prefill dominates CPU latency),

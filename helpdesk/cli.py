@@ -10,9 +10,11 @@ from .graph import build_graph
 def main():
     g = build_graph()
     qs = sys.argv[1:] or iter(lambda: input("ചോദ്യം> "), "")
+    prev = {}
     for q in qs:
         t = time.perf_counter()
-        s = g.invoke({"query": q})
+        s = g.invoke({"query": q, **prev})
+        prev = {"previous": q, "previous_route": s["route"]}
         print(f"\n[{s['route']} via {s.get('route_by')}, {time.perf_counter() - t:.1f}s]")
         print(s["answer"])
         for src in s.get("sources", []):

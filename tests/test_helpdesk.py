@@ -91,6 +91,18 @@ def test_llm_classifier_used_when_no_rule(app, monkeypatch):
 
 
 # --- news parsing -----------------------------------------------------------
+def _get_without_district_feeds(response):
+    """Mock requests.get where every district search feed is down, so the general
+    feeds and the district filter are exercised."""
+    district_urls = {tools._district_feed(k)[1] for k in tools.DISTRICTS}
+
+    def get(url, **k):
+        if url in district_urls:
+            raise tools.requests.RequestException("district feed down")
+        return response
+    return get
+
+
 RSS = b"""<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>t</title>
 <item><title>\xe0\xb4\x95\xe0\xb5\x8a\xe0\xb4\x9a\xe0\xb5\x8d\xe0\xb4\x9a\xe0\xb4\xbf news one</title><link>https://x/1</link>
 <description>&lt;p&gt;first &amp;amp; summary&lt;/p&gt;</description></item>
@@ -103,7 +115,7 @@ def test_news_parses_and_filters_by_district(monkeypatch):
         content = RSS
         def raise_for_status(self): pass
     tools._CACHE.clear()
-    monkeypatch.setattr(tools.requests, "get", lambda *a, **k: R())
+    monkeypatch.setattr(tools.requests, "get", _get_without_district_feeds(R()))
     out = tools.news("കൊച്ചിയിലെ വാർത്തകൾ")
     assert out["items"][0]["title"].startswith("കൊച്ചി")
     assert len(out["items"]) == 1                   # filtered to the district
@@ -232,7 +244,7 @@ def test_news_three_headlines_without_publisher(monkeypatch):
         content = rss
         def raise_for_status(self): pass
     tools._CACHE.clear()
-    monkeypatch.setattr(tools.requests, "get", lambda *a, **k: R())
+    monkeypatch.setattr(tools.requests, "get", _get_without_district_feeds(R()))
     out = tools.news("ഇന്നത്തെ വാർത്തകൾ")
     assert len(out["items"]) == 3 and "Publisher" not in out["text"]
     assert out["items"][0]["title"].endswith("Publisher 0")       # kept for the UI
@@ -299,3 +311,54 @@ def test_kb_csv_builds_and_ids_are_unique():
                                "പട്ടിക്ക് ലൈസൻസ് എടുക്കണോ?", "വിവരാവകാശ അപേക്ഷയ്ക്ക് എത്ര ദിവസം?"])
 def test_charter_topics_route_to_service(q):
     assert G.rule_route(q) == "service_faq"
+
+
+# --- regressions from the Space log (8 Nov, evening) -------------------------
+def test_marriage_fee_question_without_delay_reads_schedule():
+    out = fees.answer("വിവാഹ രജിസ്ട്രേഷനായിട്ടുള്ള ഫീസ് എത്രയാണ്?")
+    assert out and "ആകെ 120 രൂപ" in out["answer"] and "ഫീസ് 10 രൂപ" in out["answer"]
+    assert "കുറയ" not in out["answer"]
+
+
+def test_marriage_how_long_is_not_a_fee_question():
+    assert fees.answer("വിവാഹ സർട്ടിഫിക്കറ്റ് കിട്ടാൻ എത്ര ദിവസം എടുക്കും?") is None
+
+
+@pytest.mark.parametrize("q,top", [
+    ("വിവാഹ രജിസ്ട്രേഷൻ നിർബന്ധമാ.", "ch-marr-compulsory-01"),
+    ("കർഷക തൊഴിലാളി പെൻഷൻ എത്രെയാണ്?", "ch-pen-amount-01"),
+    ("എത്രയാണ് പെൻഷൻ തുക?", "ch-pen-amount-01"),
+    ("കർഷക തൊഴിലാളി പെൻഷന് ആർക്കൊക്കെ അപേക്ഷിക്കാം?", "ch-pen-agri-01"),
+    ("വീടിന് പെർമിറ്റ് കിട്ടാൻ എത്ര ദിവസം?", "ch-bp-time-01"),
+    ("അക്ഷയകേന്ദ്രത്തിൽ ലഭിക്കുന്ന സർവീസുകളൊന്നൊക്കെ", "access-01"),
+])
+def test_log_questions_retrieve_the_right_entry(q, top):
+    assert Retriever(dense=False).search(q, k=1)[0].doc["id"] == top
+
+
+def test_follow_up_keeps_the_previous_topic(app):
+    s = app.invoke({"query": "അതിന് എന്തൊക്കെ രേഖകൾ വേണം?",
+                    "previous": "കർഷക തൊഴിലാളി പെൻഷന് ആർക്കൊക്കെ അപേക്ഷിക്കാം?", "previous_route": "service_faq"})
+    assert s["route_by"] == "follow-up" and s["sources"][0]["id"] == "ch-pen-agri-01"
+
+
+def test_scope_message_is_short():
+    assert len(G.SCOPE) < 150
+
+
+def test_district_news_uses_district_search_feed(monkeypatch):
+    seen = []
+    rss = (b'<?xml version="1.0"?><rss version="2.0"><channel><title>t</title>'
+           b'<item><title>\xe0\xb4\xb6\xe0\xb5\x8d\xe0\xb4\xb0\xe0\xb5\x80\xe0\xb4\x95\xe0\xb4\xbe\xe0\xb4\xb0\xe0\xb5\x8d\xe0\xb4\xaf\xe0\xb4\x82 news - P</title></item></channel></rss>')
+
+    class R:
+        content = rss
+        def raise_for_status(self): pass
+
+    def get(url, **k):
+        seen.append(url)
+        return R()
+    tools._CACHE.clear()
+    monkeypatch.setattr(tools.requests, "get", get)
+    out = tools.news("തിരുവനന്തപുരത്തെ വാർത്തകൾ")
+    assert "search?q=" in seen[0] and out["text"].startswith("തിരുവനന്തപുരം വാർത്തകൾ:")

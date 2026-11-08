@@ -8,6 +8,7 @@ are exact-match signals that dense models blur.
 from __future__ import annotations
 
 import json
+import re
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -32,6 +33,24 @@ SERVICE_HINTS = {
     "general": ["അക്ഷയ", "സർവീസ് ചാർജ", "കെ സ്മാർട്ട", "ksmart", "k-smart"],
 }
 SERVICE_BOOST = float(os.getenv("HELPDESK_SERVICE_BOOST", "0.4"))
+
+
+# "How much?" questions should reach the amount/fee entry, not the eligibility entry of the
+# same service ("കർഷക തൊഴിലാളി പെൻഷൻ എത്രയാണ്?" went to who-can-apply).
+AMOUNT_WORDS = ["തുക", "എത്ര രൂപ", "എത്രയാ", "എത്രെയാ", "എത്ര കിട്ടും", "how much"]
+AMOUNT_TITLES = ["തുക", "ഫീസ", "ചാർജ"]
+AMOUNT_BOOST = float(os.getenv("HELPDESK_AMOUNT_BOOST", "0.5"))
+_NOT_AMOUNT = re.compile(r"എത്ര\s*(ദിവസ|സമയ|വർഷ|മാസ|ആഴ്ച|മണിക്കൂ)")
+
+
+def asks_amount(query: str) -> bool:
+    q = normalise(query)
+    return any(normalise(w) in q for w in AMOUNT_WORDS) and not _NOT_AMOUNT.search(q)
+
+
+def mentions_service(query: str) -> bool:
+    q = normalise(query)
+    return any(normalise(x) in q for stems in SERVICE_HINTS.values() for x in stems)
 BM25_MIN = float(os.getenv("HELPDESK_BM25_MIN", "4.0"))   # tune on eval set
 COS_MIN = float(os.getenv("HELPDESK_COS_MIN", "0.55"))    # tune on eval set
 
@@ -83,6 +102,9 @@ class Retriever:
         services = {s for s, stems in SERVICE_HINTS.items() if any(normalise(x) in q for x in stems)}
         if services:
             bm = [x * (1 + SERVICE_BOOST) if self.docs[i].get("service") in services else x
+                  for i, x in enumerate(bm)]
+        if asks_amount(query):
+            bm = [x * (1 + AMOUNT_BOOST) if any(t in normalise(self.docs[i]["title"]) for t in AMOUNT_TITLES) else x
                   for i, x in enumerate(bm)]
         order_bm = sorted(range(len(self.docs)), key=lambda i: -bm[i])
         rrf = {i: 1 / (rrf_k + r) for r, i in enumerate(order_bm)}

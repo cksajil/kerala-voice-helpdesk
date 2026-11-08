@@ -74,6 +74,13 @@ def _quantity(q: str, units: list[tuple[str, float]]) -> float | None:
     return None
 
 
+MONEY_INTENT = ["ഫീസ", "രൂപ", "ചാർജ", "fee", "പിഴ"]
+MARRIAGE_SCHEDULE = ("വിവാഹം കഴിഞ്ഞ് 45 ദിവസത്തിനകം രജിസ്റ്റർ ചെയ്താൽ രജിസ്ട്രേഷൻ ഫീ 100 രൂപയും "
+                     "സർട്ടിഫിക്കറ്റ് ഫീ 20 രൂപയും, ആകെ 120 രൂപ. ദമ്പതികൾ ദാരിദ്ര്യരേഖയ്ക്ക് താഴെയുള്ളവരോ "
+                     "പട്ടികജാതി-പട്ടികവർഗക്കാരോ ആണെങ്കിൽ ഫീസ് 10 രൂപ. 45 ദിവസം കഴിഞ്ഞാൽ 100 രൂപയും "
+                     "5 വർഷം കഴിഞ്ഞാൽ 250 രൂപയും പിഴ കൂടി അടയ്ക്കണം.")
+
+
 def marriage_fee(days: float) -> tuple[int, str]:
     """Kerala Registration of Marriages (Common) Rules 2008, as both charters state it:
     registration fee 100 + certificate fee 20; +100 fine after 45 days; +250 fine after 5 years."""
@@ -126,6 +133,10 @@ def answer(query: str) -> dict | None:
     # Marriage registration fee: marriage + a delay + registration or fee intent.
     if _has(q, MARRIAGE) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
         days = _quantity(q, DAY_UNITS)
+        if days is None and _has(q, MONEY_INTENT):
+            # No delay given: read out the whole schedule. Gemma paraphrased "BPL: ₹10" as
+            # "₹10 less than ₹120" in the Space log (8 Nov).
+            return {"answer": MARRIAGE_SCHEDULE, "source_ids": ["ch-marr-fee-01"]}
         if days is not None:
             _, rule = marriage_fee(days)
             if _has(q, POOR):

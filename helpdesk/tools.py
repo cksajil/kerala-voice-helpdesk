@@ -75,8 +75,18 @@ def weather(query: str) -> dict:
 
 NEWS_FEEDS = [
     ("Oneindia Malayalam", "https://malayalam.oneindia.com/rss/malayalam-news-fb.xml"),
+    ("Google News (Kerala)", "https://news.google.com/rss/search?q=%E0%B4%95%E0%B5%87%E0%B4%B0%E0%B4%B3%E0%B4%82&hl=ml&gl=IN&ceid=IN:ml"),
     ("Google News (Malayalam)", "https://news.google.com/rss?hl=ml&gl=IN&ceid=IN:ml"),
 ]
+
+
+def _district_feed(key: str) -> tuple[str, str]:
+    """Google News search for the district's Malayalam name: the general feeds rarely
+    carry local headlines ('തിരുവനന്തപുരം ജില്ലയിലെ പ്രത്യേക വാർത്തകൾ കിട്ടിയില്ല')."""
+    from urllib.parse import quote
+    name = DISTRICTS[key][0]
+    return (f"Google News ({name})",
+            f"https://news.google.com/rss/search?q={quote(name)}&hl=ml&gl=IN&ceid=IN:ml")
 _CACHE: dict[str, tuple[float, list[dict]]] = {}
 CACHE_SECONDS = 600
 _TAG = re.compile(r"<[^>]+>")
@@ -95,7 +105,9 @@ def _headline(title: str) -> str:
 def news(query: str = "", n: int = 3) -> dict:
     """Headlines only (no article scraping): fresh, fast, and no copyright issue.
     Three short headlines: five took ~28 s to speak in the voice demo."""
-    for name, url in NEWS_FEEDS:
+    key = find_district(query)
+    feeds = ([_district_feed(key)] if key else []) + NEWS_FEEDS
+    for name, url in feeds:
         hit = _CACHE.get(url)
         if hit and time.time() - hit[0] < CACHE_SECONDS:
             items = hit[1]
@@ -114,8 +126,9 @@ def news(query: str = "", n: int = 3) -> dict:
         if items:
             # District filter: prefer headlines that mention the district; say so when none do.
             intro = "ഇന്നത്തെ പ്രധാന വാർത്തകൾ: "
-            key = find_district(query)
-            if key:
+            if key and url == feeds[0][1]:             # district search feed: all items are local
+                intro = f"{DISTRICTS[key][0]} വാർത്തകൾ: "
+            elif key:
                 stems = [normalise(s) for s in DISTRICTS[key][1]]
                 local = [i for i in items if any(s in normalise(i["title"]) for s in stems)]
                 if local:
