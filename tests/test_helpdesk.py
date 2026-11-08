@@ -238,3 +238,32 @@ def test_news_three_headlines_without_publisher(monkeypatch):
     assert out["items"][0]["title"].endswith("Publisher 0")       # kept for the UI
     out = tools.news("തിരുവനന്തപുരത്തെ വാർത്തകൾ")                 # turn 5: no local headline
     assert out["text"].startswith("തിരുവനന്തപുരം ജില്ലയിലെ പ്രത്യേക വാർത്തകൾ കിട്ടിയില്ല")
+
+
+# --- TTS normaliser ---------------------------------------------------------
+from helpdesk.speech import number_words, to_speech
+
+
+@pytest.mark.parametrize("n,words", [
+    (0, "പൂജ്യം"), (10, "പത്ത്"), (21, "ഇരുപത്തിയൊന്ന്"), (22, "ഇരുപത്തിരണ്ട്"), (25, "ഇരുപത്തിയഞ്ച്"),
+    (91, "തൊണ്ണൂറ്റിയൊന്ന്"), (100, "നൂറ്"), (105, "നൂറ്റിയഞ്ച്"), (125, "നൂറ്റി ഇരുപത്തിയഞ്ച്"),
+    (500, "അഞ്ഞൂറ്"), (900, "തൊള്ളായിരം"), (1000, "ആയിരം"), (1500, "ആയിരത്തി അഞ്ഞൂറ്"),
+    (2018, "രണ്ടായിരത്തി പതിനെട്ട്"), (3000, "മൂവായിരം"), (5000, "അയ്യായിരം"), (8000, "എണ്ണായിരം"),
+    (10000, "പതിനായിരം"), (15000, "പതിനയ്യായിരം"), (25000, "ഇരുപത്തയ്യായിരം"),
+    (100000, "ഒരു ലക്ഷം"), (1000000, "പത്ത് ലക്ഷം"), (15000000, "ഒരു കോടി അമ്പത് ലക്ഷം"),
+])
+def test_number_words(n, words):
+    assert number_words(n) == words
+
+
+def test_to_speech_weather_and_fees():
+    assert to_speech("ഇപ്പോൾ 26 ഡിഗ്രി സെൽഷ്യസ്. മഴ സാധ്യത 100 ശതമാനം.") == \
+        "ഇപ്പോൾ ഇരുപത്തിയാറ് ഡിഗ്രി സെൽഷ്യസ്. മഴ സാധ്യത നൂറ് ശതമാനം."
+    assert to_speech("ഫീസ് 1,000 രൂപ. ₹500 വരെ. 98% സാധ്യത. 1.5 കോടി.") == \
+        "ഫീസ് ആയിരം രൂപ. അഞ്ഞൂറ് രൂപ വരെ. തൊണ്ണൂറ്റിയെട്ട് ശതമാനം സാധ്യത. ഒന്നര കോടി."
+    assert to_speech("10-25 ലക്ഷം") == "പത്ത് ലക്ഷം മുതൽ ഇരുപത്തിയഞ്ച് ലക്ഷം വരെ"
+
+
+def test_to_speech_english_terms_have_no_latin_left():
+    out = to_speech("K-SMART-ലെ Quick Pay വഴി; WhatsApp, email; SC/ST, BPL; eDCR, GIS.")
+    assert not any("A" <= c <= "z" for c in out), out
