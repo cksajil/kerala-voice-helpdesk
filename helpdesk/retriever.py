@@ -63,7 +63,7 @@ _GENERIC = ["സർട്ടിഫിക്കറ്റ", "സർട്ടിഫ
             "നഗരസഭ", "എത്ര", "എന്ത", "എങ്ങനെ", "എവിടെ", "ലഭിക്ക", "കിട്ട", "വേണ്ട", "വേണം", "വേണോ",
             "ആവശ്യ", "ചെയ്യ", "നൽക", "കേരള", "ദിവസ", "ഫീസ", "രൂപ", "രേഖ", "സേവന", "ഓഫീസ", "എടുക്ക",
             "ഉള്ള", "ഇപ്പോ", "എനിക്ക", "എന്റെ", "നിങ്ങ", "കുറിച്ച", "പറ്റി", "സംബന്ധ", "വിവര", "ഏതൊക്ക",
-            "എന്തൊക്ക", "എന്നിവ", "ഉണ്ട", "കഴിയ", "പറയ", "അറിയ", "സമയ", "തുക", "പണം", "കാര്യ", "പുതിയ",
+            "എന്തൊക്ക", "സർവീസ", "പേര", "നിന്റെ", "നീ", "എന്നിവ", "ഉണ്ട", "കഴിയ", "പറയ", "അറിയ", "സമയ", "തുക", "പണം", "കാര്യ", "പുതിയ",
             "തുടങ്ങ", "ആരംഭ", "പോക", "വര", "ഇന്ന", "നാളെ", "എപ്പോ", "ആരാ", "ഏതാ", "പദ്ധതി", "ജോലി",
             # pointing words: "അതിന് എത്ര ദിവസം?" names nothing new
             "അതിന", "ഇതിന", "അതിൽ", "ഇതിൽ", "അത്", "ഇത്", "അവിടെ", "ഇവിടെ", "അങ്ങനെ", "ഇങ്ങനെ", "അപ്പോൾ",
@@ -91,6 +91,12 @@ def _content_words(text: str) -> list[str]:
             if len(w) >= 3 and not any(w.startswith(normalise(g)) for g in _GENERIC)]
 
 
+def _bare(w: str) -> str:
+    """Without a final virama or anusvara: 'കാർഡ്' -> 'കാർഡ', 'പരസ്യം' -> 'പരസ്യ', so the
+    inflected forms ('കാർഡിനു', 'പരസ്യങ്ങൾ') start with the whole word."""
+    return w[:-1] if len(w) > 3 and w[-1] in "്ം" else w
+
+
 def _match_score(a: str, b: str) -> float:
     """1 for the same word, 0.8 for the same word plus a suffix, 0.6 for a shared stem:
     'തൊഴിൽ' matches the row 'തൊഴിൽ കാർഡ്' better than 'കർഷക തൊഴിലാളി പെൻഷൻ' (9 Nov log)."""
@@ -98,21 +104,20 @@ def _match_score(a: str, b: str) -> float:
         return 1.0
     if not _stem_match(a, b):
         return 0.0
+    a, b = _bare(a), _bare(b)
     n = len(os.path.commonprefix([a, b]))
     return 0.8 if n == min(len(a), len(b)) else 0.6
 
 
 def _stem_match(a: str, b: str) -> bool:
-    """Same word up to inflection: 'പരസ്യം' / 'പരസ്യങ്ങൾ', 'ചികിത്സ' / 'ചികിത്സയ്ക്ക്'."""
-    n = 0
-    for x, y in zip(a, b):
-        if x != y:
-            break
-        n += 1
+    """Same word up to inflection: 'പരസ്യം' / 'പരസ്യങ്ങൾ', 'ചികിത്സ' / 'ചികിത്സയ്ക്ക്'.
+    A partial match needs 5 shared letters: 'സ്ഥിതി' and 'സ്ഥിര' share only 'സ്ഥി'."""
+    if a == b:
+        return True
+    a, b = _bare(a), _bare(b)
+    n = len(os.path.commonprefix([a, b]))
     shorter = min(len(a), len(b))
-    # One word is the other plus a suffix ('വേതന' / 'വേതനം'), or they share most of the shorter
-    # word ('കുത്തിവെപ്പ്' / 'കുത്തിവെയ്പ്'); 'തൊഴിലില്ലായ്മ' / 'തൊഴിലാളി' share only 'തൊഴില'.
-    return a == b or (n >= 3 and n == shorter) or (n >= 4 and n >= 0.65 * shorter)
+    return (n >= 3 and n == shorter) or (n >= 5 and n >= 0.65 * shorter)
 
 
 class Retriever:
@@ -204,6 +209,11 @@ class Retriever:
         """How many distinctive words of the question the passage title has (up to inflection)."""
         tw = _content_words(doc["title"])
         return sum(any(_stem_match(q, t) for t in tw) for q in _content_words(fix_asr(query)))
+
+    @staticmethod
+    def title_score(query: str, doc: dict) -> float:
+        """title_overlap weighted by match quality (exact 1, word+suffix 0.8, shared stem 0.6)."""
+        return Retriever._overlap_score(_content_words(fix_asr(query)), doc["title"])
 
     def _score(self, qw: list[str], i: int) -> tuple[float, int]:
         tw = self._title_words[i]

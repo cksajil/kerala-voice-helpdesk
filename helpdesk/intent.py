@@ -51,12 +51,15 @@ OUT_OF_SCOPE = ["പാസ്പോർട്ട", "passport", "ആധാർ", "a
                 "മുഖ്യമന്ത്രി", "പ്രധാനമന്ത്രി", "മന്ത്രി", "ഗവർണ", "കേരളത്തിൽ എത്ര", "ഇന്ത്യയിൽ",
                 "ഇന്ത്യയുടെ"]
 # General-knowledge counts: "കേരളത്തിൽ എത്ര പഞ്ചായത്തുകളുണ്ട്" is not a follow-up to property tax.
+# "X-ൽ നിന്ന് Y-ലേക്ക്": a route or distance ("തിരുവനന്തപുരത്ത് നിന്നും വർക്കലയിലേക്ക്"), not a service.
+_ROUTE_Q = re.compile(r"നിന്ന\S*\s+(?:\S+\s+)?\S+ലേക്ക")
 _COUNT_Q = re.compile(r"എത്ര\s+\S*(?:കളു|ങ്ങളു|കൾ\s*ഉ|ങ്ങൾ\s*ഉ)ണ്ട")
 
 
 def out_of_scope(query: str) -> bool:
     q = fix_asr(query)
-    return any(normalise(s) in q for s in OUT_OF_SCOPE) or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
+    return (any(normalise(s) in q for s in OUT_OF_SCOPE) or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
+            or bool(_ROUTE_Q.search(q)))
 
 
 # Genitive service names for the "I don't have that" reply.
@@ -99,7 +102,7 @@ ASR_FIXES = [
     ("സക്കിറ്റ്", "സർട്ടിഫിക്കറ്റ്", None), ("കേസ് മാർട്ട", "കെ സ്മാർട്ട", None),
     ("ലൈക്സൻസ", "ലൈസൻസ", None), ("രേഖക്കൾ", "രേഖകൾ", None), (" മെത്ര", " എത്ര", None),
     ("കുറ്റികൾ", "കുട്ടികൾ", None), ("ചനന", "ജനന", None), ("ജനനെ ", "ജനന ", None), ("ജനന് ", "ജനന ", None),
-    ("ഇൻഷുറൻസ", "ഇൻഷ്വറൻസ", None), ("കാമെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"),
+    ("ഇൻഷുറൻസ", "ഇൻഷ്വറൻസ", None), ("കാമെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"), ("കാറിലെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"),
 ]
 # Rewrites for detection only (not shown to the LLM):
 _DETECT_ONLY = [

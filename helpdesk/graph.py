@@ -23,7 +23,7 @@ from langgraph.graph import END, StateGraph
 
 from . import fees, llm, tools
 from .normalise import normalise
-from .intent import (CLARIFY_FACETS, OTHER_ANIMAL_MSG, detect_facet, detect_services, fix_asr, missing_message,
+from .intent import (CLARIFY_FACETS, STRICT_FACETS, OTHER_ANIMAL_MSG, detect_facet, detect_services, fix_asr, missing_message,
                      other_animal, out_of_scope)
 from .retriever import BM25_MIN, Hit, Retriever
 
@@ -212,16 +212,20 @@ def build_graph(retriever: Retriever | None = None):
             query = s["previous"] + " " + query          # keeps specifics like "വിധവ" for retrieval
         hits = retriever.search(query, k=3, services=services, facet=facet)
         open_id = s.get("open_id")
-        if not open_id and hits:
+        if not open_id and hits and s.get("route_by") != "follow-up":   # a follow-up keeps its service
             # A passage whose title says more of the question than the top hit's title does
             # ("വാസയോഗ്യമായ വീടില്ലെന്ന സർട്ടിഫിക്കറ്റ്": a charter row, not the residence certificate).
             h = retriever.open_match(s["query"])
             if h is not None:
-                cand, top = (retriever.title_overlap(s["query"], d) for d in (h.doc, hits[0].doc))
+                cand, top = (retriever.title_score(s["query"], d) for d in (h.doc, hits[0].doc))
                 # Clearly better, not a near tie, and not trading an entry that answers the asked
                 # facet for one that does not ("കർഷക തൊഴിലാളി പെൻഷൻ എത്ര": the amount entry wins).
-                answers = facet and facet in hits[0].doc.get("facets", []) and facet not in h.doc.get("facets", [])
-                if cand > top and (top == 0 or cand >= top + 2) and not answers:
+                answers = (facet in STRICT_FACETS and facet in hits[0].doc.get("facets", [])
+                           and facet not in h.doc.get("facets", []))     # amounts and times only
+                # At least one more distinctive word, matched well (>= 0.8): "വിധവ പെൻഷൻ" beats a
+                # "ഭിന്നശേഷി പെൻഷൻ" entry BM25 put first; "സർവീസുകൾ" (a 0.6 stem match) does not move
+                # an Akshaya question to the service-charge entry.
+                if cand > top and (top == 0 or cand - top >= 0.8) and not answers:
                     open_id = h.doc["id"]
         if open_id:
             # Title overlap vouches for this passage; put it first.

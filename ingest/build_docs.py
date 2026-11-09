@@ -74,8 +74,26 @@ def _service(title: str, context: str = "") -> str:
     return "lsgd_other"
 
 
-def row_doc(src: dict, page: int, i: int, row: dict) -> dict:
+# Words of officer / appeal-authority tables and header cells. A "service" made of these
+# ("ഒന്നാം അപ്പീല് അധികാരി", "ആകെ", "വർഷം") is not a service: 243 of 1,780 rows from 22
+# charters were like this, 175 of them from one charter's officer tables.
+_ROLE = ["അധികാരി", "ഉദ്യോഗസ്ഥ", "സെക്രട്ടറി", "അപ്പീല", "ഒന്നാം", "രണ്ടാം", "ചുമതല", "ഓഫീസർ", "ക്രമ",
+         "നമ്പർ", "പേര്", "തസ്തിക", "ഫോൺ", "ജില്ലാ", "ചീഫ്", "ട്രൈബ്യൂണ", "ഡയറക്ടർ", "ഡെപ്യൂട്ടി",
+         "രജിസ്ട്രാര", "അസിസ്റ്റന്റ"]
+
+
+def junk_title(title: str) -> bool:
+    words = [w for w in normalise(title, strip_punct=True).split() if len(w) > 1]
+    if len("".join(words)) < 6:
+        return True
+    role = sum(any(w.startswith(normalise(r)) for r in _ROLE) for w in words)
+    return role >= max(1, len(words) / 2)
+
+
+def row_doc(src: dict, page: int, i: int, row: dict) -> dict | None:
     title = clean(row["service"])
+    if junk_title(title):
+        return None
     section = clean(row.get("section", ""))
     title = re.sub(r"^[(]?\d{1,2}[.)]\s*", "", title)   # "2. സ്പെഷ്യാലിറ്റി വിഭാഗം" -> without the number
     # The section only helps tag the service: as a title prefix it was often a generic page
@@ -166,7 +184,7 @@ def _same(a: str, b: str) -> bool:
 
 def main():
     sources = {s["slug"]: s for s in load_sources()}
-    docs, skipped, english = [], 0, 0
+    docs, skipped, english, junk = [], 0, 0, 0
     for pf in sorted(PAGES.glob("*.jsonl")):
         if pf.stem.startswith("web-"):
             for line in pf.open(encoding="utf-8"):
@@ -181,7 +199,11 @@ def main():
                 skipped += 1
                 continue
             for i, row in enumerate(pg.get("rows", [])):
-                docs.append(row_doc(src, pg["page"], i, row))
+                d = row_doc(src, pg["page"], i, row)
+                if d is None:
+                    junk += 1
+                else:
+                    docs.append(d)
             if pg.get("text") and not pg.get("table_fallback"):   # a table we could not label: skip
                 docs.extend(prose_docs(src, pg["page"], pg["text"]))
 
@@ -215,7 +237,8 @@ def main():
     by_kind = defaultdict(int)
     for d in docs:
         by_kind[d["kind"]] += 1
-    print(f"wrote {len(docs)} passages to {OUT} ({dict(by_kind)}); {skipped} low-confidence pages skipped")
+    print(f"wrote {len(docs)} passages to {OUT} ({dict(by_kind)}); {skipped} low-confidence pages skipped, "
+          f"{junk} officer/header rows dropped")
     if english:
         print(f"{english} English web paragraphs left out: crawl the Malayalam version of those pages")
     print(f"cross-charter: {agree} services agree, {conflict} differ (see {REPORT})")

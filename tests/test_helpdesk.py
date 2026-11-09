@@ -396,6 +396,8 @@ def test_conversation(app, conv):
             assert s.get("tool") == t["tool"], where
         if "entry" in t:
             assert s.get("sources") and s["sources"][0]["id"] == t["entry"], where
+        if "title" in t:     # Tier 2: any charter's row of that service will do
+            assert s.get("sources") and t["title"] in s["sources"][0]["title"], where
         if "service" in t:
             assert t["service"] in (s.get("services") or []), where
         if "contains" in t:

@@ -88,6 +88,8 @@ def crawl(src: dict, max_pages: int, get=requests.get, sleep=time.sleep) -> tupl
                           "sha256": hashlib.sha256(text.encode()).hexdigest()})
             print(f"  {len(pages):3} {title[:60]} ({len(text)} chars)", flush=True)
         for u in links(r.text, r.url):
+            if u.startswith("http://") and urlsplit(u).netloc == host:
+                u = "https://" + u[7:]                 # same page; the e-governance page came twice
             p = urlsplit(u)
             if u.lower().endswith(".pdf"):
                 pdfs.append(u)
