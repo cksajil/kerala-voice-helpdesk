@@ -14,7 +14,7 @@ def main():
     for q in qs:
         t = time.perf_counter()
         s = g.invoke({"query": q, **prev})
-        prev = {"previous": q, "previous_route": s["route"]}
+        prev = {"previous": q, "previous_route": s["route"], "previous_services": s.get("services") or []}
         print(f"\n[{s['route']} via {s.get('route_by')}, {time.perf_counter() - t:.1f}s]")
         print(s["answer"])
         for src in s.get("sources", []):

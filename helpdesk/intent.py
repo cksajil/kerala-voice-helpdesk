@@ -1,0 +1,174 @@
+"""What is the caller asking about? Service, facet, and ASR clean-up.
+
+One place for the keyword knowledge the router, the retriever and the fee
+calculator share. Built from the 7-8 Nov Space logs, where most wrong answers
+came from the wrong passage, not from the LLM:
+  - "പട്ടിക്ക് ലൈസൻസ്" matched both pet ("പട്ടി") and trade ("ലൈസൻസ്"); trade won.
+    Now each stem has a weight and only the most specific services count.
+  - "പെർമിറ്റിന്റെ കാലാവധി" retrieved the trade-licence validity. Now the
+    question's service filters the candidates, and a facet the knowledge base
+    does not have for that service is declined in code instead of guessed.
+  - ASR mishears domain words (വേതനം -> "വേദന", പെർമിറ്റ് -> "പർമിത്").
+"""
+from __future__ import annotations
+
+import difflib
+import re
+
+from .normalise import normalise
+
+# service -> [(stem, weight)]; weight 2 = names the service, 1 = generic word
+SERVICES: dict[str, list[tuple[str, int]]] = {
+    "birth_death": [("ജനന", 2), ("ജനിച്ച", 2), ("പ്രസവ", 2), ("മരണ", 2), ("മരിച്ച", 2), ("ദത്തെടു", 2),
+                    ("birth", 2), ("death", 2)],
+    "marriage": [("വിവാഹ", 2), ("കല്യാണ", 2), ("മാര്യേജ", 2), ("marriage", 2)],
+    "building_permit": [("പെർമിറ്റ", 2), ("കെട്ടിട നിർമ്മാണ", 2), ("വീട് പണി", 2), ("വീട് വെക്ക", 2),
+                        ("വീട് വയ്ക്ക", 2), ("പ്ലാൻ അംഗീകാര", 2), ("permit", 2)],
+    "trade_licence": [("ട്രേഡ", 2), ("കട തുടങ്ങ", 2), ("ഫാക്ടറി", 2), ("സംരംഭ", 2), ("ബിസിനസ", 2),
+                      ("ലൈസൻസ", 1), ("license", 1), ("licence", 1)],
+    "pension": [("പെൻഷ", 2), ("pension", 2)],
+    "unemployment": [("തൊഴിലില്ലായ്മ", 2), ("തൊഴിൽരഹിത", 2), ("തൊഴിൽ രഹിത", 2), ("unemployment", 2)],
+    "property_tax": [("നികുതി", 2), ("വീട്ടുകര", 2), ("ടാക്സ", 2), ("ഉടമസ്ഥ", 2), ("ഓണർഷിപ്പ", 2)],
+    "pet": [("പട്ടി", 2), ("നായ", 2), ("പന്നി", 2), ("മൃഗ", 2), ("dog", 2)],
+    "certificate": [("താമസ സർട്ടി", 2), ("റെസിഡൻസ", 2), ("സ്വഭാവ സർട്ടി", 2), ("കാരക്ടർ", 2),
+                    ("തിരിച്ചറിയൽ സർട്ടി", 2), ("ഐഡന്റിറ്റി", 2), ("സർട്ടി", 1), ("സാക്ഷ്യപത്ര", 1),
+                    ("certificate", 1)],
+    "grievance": [("പരാതി", 2), ("complaint", 2)],
+    "rti": [("വിവരാവകാശ", 2), ("ആർ.ടി.ഐ", 2), ("rti", 2)],
+    "health": [("ഹെൽത്ത് കാർഡ", 2), ("മെഡിക്കൽ സർട്ടി", 2), ("ആരോഗ്യ കേന്ദ്ര", 2), ("പി.എച്ച്.സി", 2)],
+    "general": [("അക്ഷയ", 2), ("കുടുംബശ്രീ", 2), ("കെ സ്മാർട്ട", 2), ("കെ-സ്മാർട്ട", 2), ("ksmart", 2),
+                ("k-smart", 2), ("സർവീസ് ചാർജ", 2)],
+}
+
+# Other departments' topics. Without a service that names itself (weight 2), these are out of
+# scope and never treated as a follow-up: "പാസ്പോർട്ട് ലഭിക്കാൻ..." right after a marriage
+# question must not get marriage documents; "ഡ്രൈവിംഗ് ലൈസൻസ്" is not a trade licence.
+OUT_OF_SCOPE = ["പാസ്പോർട്ട", "passport", "ആധാർ", "aadhaar", "വോട്ടർ", "ഡ്രൈവിംഗ", "driving",
+                "റേഷൻ കാർഡിൽ പേര് ചേർ", "ഗ്യാസ് കണക്ഷ", "കെ.എസ്.ഇ.ബി", "വൈദ്യുതി ബിൽ", "ബസ്", "ട്രെയിൻ",
+                "ദൂരം", "ദൂരമ", "തലസ്ഥാന", "സെക്രട്ടറിയറ്റ", "സെക്രട്ടേറിയറ്റ", "പി.എസ്.സി"]
+
+
+def out_of_scope(query: str) -> bool:
+    q = fix_asr(query)
+    return any(normalise(s) in q for s in OUT_OF_SCOPE)
+
+
+# Genitive service names for the "I don't have that" reply.
+SERVICE_GEN = {
+    "birth_death": "ജനന-മരണ രജിസ്ട്രേഷന്റെ", "marriage": "വിവാഹ രജിസ്ട്രേഷന്റെ",
+    "building_permit": "കെട്ടിട പെർമിറ്റിന്റെ", "trade_licence": "ട്രേഡ് ലൈസൻസിന്റെ",
+    "pension": "ഈ പെൻഷന്റെ", "unemployment": "തൊഴിൽരഹിത വേതനത്തിന്റെ",
+    "property_tax": "കെട്ടിട നികുതിയുടെ", "pet": "വളർത്തുമൃഗ ലൈസൻസിന്റെ",
+    "certificate": "ഈ സർട്ടിഫിക്കറ്റിന്റെ", "grievance": "പരാതിയുടെ", "rti": "വിവരാവകാശ അപേക്ഷയുടെ",
+    "health": "ഈ സേവനത്തിന്റെ", "general": "ഈ സേവനത്തിന്റെ",
+}
+
+# facet -> stems. Order is priority when several match (documents before compulsory:
+# "എന്തൊക്കെ രേഖകൾ ആവശ്യമാണ്" asks for documents).
+FACETS: list[tuple[str, list[str]]] = [
+    ("validity", ["കാലാവധി", "വാലിഡിറ്റി", "validity", "പുതുക്ക", "റിന്യൂ"]),
+    ("time", ["എത്ര ദിവസ", "എത്ര സമയ", "എത്ര നാൾ", "സമയപരിധി", "എപ്പോൾ കിട്ട", "എപ്പോൾ ലഭി",
+              "എത്ര കാത്തിരി", "how long"]),
+    ("amount", ["തുക", "രൂപ", "ഫീസ", "ഫീ ", "ചാർജ", "പിഴ", "fee", "how much"]),
+    ("documents", ["രേഖ", "ഡോക്യുമെന്റ", "document"]),
+    ("compulsory", ["നിർബന്ധ", "ആവശ്യമാണോ", "ആവശ്യമാണ്", "വേണോ", "എടുക്കണോ", "എടുക്കണം",
+                    "compulsory", "mandatory"]),
+    ("eligibility", ["ആർക്ക", "അർഹത", "ബാധക", "അപേക്ഷിക്കാമോ", "അപേക്ഷിക്കാനോ", "eligib"]),
+    ("amount", ["എത്രയാ", "എത്രെയാ", "എത്ര കിട്ടും"]),          # weak "how much", after the rest
+    ("process", ["എങ്ങനെ", "എവിടെ", "എന്ത് ചെയ്യ", "എന്താണ് ചെയ്യ", "നടപടി", "how to"]),
+]
+FACET_ABOUT = {
+    "validity": "കാലാവധിയെക്കുറിച്ച്", "time": "സമയപരിധിയെക്കുറിച്ച്", "amount": "തുകയെക്കുറിച്ച്",
+    "documents": "ആവശ്യമായ രേഖകളെക്കുറിച്ച്", "compulsory": "നിർബന്ധമാണോ എന്നതിനെക്കുറിച്ച്",
+    "eligibility": "അർഹതയെക്കുറിച്ച്", "process": "നടപടികളെക്കുറിച്ച്",
+}
+# Facets where a wrong neighbour passage is worse than "I don't have that":
+# the 8 Nov log answered permit validity with the trade licence's "5 years".
+STRICT_FACETS = {"validity", "time", "amount", "compulsory"}
+
+# Frequent ASR mishearings of domain words: (heard, meant, required context or None).
+ASR_FIXES = [
+    ("വേദന", "വേതന", "തൊഴി"), ("ഭേദന", "വേതന", None), ("മുർഗ", "മൃഗ", None),
+    ("പർമിത", "പെർമിറ്റ", None), ("പെര്മിറ്റ", "പെർമിറ്റ", None), ("കാലാപതി", "കാലാവധി", None),
+    ("സക്കിറ്റ്", "സർട്ടിഫിക്കറ്റ്", None), ("കേസ് മാർട്ട", "കെ സ്മാർട്ട", None),
+    ("ലൈക്സൻസ", "ലൈസൻസ", None), ("രേഖക്കൾ", "രേഖകൾ", None), (" മെത്ര", " എത്ര", None),
+]
+# Rewrites for detection only (not shown to the LLM):
+_DETECT_ONLY = [
+    (re.compile(r"വിവാഹം?\s*മോചി"), "മോചി"),         # divorced: not a marriage-registration question
+    (re.compile(r"പട്ടികജാതി|പട്ടികവർഗ"), "എസ്സി"),     # Scheduled Caste/Tribe: not "dog" (പട്ടി)
+]
+_TOKEN = re.compile(r"[ഀ-ൿa-z.\-]+")
+
+
+def fix_asr(query: str) -> str:
+    q = normalise(query)
+    for heard, meant, ctx in ASR_FIXES:
+        if heard in q and (ctx is None or ctx in q):
+            q = q.replace(heard, meant)
+    return q
+
+
+def _detect_text(query: str) -> str:
+    q = fix_asr(query)
+    for pat, rep in _DETECT_ONLY:
+        q = pat.sub(rep, q)
+    return q
+
+
+# Short service stems that occur inside unrelated words ("നായ" in "രജിസ്ട്രേഷനായിട്ടുള്ള"):
+# word start only. Others stay substring matches so compounds work ("വളർത്തുമൃഗങ്ങൾ").
+_SVC_WORD_START = {"നായ", "പന്നി", "ടാക്സ", "dog", "rti"}
+
+
+def _fuzzy_in(stem: str, q: str, toks: list[str]) -> bool:
+    """Exact substring, or (long stems only) a near match at a word start, for ASR slips
+    the ASR_FIXES list does not cover. Short stems fuzzy-match far too much
+    ("പട്ടി" matched inside "രജിസ്ട്രേഷനായിട്ടുള്ള")."""
+    if stem in _SVC_WORD_START:
+        return any(t.startswith(stem) for t in toks)
+    if stem in q:
+        return True
+    if len(stem) < 7 or " " in stem:
+        return False
+    return any(difflib.SequenceMatcher(None, t[: len(stem)], stem).ratio() >= 0.85 for t in toks)
+
+
+def detect_services(query: str) -> list[str]:
+    """Most specific services named in the question (all ties), or []."""
+    q = _detect_text(query)
+    toks = _TOKEN.findall(q)
+    scores = {}
+    for svc, stems in SERVICES.items():
+        w = max((wt for st, wt in stems if _fuzzy_in(normalise(st), q, toks)), default=0)
+        if w:
+            scores[svc] = w
+    if not scores:
+        return []
+    best = max(scores.values())
+    if best < 2 and out_of_scope(query):
+        return []
+    return sorted(s for s, w in scores.items() if w == best)
+
+
+# Short stems that also occur inside other words ("തുക" in "പുതുക്കാൻ"): match at word start only.
+_WORD_START = {"തുക", "രൂപ", "പിഴ", "ഫീസ", "രേഖ", "ചാർജ"}
+# Facets that make sense to ask "which service?" about when no service is named.
+CLARIFY_FACETS = {"amount", "time", "validity", "documents", "compulsory"}
+
+
+def detect_facet(query: str) -> str | None:
+    q = _detect_text(query)
+    toks = _TOKEN.findall(q)
+    for facet, stems in FACETS:
+        for s in stems:
+            s = normalise(s)
+            if (any(t.startswith(s) for t in toks) if s in _WORD_START else s in q):
+                return facet
+    return None
+
+
+def missing_message(services: list[str], facet: str) -> str:
+    svc = SERVICE_GEN.get(services[0], "ഈ സേവനത്തിന്റെ") if len(services) == 1 else "ഈ സേവനത്തിന്റെ"
+    return (f"ക്ഷമിക്കണം, {svc} {FACET_ABOUT[facet]} എന്റെ പക്കൽ ഉറപ്പുള്ള വിവരം ഇല്ല. "
+            "പഞ്ചായത്ത് ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ.")

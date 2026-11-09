@@ -14,6 +14,9 @@ Columns
   source     URL, or "file.pdf p.14" for a charter page
   verify     yes = old, secondary or single-panchayat source: re-check before relying on it
   checked    date the source was read (YYYY-MM-DD)
+  facets     what the entry answers, separated by "|": amount, documents, time, validity,
+             compulsory, eligibility, process. A strict facet (amount, time, validity,
+             compulsory) that no entry of a service has is declined in code, not guessed.
   notes      anything for you; not used by the app
 The build stops on duplicate ids, empty text, or a missing source.
 """
@@ -24,6 +27,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 REQUIRED = ["id", "service", "title", "text", "source"]
+FACETS = {"amount", "documents", "time", "validity", "compulsory", "eligibility", "process"}
 
 
 def main():
@@ -36,6 +40,9 @@ def main():
             for k in REQUIRED:
                 if not r.get(k):
                     errors.append(f"line {n}: empty '{k}'")
+            bad = [x for x in r.get("facets", "").split("|") if x.strip() and x.strip() not in FACETS]
+            if bad:
+                errors.append(f"line {n}: unknown facet(s) {bad}")
             if r["id"] in seen:
                 errors.append(f"line {n}: duplicate id {r['id']}")
             seen.add(r["id"])
@@ -44,6 +51,7 @@ def main():
                 "questions": [q.strip() for q in r.get("questions", "").split("|") if q.strip()],
                 "source": r["source"], "verify": r.get("verify", "").lower() in ("yes", "true", "1"),
                 "checked": r.get("checked", ""),
+                "facets": [x.strip() for x in r.get("facets", "").split("|") if x.strip()],
             })
     if errors:
         sys.exit("kb.csv has problems:\n  " + "\n  ".join(errors))

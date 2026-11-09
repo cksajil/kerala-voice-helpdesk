@@ -63,7 +63,7 @@ python -m eval.run_eval --dense --full        # end-to-end with LLM + live tools
   questions (ration card and passport questions score as high as real ones),
   so the retrieval gate lets them through: 15/17. Refusal for these depends
   on the dense cosine threshold and the LLM's `UNSURE`; measure with `--full`.
-- Knowledge base: 45 entries (28 from two panchayat citizen charters, 8 Nov), each with example questions that are indexed
+- Knowledge base: 48 entries (28 from two panchayat citizen charters, 8 Nov), each with example questions that are indexed
   for retrieval but never sent to the LLM (written independently of the eval set).
 - Knowledge base: Entries with `verify: true` come from a 2018
   SOP or a secondary site; check them against current official pages.
@@ -99,3 +99,25 @@ marriage fee with the Akshaya service charge, which one passage cannot hold).
 Known risk: "റേഷൻ കാർഡിൽ പേര് ചേർക്കാൻ" now retrieves the panchayat's
 "name not in ration card" certificate; the answer prompt must decline it (Civil
 Supplies handles adding names). Check q16 in the next `--full` run.
+
+## Retrieval and routing rules (8 Nov 2026, night)
+From two Space conversation logs (28 + 10 turns): 6 of 10 wrong answers came from a
+wrong passage, 2 from missing or ambiguous facts, 2 from follow-ups; none from Gemma
+misreading a correct passage. So, no fine-tuning; instead (`helpdesk/intent.py`):
+- **Service filter.** Each service stem has a weight (2 names the service, 1 is generic
+  such as "ലൈസൻസ്"); only the most specific services count, and they filter the
+  candidate passages ("പട്ടിക്ക് ലൈസൻസ്" -> pet, not trade licence).
+- **Facets.** Every KB entry lists what it answers (amount, documents, time, validity,
+  compulsory, eligibility, process); the question's facet boosts matching entries.
+  A strict facet (amount, time, validity, compulsory) that no entry of the service has
+  is declined in code ("കെട്ടിട പെർമിറ്റിന്റെ കാലാവധിയെക്കുറിച്ച് എന്റെ പക്കൽ...")
+  instead of Gemma borrowing the trade licence's "5 years".
+- **No service, no KB answer.** LLM classification is gone: a question that names no
+  service and follows none gets the scope message ("which service?" for a bare
+  "how much?"). Other departments (passport, Aadhaar, driving licence, distance...)
+  are out of scope even right after a service question.
+- **Follow-ups** carry the previous question's service and facts: "കല്യാണം കഴിഞ്ഞു രണ്ട്
+  മാസമായി." -> "രജിസ്ട്രേഷന് തുക എത്ര?" is computed as 220 rupees.
+- **ASR fixes** for frequent mishearings (വേദന->വേതനം with തൊഴിൽ, പർമിത്->പെർമിറ്റ്,
+  മുർഗം->മൃഗം, കാലാപതി->കാലാവധി, ...), plus strict fuzzy matching for long stems.
+- `eval/conversations.jsonl`: the logged conversations as multi-turn tests (27 turns).

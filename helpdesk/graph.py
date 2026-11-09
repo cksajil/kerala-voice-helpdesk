@@ -3,13 +3,15 @@
     router ─► weather ───────────────────────► answer ─► END
            ├► news ──────────────────────────► answer
            ├► calc ─ fee computed in code ───────────────► END
-           │    └─ not a fee question ─► retrieve ► answer
-           └► other (scope message) ─────────────────────► END
+           │    └─ not a fee question ─► retrieve ► answer   (or "I don't have that" in code)
+           └► other (scope message, or "which service?") ────► END
 
 Small models (Gemma 4 E2B) are unreliable at free-form tool calling, so the
-graph makes the routing explicit: keyword rules first, LLM classification
-only when no rule fires. Tool numbers go out through templates; the LLM only
-writes service answers, and only from retrieved passages.
+graph makes the routing explicit with the keyword knowledge in intent.py.
+A question must name a service (or follow one) to be answered from the
+knowledge base; the service filters the passages; a strict facet the
+knowledge base lacks is declined in code. Tool numbers go out through
+templates; the LLM only writes service answers, only from one passage.
 """
 from __future__ import annotations
 
@@ -21,7 +23,8 @@ from langgraph.graph import END, StateGraph
 
 from . import fees, llm, tools
 from .normalise import normalise
-from .retriever import Retriever, mentions_service
+from .intent import CLARIFY_FACETS, detect_facet, detect_services, fix_asr, missing_message, out_of_scope
+from .retriever import Retriever
 
 Route = Literal["weather", "news", "service_faq", "other"]
 CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
@@ -32,23 +35,14 @@ REFUSAL = ("ക്ഷമിക്കണം, ഇതിനെക്കുറിച
 SCOPE = ("ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. "
          "ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം.")
 TOOL_FAIL = "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+CLARIFY = "ഏത് സേവനത്തെക്കുറിച്ചാണ് ചോദിക്കുന്നത്? ഉദാഹരണത്തിന് വിവാഹ രജിസ്ട്രേഷൻ, പെൻഷൻ, കെട്ടിട പെർമിറ്റ്."
+FOLLOW_UP_MAX_WORDS = 8
 
 # Stems, not full words: Malayalam inflects heavily (മഴ / മഴയുണ്ടോ, വാർത്ത / വാർത്തകൾ).
 RULES: list[tuple[Route, list[str]]] = [
     ("weather", ["കാലാവസ്ഥ", "മഴ", "ചൂട്", "താപനില", "ഡിഗ്രി", "weather", "rain", "temperature"]),
     ("news", ["വാർത്ത", "news", "headline", "സംഭവ"]),
-    ("service_faq", ["സർട്ടി", "ലൈസൻസ", "ഫീസ", "രജിസ്ട്രേഷ", "രജിസ്റ്റ", "നികുതി", "ടാക്സ",
-                     "പെർമിറ്റ", "അനുമതി", "പരാതി", "ജനന", "മരണ", "വിവാഹ", "കല്യാണ", "അക്ഷയ",
-                     "ksmart", "കെ-സ്മാർട്ട", "കെ സ്മാർട്ട", "പഞ്ചായത്ത", "നഗരസഭ", "മുനിസിപ്പാലിറ്റി",
-                     "certificate", "licence", "license", "permit", "tax", "fee", "trade", "ട്രേഡ",
-                     # topics added from the panchayat citizen charters (8 Nov)
-                     "പെൻഷ", "pension", "വേതനം", "വിവരാവകാശ", "ആർ.ടി.ഐ", "rti", "പട്ടി", "നായ",
-                     "ഹെൽത്ത് കാർഡ", "മെഡിക്കൽ സർട്ടിഫിക്കറ്റ", "ദത്തെടു", "വീട്ടുകര", "ഉടമസ്ഥ"]),
 ]
-CLASSIFY_PROMPT = (
-    "Classify the user's Malayalam question into exactly one label: weather, news, service_faq, other. "
-    "service_faq = Kerala local-body services (certificates, licences, property tax, building permits, "
-    "complaints, K-SMART, Akshaya). Reply with the label only.")
 ANSWER_PROMPT = (
     "നീ കേരളത്തിലെ തദ്ദേശ സ്ഥാപന സേവനങ്ങളെക്കുറിച്ചുള്ള ഒരു വോയ്സ് ഹെൽപ്ഡെസ്ക് ആണ്. "
     "താഴെ കൊടുത്ത വിവരങ്ങൾ മാത്രം ഉപയോഗിച്ച് ലളിതമായ സംസാര മലയാളത്തിൽ 1-2 ചെറിയ വാക്യങ്ങളിൽ ഉത്തരം പറയുക. "
@@ -79,10 +73,13 @@ def clean_answer(out: str) -> tuple[str, bool]:
 class State(TypedDict, total=False):
     query: str
     route: Route
-    route_by: str            # "rule" | "llm" | "default"
+    route_by: str            # "rule" | "follow-up" | "none"
     tool: str                # set when a deterministic tool answered (e.g. "fee_calc")
     previous: str            # the caller's previous question in this conversation, if any
     previous_route: Route
+    previous_services: list[str]
+    services: list[str]      # services the question is about (detected, or carried from a follow-up)
+    facet: str | None        # what it asks: amount, documents, time, validity, compulsory, ...
     context: str
     sources: list[dict]
     answer: str
@@ -101,33 +98,33 @@ def answer_message(ctx: str, query: str) -> str:
 
 
 def rule_route(query: str) -> Route | None:
-    q = normalise(query)
+    """weather / news by keyword, service_faq if a service is named, else None."""
+    q = fix_asr(query)
     for route, stems in RULES:
         if any(normalise(s) in q for s in stems):
             return route
-    return None
+    return "service_faq" if detect_services(query) else None
 
 
 def build_graph(retriever: Retriever | None = None):
     retriever = retriever or Retriever()
 
     def router(s: State) -> State:
-        r = rule_route(s["query"])
+        q = s["query"]
+        facet = detect_facet(q)
+        r = rule_route(q)
+        if r == "service_faq":
+            return {"route": r, "route_by": "rule", "services": detect_services(q), "facet": facet}
         if r:
             return {"route": r, "route_by": "rule"}
-        # Short follow-up after a service question ("അതിന് എത്ര ദിവസം എടുക്കും?"): stay on service.
-        if s.get("previous_route") == "service_faq" and len(s["query"].split()) <= 6:
-            return {"route": "service_faq", "route_by": "follow-up"}
-        if llm.enabled():
-            try:
-                label = llm.chat(CLASSIFY_PROMPT, s["query"], max_tokens=5, temperature=0).lower()
-                m = re.search(r"weather|news|service_faq|other", label)
-                if m:
-                    return {"route": m.group(0), "route_by": "llm"}
-            except Exception:
-                pass
-        # Unknown: try retrieval; the confidence check refuses if nothing matches.
-        return {"route": "service_faq", "route_by": "default"}
+        # Follow-up that names no service ("അതിന് എന്തൊക്കെ രേഖകൾ വേണം?"): carry the previous service.
+        prev = s.get("previous_services") or detect_services(s.get("previous") or "")
+        if (prev and s.get("previous_route") == "service_faq" and len(q.split()) <= FOLLOW_UP_MAX_WORDS
+                and not out_of_scope(q)):
+            return {"route": "service_faq", "route_by": "follow-up", "services": prev, "facet": facet}
+        # No service: answering from the knowledge base would only find a lookalike passage
+        # ("കേരളത്തിന്റെ തലസ്ഥാനം" -> a pension passage -> "തി ആണ്").
+        return {"route": "other", "route_by": "none", "facet": facet}
 
     def weather(s: State) -> State:
         try:
@@ -148,7 +145,11 @@ def build_graph(retriever: Retriever | None = None):
 
     def calc(s: State) -> State:
         """Fee questions that need band arithmetic are answered in code, not by the LLM."""
-        out = fees.answer(s["query"])
+        q = fix_asr(s["query"])
+        out = fees.answer(q)
+        if not out and s.get("route_by") == "follow-up" and s.get("facet") == "amount" and s.get("previous"):
+            # "കല്യാണം കഴിഞ്ഞു രണ്ട് മാസമായി." -> "രജിസ്ട്രേഷന് തുക എത്ര?": the delay is in the previous turn.
+            out = fees.answer(fix_asr(s["previous"]) + " " + q)
         if not out:
             return {}
         return {"answer": out["answer"], "refused": False, "tool": "fee_calc",
@@ -156,15 +157,19 @@ def build_graph(retriever: Retriever | None = None):
                              "verify": by_id[i].get("verify", False)} for i in out["source_ids"] if i in by_id]}
 
     def retrieve(s: State) -> State:
+        services, facet = s.get("services") or [], s.get("facet")
+        if retriever.missing_facet(services, facet):
+            # e.g. building-permit validity: no entry has it, so say so instead of letting
+            # Gemma borrow the trade licence's "5 years" (8 Nov log).
+            return {"answer": missing_message(services, facet), "refused": True, "tool": "missing_facet",
+                    "sources": []}
         query = s["query"]
-        # A follow-up that names no service borrows the previous question for retrieval only.
-        if s.get("previous") and not mentions_service(query):
-            query = s["previous"] + " " + query
-        hits = retriever.search(query, k=3)
+        if s.get("route_by") == "follow-up" and s.get("previous"):
+            query = s["previous"] + " " + query          # keeps specifics like "വിധവ" for retrieval
+        hits = retriever.search(query, k=3, services=services, facet=facet)
         if not retriever.confident(hits):
             return {"context": "", "sources": []}
-        # Only the top CTX_K passages go to the LLM (prefill dominates CPU latency),
-        # and without the English 'Keywords:' line, which exists only for BM25.
+        # Only the top CTX_K passages go to the LLM (prefill dominates CPU latency).
         ctx = "\n\n".join(passage(h.doc) for h in hits[:CTX_K])
         return {"context": ctx, "sources": [
             {"id": h.doc["id"], "title": h.doc["title"], "url": h.doc["source"],
@@ -172,10 +177,15 @@ def build_graph(retriever: Retriever | None = None):
              "cos": None if h.cos is None else round(h.cos, 3)} for h in hits[:CTX_K]]}
 
     def other(s: State) -> State:
-        return {"answer": SCOPE, "refused": False}
+        # "തുക എത്രയാണ്?" with no service and nothing to follow: ask which service.
+        if s.get("facet") in CLARIFY_FACETS and not out_of_scope(s["query"]):
+            return {"answer": CLARIFY, "refused": True, "tool": "clarify"}
+        return {"answer": SCOPE, "refused": True}
 
     def answer(s: State) -> State:
         route, ctx = s["route"], s.get("context", "")
+        if s.get("tool") == "missing_facet":
+            return {}
         if route in ("weather", "news"):
             return {"answer": ctx or TOOL_FAIL, "refused": not ctx}
         if not ctx:
@@ -185,7 +195,7 @@ def build_graph(retriever: Retriever | None = None):
             best = ctx.split("\n\n")[0].split("\n", 1)[1]
             return {"answer": best.split(" Keywords:")[0], "refused": False}
         try:
-            out = llm.chat(ANSWER_PROMPT, answer_message(ctx, s["query"]),
+            out = llm.chat(ANSWER_PROMPT, answer_message(ctx, fix_asr(s["query"])),
                            max_tokens=ANSWER_TOKENS, temperature=0)
         except Exception:
             return {"answer": TOOL_FAIL, "refused": True}

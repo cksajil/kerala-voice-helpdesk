@@ -13,8 +13,8 @@
 {"id": "q13", "question": "വീട് പണിയാനുള്ള പെർമിറ്റിന് ആര് വഴിയാണ് അപേക്ഷിക്കേണ്ടത്?", "route": "service_faq", "expect": ["building-01", "ch-bp-docs-01"], "must_contain": "ലൈസൻസി"}
 {"id": "q14", "question": "പഞ്ചായത്തിനെതിരെ പരാതി എങ്ങനെ കൊടുക്കാം?", "route": "service_faq", "expect": ["grievance-01"], "must_contain": "K-SMART"}
 {"id": "q15", "question": "കെ സ്മാർട്ട് ആപ്പ് എവിടെ കിട്ടും?", "route": "service_faq", "expect": ["ksmart-01", "ksmart-02"], "must_contain": "Play Store"}
-{"id": "q16", "question": "റേഷൻ കാർഡിൽ പേര് ചേർക്കാൻ എന്ത് ചെയ്യണം?", "route": "service_faq", "expect": "refuse"}
-{"id": "q17", "question": "പാസ്പോർട്ട് പുതുക്കാൻ എത്ര ഫീസ് ആകും?", "route": "service_faq", "expect": "refuse"}
+{"id": "q16", "question": "റേഷൻ കാർഡിൽ പേര് ചേർക്കാൻ എന്ത് ചെയ്യണം?", "route": "other", "expect": "refuse", "note": "out of scope (other department): declined by the router since 8 Nov"}
+{"id": "q17", "question": "പാസ്പോർട്ട് പുതുക്കാൻ എത്ര ഫീസ് ആകും?", "route": "other", "expect": "refuse", "note": "out of scope (other department): declined by the router since 8 Nov"}
 {"id": "q18", "question": "കൊച്ചിയിൽ ഇന്ന് മഴയുണ്ടോ?", "route": "weather", "district": "ernakulam"}
 {"id": "q19", "question": "തൃശ്ശൂരിലെ കാലാവസ്ഥ എങ്ങനെയുണ്ട്?", "route": "weather", "district": "thrissur"}
 {"id": "q20", "question": "ഇന്നത്തെ പ്രധാന വാർത്തകൾ എന്തൊക്കെ?", "route": "news"}

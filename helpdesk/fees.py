@@ -133,7 +133,7 @@ def answer(query: str) -> dict | None:
     # Marriage registration fee: marriage + a delay + registration or fee intent.
     if _has(q, MARRIAGE) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
         days = _quantity(q, DAY_UNITS)
-        if days is None and _has(q, MONEY_INTENT):
+        if days is None and _has(q, MONEY_INTENT) and not _has(q, ["അക്ഷയ", "സർവീസ് ചാർജ", "ഓൺലൈൻ ചാർജ"]):
             # No delay given: read out the whole schedule. Gemma paraphrased "BPL: ₹10" as
             # "₹10 less than ₹120" in the Space log (8 Nov).
             return {"answer": MARRIAGE_SCHEDULE, "source_ids": ["ch-marr-fee-01"]}

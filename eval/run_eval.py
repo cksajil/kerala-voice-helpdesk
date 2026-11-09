@@ -38,7 +38,7 @@ def main():
 
     print(f"{'id':4} {'route':12} {'top3':34} {'bm25':>6} {'cos':>6} conf  ok")
     for q in qs:
-        r = rule_route(q["question"]) or "service_faq"
+        r = rule_route(q["question"]) or "other"
         route_ok += r == q["route"]
         line = f"{q['id']:4} {r:12}"
         if q["route"] == "service_faq":

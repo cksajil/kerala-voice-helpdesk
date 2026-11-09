@@ -15,42 +15,20 @@ from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
+from .intent import STRICT_FACETS, detect_facet, detect_services, fix_asr
 from .normalise import normalise, tokens
 
 KB_PATH = Path(__file__).resolve().parent.parent / "data" / "kb.jsonl"
 DENSE_MODEL = os.getenv("HELPDESK_EMBED_MODEL", "BAAI/bge-m3")
-# Service named in the question -> boost entries of that service. With 40+ entries,
-# overlapping words pull the wrong service ("ഗൾഫിൽ ... വിവാഹം" went to the
-# born-abroad birth entry). Boost 0.4 chosen on the eval set and the Space log.
-SERVICE_HINTS = {
-    "marriage": ["വിവാഹ", "കല്യാണ", "മാര്യേജ", "marriage"],
-    "birth_death": ["ജനന", "ജനിച്ച", "മരണ", "മരിച്ച", "birth", "death"],
-    "building_permit": ["പെർമിറ്റ", "കെട്ടിട നിർമ്മാണ", "വീട് പണി", "വീട് വെക്ക", "permit"],
-    "trade_licence": ["ലൈസൻസ", "ട്രേഡ", "license", "licence"],
-    "pension": ["പെൻഷ", "pension", "വേതനം"],
-    "property_tax": ["നികുതി", "വീട്ടുകര", "ടാക്സ", "ഉടമസ്ഥ"],
-    "pet": ["പട്ടി", "നായ", "പന്നി", "dog"],
-    "general": ["അക്ഷയ", "സർവീസ് ചാർജ", "കെ സ്മാർട്ട", "ksmart", "k-smart"],
-}
-SERVICE_BOOST = float(os.getenv("HELPDESK_SERVICE_BOOST", "0.4"))
-
-
-# "How much?" questions should reach the amount/fee entry, not the eligibility entry of the
-# same service ("കർഷക തൊഴിലാളി പെൻഷൻ എത്രയാണ്?" went to who-can-apply).
-AMOUNT_WORDS = ["തുക", "എത്ര രൂപ", "എത്രയാ", "എത്രെയാ", "എത്ര കിട്ടും", "how much"]
-AMOUNT_TITLES = ["തുക", "ഫീസ", "ചാർജ"]
-AMOUNT_BOOST = float(os.getenv("HELPDESK_AMOUNT_BOOST", "0.5"))
-_NOT_AMOUNT = re.compile(r"എത്ര\s*(ദിവസ|സമയ|വർഷ|മാസ|ആഴ്ച|മണിക്കൂ)")
-
-
-def asks_amount(query: str) -> bool:
-    q = normalise(query)
-    return any(normalise(w) in q for w in AMOUNT_WORDS) and not _NOT_AMOUNT.search(q)
+# The question's service filters the candidates and its facet boosts entries that answer
+# it (see intent.py). Boost chosen on the eval set and the 7-8 Nov Space logs.
+FACET_BOOST = float(os.getenv("HELPDESK_FACET_BOOST", "0.6"))
 
 
 def mentions_service(query: str) -> bool:
-    q = normalise(query)
-    return any(normalise(x) in q for stems in SERVICE_HINTS.values() for x in stems)
+    return bool(detect_services(query))
+
+
 BM25_MIN = float(os.getenv("HELPDESK_BM25_MIN", "4.0"))   # tune on eval set
 COS_MIN = float(os.getenv("HELPDESK_COS_MIN", "0.55"))    # tune on eval set
 
@@ -96,27 +74,40 @@ class Retriever:
         """multilingual-e5 models need 'query: ' / 'passage: ' prefixes; BGE-M3 does not."""
         return f"{kind}: " if "e5" in DENSE_MODEL.lower() else ""
 
-    def search(self, query: str, k: int = 3, rrf_k: int = 60) -> list[Hit]:
-        bm = self.bm25.get_scores(tokens(query))
-        q = normalise(query)
-        services = {s for s, stems in SERVICE_HINTS.items() if any(normalise(x) in q for x in stems)}
-        if services:
-            bm = [x * (1 + SERVICE_BOOST) if self.docs[i].get("service") in services else x
-                  for i, x in enumerate(bm)]
-        if asks_amount(query):
-            bm = [x * (1 + AMOUNT_BOOST) if any(t in normalise(self.docs[i]["title"]) for t in AMOUNT_TITLES) else x
-                  for i, x in enumerate(bm)]
-        order_bm = sorted(range(len(self.docs)), key=lambda i: -bm[i])
+    def search(self, query: str, k: int = 3, rrf_k: int = 60, services: list[str] | None = None,
+               facet: str | None = None) -> list[Hit]:
+        """BM25 (+ dense) over the entries of the question's services, facet-boosted.
+        services/facet default to what intent.py detects in the query; pass them to
+        override (follow-ups carry the previous question's service)."""
+        query = fix_asr(query)
+        if services is None:
+            services = detect_services(query)
+        if facet is None:
+            facet = detect_facet(query)
+        pool = [i for i, d in enumerate(self.docs) if not services or d.get("service") in services]
+        if not pool:
+            pool = list(range(len(self.docs)))
+        scores = self.bm25.get_scores(tokens(query))
+        bm = {i: scores[i] * (1 + FACET_BOOST if facet and facet in self.docs[i].get("facets", []) else 1)
+              for i in pool}
+        order_bm = sorted(pool, key=lambda i: -bm[i])
         rrf = {i: 1 / (rrf_k + r) for r, i in enumerate(order_bm)}
         cos = None
         if self.encoder is not None:
-            q = self.encoder.encode([self._p("query") + normalise(query)], normalize_embeddings=True)[0]
-            cos = self.doc_vecs @ q
-            for r, i in enumerate(sorted(range(len(self.docs)), key=lambda i: -cos[i])):
+            qv = self.encoder.encode([self._p("query") + normalise(query)], normalize_embeddings=True)[0]
+            cos = self.doc_vecs @ qv
+            for r, i in enumerate(sorted(pool, key=lambda i: -cos[i])):
                 rrf[i] += 1 / (rrf_k + r)
         top = sorted(rrf, key=lambda i: -rrf[i])[:k]
         return [Hit(self.docs[i], rrf[i], float(bm[i]),
                     None if cos is None else float(cos[i])) for i in top]
+
+    def missing_facet(self, services: list[str], facet: str | None) -> bool:
+        """True when the question asks a strict facet (amount, time, validity, compulsory)
+        that no entry of its service(s) answers: decline instead of guessing."""
+        if not services or facet not in STRICT_FACETS:
+            return False
+        return not any(facet in d.get("facets", []) for d in self.docs if d.get("service") in services)
 
     @staticmethod
     def confident(hits: list[Hit]) -> bool:

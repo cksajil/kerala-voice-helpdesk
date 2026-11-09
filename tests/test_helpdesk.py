@@ -79,15 +79,25 @@ def test_tool_failure_is_graceful(app, monkeypatch):
 def test_llm_unsure_becomes_refusal(app, monkeypatch):
     monkeypatch.setattr(llm, "enabled", lambda: True)
     monkeypatch.setattr(llm, "chat", lambda *a, **k: "UNSURE")
-    s = app.invoke({"query": "പാസ്പോർട്ട് പുതുക്കാൻ എത്ര ഫീസ് ആകും?"})
-    assert s["refused"] and s["answer"] == G.REFUSAL
+    s = app.invoke({"query": "കെട്ടിട നികുതി അടയ്ക്കേണ്ട അവസാന ദിവസം ഏതാണ്?"})
+    assert s["route"] == "service_faq" and s["refused"] and s["answer"] == G.REFUSAL
 
 
-def test_llm_classifier_used_when_no_rule(app, monkeypatch):
+def test_no_service_goes_to_scope_without_an_llm_call(app, monkeypatch):
+    # 8 Nov: LLM classification sent "കേരളത്തിന്റെ തലസ്ഥാനം" to retrieval -> "തി ആണ്". Removed.
+    def no_llm(*a, **k):
+        raise AssertionError("no LLM call expected")
     monkeypatch.setattr(llm, "enabled", lambda: True)
-    monkeypatch.setattr(llm, "chat", lambda *a, **k: "other")
+    monkeypatch.setattr(llm, "chat", no_llm)
     s = app.invoke({"query": "നിന്റെ പേരെന്താ?"})
-    assert s["route"] == "other" and s["route_by"] == "llm" and s["answer"] == G.SCOPE
+    assert s["route"] == "other" and s["answer"] == G.SCOPE
+
+
+@pytest.mark.parametrize("q", ["ഡ്രൈവിംഗ് ലൈസൻസ് എങ്ങനെ എടുക്കാം?", "പാസ്പോർട്ട് പുതുക്കാൻ എത്ര ഫീസ് ആകും?",
+                               "ആധാർ കാർഡിൽ പേര് മാറ്റാൻ"])
+def test_other_departments_are_out_of_scope(app, q):
+    assert G.rule_route(q) is None
+    assert app.invoke({"query": q})["answer"] == G.SCOPE          # not "which service?"
 
 
 # --- news parsing -----------------------------------------------------------
@@ -362,3 +372,44 @@ def test_district_news_uses_district_search_feed(monkeypatch):
     monkeypatch.setattr(tools.requests, "get", get)
     out = tools.news("തിരുവനന്തപുരത്തെ വാർത്തകൾ")
     assert "search?q=" in seen[0] and out["text"].startswith("തിരുവനന്തപുരം വാർത്തകൾ:")
+
+
+# --- conversation tests (eval/conversations.jsonl, from the Space logs) -------
+import json as _json
+from pathlib import Path as _Path
+
+_CONVS = [_json.loads(l) for l in (_Path(__file__).parent.parent / "eval" / "conversations.jsonl").open(encoding="utf-8") if l.strip()]
+
+
+@pytest.mark.parametrize("conv", _CONVS, ids=[c["name"] for c in _CONVS])
+def test_conversation(app, conv):
+    prev = {}
+    for t in conv["turns"]:
+        s = app.invoke({"query": t["q"], **prev})
+        where = f"turn {t['q']!r}: route={s['route']}/{s.get('route_by')} tool={s.get('tool')} " \
+                f"services={s.get('services')} sources={[x.get('id') for x in s.get('sources', [])]}"
+        if "route" in t:
+            assert s["route"] == t["route"], where
+        if "route_by" in t:
+            assert s.get("route_by") == t["route_by"], where
+        if "tool" in t:
+            assert s.get("tool") == t["tool"], where
+        if "entry" in t:
+            assert s.get("sources") and s["sources"][0]["id"] == t["entry"], where
+        if "service" in t:
+            assert t["service"] in (s.get("services") or []), where
+        if "contains" in t:
+            assert t["contains"] in s["answer"], where
+        prev = {"previous": t["q"], "previous_route": s["route"], "previous_services": s.get("services") or []}
+
+
+@pytest.mark.parametrize("q,services", [
+    ("വിവാഹ രജിസ്ട്രേഷനായിട്ടുള്ള ഫീസ് എത്രയാണ്?", ["marriage"]),        # not "നായ" (dog)
+    ("ബിപിഎൽ, പട്ടികജാതി ആണ്, വിവാഹ ഫീസ് എത്ര?", ["marriage"]),          # not "പട്ടി" (dog)
+    ("വളർത്തുമൃഗങ്ങൾക്ക് ലൈസൻസ് വേണോ", ["pet"]),
+    ("നായയെ വളർത്താൻ ലൈസൻസ്", ["pet"]),
+    ("ജനന സർട്ടിഫിക്കറ്റിന്റെ പകർപ്പ്", ["birth_death"]),
+])
+def test_service_detection_specificity(q, services):
+    from helpdesk.intent import detect_services
+    assert detect_services(q) == services
