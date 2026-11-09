@@ -1,7 +1,8 @@
 # Only for building data/docs.jsonl (python -m ingest.fetch / extract / build_docs).
-# Also needs system tools: poppler (pdftoppm) and tesseract with Malayalam data.
-#   Mac:   brew install poppler tesseract tesseract-lang
-#   Linux: apt install poppler-utils tesseract-ocr tesseract-ocr-mal
+# Also needs Tesseract with Malayalam data (pages are rendered with pypdfium2: no poppler).
+#   Mac:   brew install tesseract  +  mal.traineddata in its tessdata folder (see ingest/README.md)
+#   Linux / Colab: apt install tesseract-ocr tesseract-ocr-mal
 pdfplumber>=0.11
+pypdfium2>=4
 requests>=2.31
 -r requirements.txt

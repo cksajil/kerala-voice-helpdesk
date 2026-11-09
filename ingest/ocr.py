@@ -9,9 +9,9 @@ Tables: pdfplumber finds the ruled cells (vector lines, font-independent); the p
 OCRed once in sparse-text mode (psm 11: psm 6 dropped whole table rows) and each word box
 goes to the cell that contains its centre. Prose pages use psm 4 for reading order.
 
-Needs: poppler (pdftoppm), tesseract with Malayalam data.
-  Mac:   brew install poppler tesseract tesseract-lang
-  Linux: apt install poppler-utils tesseract-ocr tesseract-ocr-mal
+Needs: tesseract with Malayalam data (pages are rendered with pypdfium2, no poppler).
+  Mac:   brew install tesseract, then put mal.traineddata in its tessdata folder
+  Linux: apt install tesseract-ocr tesseract-ocr-mal
 """
 from __future__ import annotations
 
@@ -46,11 +46,16 @@ def _norm(s: str) -> str:
 
 
 def render(pdf: Path, page: int, out_dir: Path) -> Path:
-    stem = out_dir / f"p{page:04d}"
-    png = stem.with_suffix(".png")
+    """Page image at DPI with pypdfium2 (a pip wheel that comes with pdfplumber), so no
+    poppler install is needed: Homebrew builds poppler from source on older macOS."""
+    import pypdfium2 as pdfium
+    png = out_dir / f"p{page:04d}.png"
     if not png.exists():
-        subprocess.run(["pdftoppm", "-r", str(DPI), "-png", "-singlefile", "-f", str(page), "-l", str(page),
-                        str(pdf), str(stem)], check=True)
+        doc = pdfium.PdfDocument(str(pdf))
+        try:
+            doc[page - 1].render(scale=DPI / 72).to_pil().convert("RGB").save(png)
+        finally:
+            doc.close()
     return png
 
 

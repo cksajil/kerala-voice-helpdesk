@@ -10,8 +10,13 @@ ingest/sources.csv  ->  fetch  ->  ingest/raw/<slug>.pdf
                     ->  check_kb  ->  ingest/kb_check.md   (Tier 1 vs. the pages it cites)
 ```
 
+Tesseract with Malayalam data is the only system tool (pages are rendered with pypdfium2).
+On Colab/Kaggle: `apt-get install -y tesseract-ocr tesseract-ocr-mal`. On a Mac where
+Homebrew builds from source (macOS 14 Intel), skip brew upgrades and add only the language:
+`curl -L -o "$(brew --prefix)/share/tessdata/mal.traineddata" https://github.com/tesseract-ocr/tessdata_best/raw/main/mal.traineddata`
+
 ```bash
-pip install -r requirements-ingest.txt          # + poppler and tesseract (see that file)
+pip install -r requirements-ingest.txt
 python -m ingest.fetch                          # downloads, 2 s apart; manifest in ingest/raw/
 python -m ingest.extract                        # ~3 s a page; only new PDFs
 python -m ingest.build_docs
