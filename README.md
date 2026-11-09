@@ -157,3 +157,9 @@ Tier-2 answers took 2.0-3.9 s on the Space even without prompt-cache warm-up.
   chunks, ignores place names and pointing words (അതിന്, ഇവിടെ), and unifies spellings
   (ഇൻഷുറൻസ്/ഇൻഷ്വറൻസ്, കുത്തിവയ്പ്/കുത്തിവെയ്പ്). ASR: കുറ്റികൾ, ചനന, ജനനെ.
 - The whole log replays correctly in `eval/conversations.jsonl` (weather/news turns left out).
+
+### Websites and weekly refresh (9 Nov)
+`python -m ingest.web` crawls chosen sections of lsgkerala.gov.in (robots.txt obeyed) into
+Tier 2; `ingest/changes.md` and `ingest/charter_changes.md` list what changed since the last
+run, and a weekly GitHub Actions workflow opens a pull request with the refreshed data.
+Page images are rendered with pypdfium2, so Tesseract is the only system dependency.

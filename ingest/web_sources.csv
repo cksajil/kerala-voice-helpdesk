@@ -1,0 +1,2 @@
+slug,url,path_prefix,max_pages,notes
+egov,https://lsgkerala.gov.in/en/e-governance,/en/e-governance,20,"e-governance / K-SMART services; replace /en/ with the Malayalam path if the site has one (python -m ingest.web --links https://lsgkerala.gov.in/)"

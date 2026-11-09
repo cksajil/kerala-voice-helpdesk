@@ -560,3 +560,83 @@ def test_kb_check_flags_plain_paper_against_ksmart(monkeypatch):
     assert check_kb.check({"text": "വെള്ളക്കടലാസിൽ അപേക്ഷ. ഫീസ് 10 രൂപ."}, "k", 11) == \
         ["says plain-paper application; page says k-smart"]
     assert check_kb.check({"text": "K-SMART അപേക്ഷ. ഫീസ് 10 രൂപ, 15 ദിവസം."}, "k", 11) == []
+
+
+def test_fetch_respects_robots_txt(monkeypatch):
+    from ingest import fetch
+
+    class R:
+        status_code = 200
+        text = "User-agent: *\nDisallow: /private/\n"
+    monkeypatch.setattr(fetch.requests, "get", lambda *a, **k: R())
+    fetch._ROBOTS.clear()
+    assert fetch.allowed("https://x.lsgkerala.gov.in/en/node/1")
+    assert not fetch.allowed("https://x.lsgkerala.gov.in/private/a.pdf")
+    assert fetch.fetch_one({"slug": "zz-test", "url": "https://x.lsgkerala.gov.in/private/a.pdf"}, {}).startswith("SKIPPED")
+
+
+# --- website crawl (ingest.web) -------------------------------------------------
+_HTML = {
+    "https://lsg.example/ml/services": '<html><head><title>സേവനങ്ങൾ | LSGD</title></head><body><nav>മെനു</nav>'
+        '<article><p>' + "കെട്ടിട നിർമ്മാണ പെർമിറ്റിന് K-SMART വഴി അപേക്ഷിക്കാം. " * 6 + '</p></article>'
+        '<a href="/ml/services/permit">പെർമിറ്റ്</a><a href="/ml/news/1">x</a>'
+        '<a href="/search/node?k=1">s</a><a href="/files/go.pdf">GO</a></body></html>',
+    "https://lsg.example/ml/services/permit": '<html><head><title>പെർമിറ്റ്</title></head><body><article><p>'
+        + "പെർമിറ്റ് ഫീസ് 100 ചതുരശ്ര മീറ്റർ വരെ 150 രൂപ. " * 6 + '</p></article></body></html>',
+}
+
+
+class _Resp:
+    def __init__(self, url):
+        self.url, self.text, self.headers = url, _HTML[url], {"Content-Type": "text/html"}
+
+    def raise_for_status(self): pass
+
+
+def test_crawl_stays_in_section_obeys_robots_and_lists_pdfs(monkeypatch):
+    pytest.importorskip("trafilatura")
+    from ingest import web
+    monkeypatch.setattr(web, "allowed", lambda u: "/search/" not in u)
+    got = []
+    pages, pdfs = web.crawl({"url": "https://lsg.example/ml/services", "path_prefix": "/ml/services"}, 10,
+                            get=lambda u, **k: got.append(u) or _Resp(u), sleep=lambda s: None)
+    assert got == ["https://lsg.example/ml/services", "https://lsg.example/ml/services/permit"]
+    assert [p["title"] for p in pages] == ["സേവനങ്ങൾ", "പെർമിറ്റ്"] and "മെനു" not in pages[0]["text"]
+    assert pdfs == ["https://lsg.example/files/go.pdf"]
+
+
+def test_web_diff_reports_changed_numbers():
+    from ingest.web import diff
+    old = {"u": {"sha256": "a", "text": "ഫീസ് 150 രൂപ"}}
+    lines = diff(old, [{"url": "u", "title": "പെർമിറ്റ്", "sha256": "b", "text": "ഫീസ് 200 രൂപ"},
+                       {"url": "v", "title": "പുതിയത്", "sha256": "c", "text": "x"}])
+    assert lines[0].startswith("- CHANGED u") and "removed: 150" in lines[0] and "added: 200" in lines[0]
+    assert lines[1].startswith("- NEW v")
+
+
+def test_web_docs_carry_page_title_and_site_attribution():
+    from ingest.build_docs import web_docs
+    pg = {"page": 1, "url": "https://lsg.example/ml/permit", "title": "കെട്ടിട പെർമിറ്റ്",
+          "text": "കെട്ടിട നിർമ്മാണ പെർമിറ്റിന് K-SMART വഴി അപേക്ഷിക്കണം. " * 4 + "\nThis paragraph is in English only. " * 4}
+    docs, english = web_docs("egov", pg)
+    assert docs[0]["kind"] == "web" and docs[0]["title"] == "കെട്ടിട പെർമിറ്റ്" and docs[0]["site"] == "LSGD"
+    assert english == 4                      # four English paragraphs
+    assert G.attribution([{"tier": 2, "site": "LSGD"}]) == " (തദ്ദേശ സ്വയംഭരണ വകുപ്പിന്റെ വെബ്സൈറ്റ് പ്രകാരം.)"
+
+
+def test_refetched_changed_charter_is_marked_for_reextraction(tmp_path, monkeypatch):
+    from ingest import fetch
+
+    class R:
+        status_code, content, text, url = 200, b"%PDF-new", "", "u.pdf"
+        def raise_for_status(self): pass
+    monkeypatch.setattr(fetch, "RAW", tmp_path)
+    monkeypatch.setattr(fetch, "HERE", tmp_path)
+    monkeypatch.setattr(fetch, "allowed", lambda u: True)
+    monkeypatch.setattr(fetch.requests, "get", lambda *a, **k: R())
+    (tmp_path / "pages").mkdir()
+    (tmp_path / "pages" / "k.jsonl").write_text("{}")
+    manifest = {"k": {"sha256": "old"}}
+    assert fetch.fetch_one({"slug": "k", "url": "https://x/a.pdf"}, manifest, force=True).startswith("CHANGED")
+    assert not (tmp_path / "pages" / "k.jsonl").exists()
+    assert fetch.fetch_one({"slug": "k", "url": "https://x/a.pdf"}, manifest, force=True) == "unchanged"

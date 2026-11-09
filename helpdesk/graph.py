@@ -106,6 +106,8 @@ def attribution(sources: list[dict]) -> str:
     top = sources[0] if sources else {}
     if top.get("tier") != 2:
         return ""
+    if top.get("site"):
+        return " (തദ്ദേശ സ്വയംഭരണ വകുപ്പിന്റെ വെബ്സൈറ്റ് പ്രകാരം.)"
     if top.get("agreed_by") and len(top["agreed_by"]) >= 2:
         return " (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം.)"
     if top.get("lsgi"):
@@ -233,6 +235,7 @@ def build_graph(retriever: Retriever | None = None):
             {"id": h.doc["id"], "title": h.doc["title"], "url": h.doc["source"],
              "verify": h.doc.get("verify", False), "bm25": round(h.bm25, 2),
              "tier": h.doc.get("tier", 1), "lsgi": h.doc.get("lsgi"), "agreed_by": h.doc.get("agreed_by"),
+             "site": h.doc.get("site"),
              "cos": None if h.cos is None else round(h.cos, 3)} for h in hits[:CTX_K]]}
 
     def other(s: State) -> State:

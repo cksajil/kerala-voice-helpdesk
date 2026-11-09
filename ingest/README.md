@@ -60,3 +60,37 @@ charter PDF linked there is downloaded; an inline charter is saved as HTML). `kb
 name used in `data/kb.csv` sources, for `check_kb`. More charters mostly add *agreement*
 (the same template is used state-wide), which is what turns a single-panchayat fact into a
 verified one; read `ingest/report.md` for rows where panchayats disagree.
+
+## Websites (lsgkerala.gov.in and others)
+```bash
+python -m ingest.web --links https://lsgkerala.gov.in/ml     # see the site's sections, pick some
+# add rows to ingest/web_sources.csv: slug, start url, path prefix, max pages
+python -m ingest.web                                          # crawl -> ingest/pages/web-<slug>.jsonl
+python -m ingest.build_docs
+```
+- Obeys robots.txt. lsgkerala.gov.in (Drupal) allows content pages and disallows search,
+  login, admin and elected members' personal-detail pages; the crawler also never follows
+  `/lbelection/` links. 2 s between requests.
+- Keeps each page's main text (trafilatura), with its URL, title and Last-Modified date.
+  Only Malayalam paragraphs become passages: crawl the `/ml/` version of a page when there
+  is one. Answers say "(തദ്ദേശ സ്വയംഭരണ വകുപ്പിന്റെ വെബ്സൈറ്റ് പ്രകാരം.)".
+- PDFs the crawl finds (orders, circulars, charters) are listed in `ingest/web_pdfs.txt`;
+  add the useful ones to `sources.csv` so they go through OCR.
+
+## Keeping it current
+- `ingest.fetch --force` re-downloads every charter; one whose file changed has its OCR
+  dropped (so `extract` redoes it) and is listed in `ingest/charter_changes.md`.
+- `ingest.web` writes `ingest/changes.md`: new pages, and changed pages with the numbers
+  that disappeared or appeared ("removed: 150; added: 200") -- the fee and day changes a
+  Tier-1 entry may need.
+- `.github/workflows/refresh-kb.yml` runs all of this every Monday 02:47 IST (or by hand from
+  the Actions tab), runs the tests, and opens a pull request with the changes. Nothing reaches
+  the Space until you merge it and copy `data/docs.jsonl`. GitHub's runners are outside India;
+  if LSGD sites refuse them, the run shows FAILED lines and you run the same commands on Colab.
+
+## Running it on Kaggle (long runs)
+`notebooks/kaggle_ingest.ipynb` runs the whole pipeline with **Save Version → Save & Run All**, so a
+run continues after you close the browser (up to 12 h; 4 CPU cores, `--jobs 4`). Its output folder
+can be added as Input to the next version to resume, and `EXTRA_SOURCES` / `EXTRA_WEB_SOURCES` add
+charters or website sections for one run. `ingest.extract` writes `<slug>.jsonl.partial` and renames
+it only when a document is finished, so a timeout never leaves a half-read charter behind.

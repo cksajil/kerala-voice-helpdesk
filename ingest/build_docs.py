@@ -130,6 +130,29 @@ def prose_docs(src: dict, page: int, text: str) -> list[dict]:
     return out
 
 
+def web_docs(slug: str, pg: dict) -> tuple[list[dict], int]:
+    """Chunks of one crawled web page (ingest.web). The page title goes on every chunk so title
+    matching finds them; English chunks are dropped (Gemma answers in Malayalam from the passage
+    it reads, and mixed-language passages gave worse answers) and counted for the report."""
+    out = []
+    page_title = clean(pg.get("title", "")) or slug
+    # Filter paragraphs before chunking: bilingual pages put English and Malayalam side by side.
+    paras = [l for l in pg["text"].splitlines() if l.strip()]
+    keep = [l for l in paras if ml_ratio(l) >= 0.6]
+    english = len(paras) - len(keep)
+    for i, c in enumerate(prose_chunks("\n".join(keep))):
+        if len(c) < 80 or len(_PHONE.findall(c)) >= 2:
+            continue
+        title = page_title if i == 0 else f"{page_title}: {re.split(r'[.:;]', c, maxsplit=1)[0][:50].strip()}"
+        out.append({
+            "id": f"web-{slug}-p{pg['page']}-c{i}", "tier": 2, "kind": "web",
+            "service": _service(page_title, c), "title": title, "text": c, "questions": [], "facets": [],
+            "lsgi": "", "site": "LSGD", "district": "", "source": f"{pg['url']} ({page_title})",
+            "modified": pg.get("modified", ""), "verify": True, "checked": "",
+        })
+    return out, english
+
+
 def group_key(title: str) -> str:
     """Rough identity of a service across charters: its first three content words, stemmed."""
     words = [w for w in normalise(title, strip_punct=True).split() if len(w) > 2][:3]
@@ -143,8 +166,14 @@ def _same(a: str, b: str) -> bool:
 
 def main():
     sources = {s["slug"]: s for s in load_sources()}
-    docs, skipped = [], 0
+    docs, skipped, english = [], 0, 0
     for pf in sorted(PAGES.glob("*.jsonl")):
+        if pf.stem.startswith("web-"):
+            for line in pf.open(encoding="utf-8"):
+                got, en = web_docs(pf.stem[4:], json.loads(line))
+                docs += got
+                english += en
+            continue
         src = sources.get(pf.stem) or {"slug": pf.stem, "lsgi_ml": pf.stem, "lsgi_en": pf.stem}
         for line in pf.open(encoding="utf-8"):
             pg = json.loads(line)
@@ -187,6 +216,8 @@ def main():
     for d in docs:
         by_kind[d["kind"]] += 1
     print(f"wrote {len(docs)} passages to {OUT} ({dict(by_kind)}); {skipped} low-confidence pages skipped")
+    if english:
+        print(f"{english} English web paragraphs left out: crawl the Malayalam version of those pages")
     print(f"cross-charter: {agree} services agree, {conflict} differ (see {REPORT})")
 
 
