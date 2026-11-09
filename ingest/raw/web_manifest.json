@@ -1,0 +1,16 @@
+{
+ "egov": {
+  "https://lsgkerala.gov.in/en/e-governance": {
+   "sha256": "1c2aaf91f4fa281e56e967474b0303109d1adb85017bd1ca0af1e3c0f433a23c",
+   "text": "| Sulekha - Plan Monitoring for decentralised planning at local level Sevana Civil Registration - Births, Deaths and Marriages Registration Sevana Pension - Disbursement of social welfare pensions, with electronic money order (eMO) integration Sanchaya - The Revenue & Licence System Sanketham - Ensures transparency in granting Building Permits (KMBR) Sakarma - Handling of council/committee agenda, minutes, etc. Soochika - Work flow application. Status Monitoring over web, and eSMS integration Sachithra - Map suite (GIS) and asset register for local governments Saankhya - Double entry accrual based accounting for all local governments Sthapana - Payroll, PF accounting (Municipal and Panchayat employees PF accounts) Sugama - Cost Estimation tool for public works Samvedhitha - LSGD web portal for all local governments and the Department |",
+   "title": "e-Governance",
+   "fetched": "2026-11-09"
+  },
+  "http://lsgkerala.gov.in/en/e-governance": {
+   "sha256": "1c2aaf91f4fa281e56e967474b0303109d1adb85017bd1ca0af1e3c0f433a23c",
+   "text": "| Sulekha - Plan Monitoring for decentralised planning at local level Sevana Civil Registration - Births, Deaths and Marriages Registration Sevana Pension - Disbursement of social welfare pensions, with electronic money order (eMO) integration Sanchaya - The Revenue & Licence System Sanketham - Ensures transparency in granting Building Permits (KMBR) Sakarma - Handling of council/committee agenda, minutes, etc. Soochika - Work flow application. Status Monitoring over web, and eSMS integration Sachithra - Map suite (GIS) and asset register for local governments Saankhya - Double entry accrual based accounting for all local governments Sthapana - Payroll, PF accounting (Municipal and Panchayat employees PF accounts) Sugama - Cost Estimation tool for public works Samvedhitha - LSGD web portal for all local governments and the Department |",
+   "title": "e-Governance",
+   "fetched": "2026-11-09"
+  }
+ }
+}

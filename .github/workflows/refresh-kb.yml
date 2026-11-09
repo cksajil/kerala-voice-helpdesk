@@ -1,0 +1,41 @@
+# Weekly: re-download charters and website sections, re-OCR what changed, rebuild Tier 2,
+# check Tier 1 against its sources, run the tests, and open a pull request with the diff.
+# Nothing reaches the Space until you review and merge the PR.
+name: refresh-kb
+on:
+  schedule:
+    - cron: "17 21 * * 0"        # Sunday 21:17 UTC = Monday 02:47 IST
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-mal
+      - run: pip install -q -r requirements-ingest.txt pytest trafilatura
+      - run: python -m ingest.fetch --force
+      - run: python -m ingest.web
+      - run: python -m ingest.extract
+      - run: python -m ingest.build_docs
+      - run: python -m ingest.check_kb || true      # flags are for review, not a failure
+      - run: python -m pytest -q
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: kb-refresh
+          title: "KB refresh: changed charters and LSGD pages"
+          commit-message: "KB refresh (weekly)"
+          body-path: ingest/changes.md
+          add-paths: |
+            data/docs.jsonl
+            ingest/pages/
+            ingest/raw/manifest.json
+            ingest/raw/web_manifest.json
+            ingest/*.md
+            ingest/web_pdfs.txt
