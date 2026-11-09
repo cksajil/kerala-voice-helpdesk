@@ -179,6 +179,6 @@ def news(query: str = "", n: int = 3) -> dict:
                 else:
                     intro = f"{DISTRICTS[key][0]} ജില്ലയിലെ പ്രത്യേക വാർത്തകൾ കിട്ടിയില്ല. കേരളത്തിലെ പ്രധാന വാർത്തകൾ: "
             top = items[:n]
-            text = intro + " ".join(_headline(i["title"]).rstrip(".") + "." for i in top)
+            text = intro + " ".join(_headline(i["title"]).rstrip(".;:,| ") + "." for i in top)
             return {"source": name, "items": top, "text": text}
     return {"source": None, "items": [], "text": ""}
