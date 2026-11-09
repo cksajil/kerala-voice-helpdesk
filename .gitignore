@@ -1,4 +1,8 @@
-.venv/
 __pycache__/
-.cache/
+.pytest_cache/
 eval/out.jsonl
+# ingest: page images are regenerated from the PDFs; PDFs are re-downloaded by ingest.fetch
+ingest/work/
+ingest/raw/*.pdf
+ingest/raw/*.html
+data/emb-*.npy

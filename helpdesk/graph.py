@@ -23,8 +23,9 @@ from langgraph.graph import END, StateGraph
 
 from . import fees, llm, tools
 from .normalise import normalise
-from .intent import CLARIFY_FACETS, detect_facet, detect_services, fix_asr, missing_message, out_of_scope
-from .retriever import Retriever
+from .intent import (CLARIFY_FACETS, OTHER_ANIMAL_MSG, detect_facet, detect_services, fix_asr, missing_message,
+                     other_animal, out_of_scope)
+from .retriever import BM25_MIN, Hit, Retriever
 
 Route = Literal["weather", "news", "service_faq", "other"]
 CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
@@ -73,7 +74,8 @@ def clean_answer(out: str) -> tuple[str, bool]:
 class State(TypedDict, total=False):
     query: str
     route: Route
-    route_by: str            # "rule" | "follow-up" | "none"
+    route_by: str            # "rule" | "follow-up" | "open" | "none"
+    open_id: str             # route_by "open": the passage whose title matched
     tool: str                # set when a deterministic tool answered (e.g. "fee_calc")
     previous: str            # the caller's previous question in this conversation, if any
     previous_route: Route
@@ -97,6 +99,19 @@ def answer_message(ctx: str, query: str) -> str:
     return f"വിവരങ്ങൾ:\n{ctx}\n\nചോദ്യം: {query}"
 
 
+def attribution(sources: list[dict]) -> str:
+    """Spoken source for Tier-2 answers: one panchayat's charter may differ from yours."""
+    top = sources[0] if sources else {}
+    if top.get("tier") != 2:
+        return ""
+    if top.get("agreed_by") and len(top["agreed_by"]) >= 2:
+        return " (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം.)"
+    if top.get("lsgi"):
+        return (f" ({top['lsgi']} പഞ്ചായത്തിന്റെ പൗരാവകാശ രേഖ പ്രകാരം. "
+                "നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)")
+    return ""
+
+
 def rule_route(query: str) -> Route | None:
     """weather / news by keyword, service_faq if a service is named, else None."""
     q = fix_asr(query)
@@ -117,10 +132,28 @@ def build_graph(retriever: Retriever | None = None):
             return {"route": r, "route_by": "rule", "services": detect_services(q), "facet": facet}
         if r:
             return {"route": r, "route_by": "rule"}
+        # A service no keyword names, found by title overlap in the Tier-2 documents
+        # ("പരസ്യം വെക്കാൻ അനുമതി വേണോ" -> the advertisement-permission row of a charter).
+        # Checked before follow-ups: a new topic in a few words is not a follow-up.
         # Follow-up that names no service ("അതിന് എന്തൊക്കെ രേഖകൾ വേണം?"): carry the previous service.
         prev = s.get("previous_services") or detect_services(s.get("previous") or "")
-        if (prev and s.get("previous_route") == "service_faq" and len(q.split()) <= FOLLOW_UP_MAX_WORDS
-                and not out_of_scope(q)):
+        follow = (bool(prev) and s.get("previous_route") == "service_faq"
+                  and len(q.split()) <= FOLLOW_UP_MAX_WORDS and not out_of_scope(q))
+        if not out_of_scope(q):
+            h = retriever.open_match(q)
+            if h is not None and not (follow and h.doc.get("service") in prev):
+                return {"route": "service_faq", "route_by": "open", "services": [h.doc.get("service", "")],
+                        "facet": facet, "open_id": h.doc["id"]}
+        if follow and "lsgd_other" in prev:
+            # The previous answer came from an untagged charter row: "lsgd_other" is a catch-all,
+            # not a service to search ("രജിസ്ട്രേഷൻ തുക എത്ര?" after the advertisement question
+            # found a paramedical-registration row). Re-find the previous passage instead.
+            h = retriever.open_match((s.get("previous") or "") + " " + q)
+            if h is not None:
+                return {"route": "service_faq", "route_by": "follow-up", "services": [h.doc.get("service", "")],
+                        "facet": facet, "open_id": h.doc["id"]}
+            follow = False
+        if follow:
             return {"route": "service_faq", "route_by": "follow-up", "services": prev, "facet": facet}
         # No service: answering from the knowledge base would only find a lookalike passage
         # ("കേരളത്തിന്റെ തലസ്ഥാനം" -> a pension passage -> "തി ആണ്").
@@ -158,7 +191,10 @@ def build_graph(retriever: Retriever | None = None):
 
     def retrieve(s: State) -> State:
         services, facet = s.get("services") or [], s.get("facet")
-        if retriever.missing_facet(services, facet):
+        if ("pet" in services and other_animal(s["query"])
+                and (facet == "compulsory" or "ലൈസൻസ" in fix_asr(s["query"]))):
+            return {"answer": OTHER_ANIMAL_MSG, "refused": True, "tool": "missing_facet", "sources": []}
+        if not s.get("open_id") and retriever.missing_facet(services, facet):
             # e.g. building-permit validity: no entry has it, so say so instead of letting
             # Gemma borrow the trade licence's "5 years" (8 Nov log).
             return {"answer": missing_message(services, facet), "refused": True, "tool": "missing_facet",
@@ -167,13 +203,30 @@ def build_graph(retriever: Retriever | None = None):
         if s.get("route_by") == "follow-up" and s.get("previous"):
             query = s["previous"] + " " + query          # keeps specifics like "വിധവ" for retrieval
         hits = retriever.search(query, k=3, services=services, facet=facet)
-        if not retriever.confident(hits):
+        open_id = s.get("open_id")
+        if not open_id and hits:
+            # A passage whose title says more of the question than the top hit's title does
+            # ("വാസയോഗ്യമായ വീടില്ലെന്ന സർട്ടിഫിക്കറ്റ്": a charter row, not the residence certificate).
+            h = retriever.open_match(s["query"])
+            if h is not None:
+                cand, top = (retriever.title_overlap(s["query"], d) for d in (h.doc, hits[0].doc))
+                # Clearly better, not a near tie, and not trading an entry that answers the asked
+                # facet for one that does not ("കർഷക തൊഴിലാളി പെൻഷൻ എത്ര": the amount entry wins).
+                answers = facet and facet in hits[0].doc.get("facets", []) and facet not in h.doc.get("facets", [])
+                if cand > top and (top == 0 or cand >= top + 2) and not answers:
+                    open_id = h.doc["id"]
+        if open_id:
+            # Title overlap vouches for this passage; put it first.
+            pinned = next(i for i, d in enumerate(retriever.docs) if d["id"] == open_id)
+            hits = [Hit(retriever.docs[pinned], 1.0, BM25_MIN, None)] + [h for h in hits if h.doc["id"] != open_id]
+        elif not retriever.confident(hits):
             return {"context": "", "sources": []}
         # Only the top CTX_K passages go to the LLM (prefill dominates CPU latency).
         ctx = "\n\n".join(passage(h.doc) for h in hits[:CTX_K])
         return {"context": ctx, "sources": [
             {"id": h.doc["id"], "title": h.doc["title"], "url": h.doc["source"],
              "verify": h.doc.get("verify", False), "bm25": round(h.bm25, 2),
+             "tier": h.doc.get("tier", 1), "lsgi": h.doc.get("lsgi"), "agreed_by": h.doc.get("agreed_by"),
              "cos": None if h.cos is None else round(h.cos, 3)} for h in hits[:CTX_K]]}
 
     def other(s: State) -> State:
@@ -193,13 +246,15 @@ def build_graph(retriever: Retriever | None = None):
         if not llm.enabled():
             # Extractive fallback: read out the best passage.
             best = ctx.split("\n\n")[0].split("\n", 1)[1]
-            return {"answer": best.split(" Keywords:")[0], "refused": False}
+            return {"answer": best.split(" Keywords:")[0] + attribution(s.get("sources", [])), "refused": False}
         try:
             out = llm.chat(ANSWER_PROMPT, answer_message(ctx, fix_asr(s["query"])),
                            max_tokens=ANSWER_TOKENS, temperature=0)
         except Exception:
             return {"answer": TOOL_FAIL, "refused": True}
         answer, refused = clean_answer(out)
+        if not refused:
+            answer += attribution(s.get("sources", []))
         return {"answer": answer, "refused": refused}
 
     g = StateGraph(State)

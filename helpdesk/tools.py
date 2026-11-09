@@ -38,6 +38,37 @@ DISTRICTS = {
 }
 DEFAULT_DISTRICT = "thiruvananthapuram"
 
+# Places people ask weather for that are not district names -> (Malayalam name, stems, district, lat, lon).
+# Checked before districts: "വാഗമണിലെ കാലാവസ്ഥ" got Thiruvananthapuram's weather (9 Nov log).
+PLACES = {
+    "vagamon": ("വാഗമൺ", ["വാഗമ", "vagamon"], "idukki", 9.686, 76.905),
+    "munnar": ("മൂന്നാർ", ["മൂന്നാ", "munnar"], "idukki", 10.089, 77.060),
+    "thekkady": ("തേക്കടി", ["തേക്കടി", "കുമളി", "thekkady", "kumily"], "idukki", 9.602, 77.161),
+    "peermade": ("പീരുമേട്", ["പീരുമേ", "peermade"], "idukki", 9.577, 76.976),
+    "ponmudi": ("പൊന്മുടി", ["പൊന്മുടി", "പൊൻമുടി", "ponmudi"], "thiruvananthapuram", 8.760, 77.116),
+    "kovalam": ("കോവളം", ["കോവള", "kovalam"], "thiruvananthapuram", 8.400, 76.979),
+    "varkala": ("വർക്കല", ["വർക്കല", "varkala"], "thiruvananthapuram", 8.734, 76.716),
+    "kumarakom": ("കുമരകം", ["കുമരക", "kumarakom"], "kottayam", 9.617, 76.430),
+    "athirappilly": ("അതിരപ്പിള്ളി", ["അതിരപ്പിള്ളി", "athirappilly"], "thrissur", 10.285, 76.570),
+    "guruvayur": ("ഗുരുവായൂർ", ["ഗുരുവായൂ", "guruvayur"], "thrissur", 10.594, 76.041),
+    "sabarimala": ("ശബരിമല", ["ശബരിമല", "sabarimala"], "pathanamthitta", 9.435, 77.081),
+    "nelliyampathy": ("നെല്ലിയാമ്പതി", ["നെല്ലിയാമ്പതി", "nelliyampathy"], "palakkad", 10.535, 76.693),
+    "bekal": ("ബേക്കൽ", ["ബേക്കൽ", "bekal"], "kasaragod", 12.392, 75.033),
+    "thalassery": ("തലശ്ശേരി", ["തലശ്ശേരി", "തലശേരി", "thalassery"], "kannur", 11.749, 75.493),
+    "bathery": ("സുൽത്താൻ ബത്തേരി", ["ബത്തേരി", "bathery"], "wayanad", 11.665, 76.263),
+}
+# A "<place>ിലെ" word we could not resolve: say so instead of quietly answering for the default.
+_UNKNOWN_PLACE = re.compile(r"(?<![ഀ-ൿ])([ഀ-ൿ]{3,})(?:ിലെ|ത്തിലെ|യിലെ)(?![ഀ-ൿ])")
+_NOT_PLACES = ("കേരള", "ജില്ല", "നാട്", "സ്ഥല", "പ്രദേശ", "ഇവിടെ", "അവിടെ", "നഗര")
+
+
+def find_place(query: str):
+    q = normalise(query)
+    for key, (name, stems, district, lat, lon) in PLACES.items():
+        if any(normalise(s) in q for s in stems):
+            return name, district, lat, lon
+    return None
+
 # WMO weather codes -> short Malayalam description
 WMO = {0: "തെളിഞ്ഞ ആകാശം", 1: "ഏറെക്കുറെ തെളിഞ്ഞ ആകാശം", 2: "ഭാഗികമായി മേഘാവൃതം", 3: "മേഘാവൃതം",
        45: "മൂടൽമഞ്ഞ്", 48: "മൂടൽമഞ്ഞ്", 51: "ചാറ്റൽമഴ", 53: "ചാറ്റൽമഴ", 55: "ശക്തമായ ചാറ്റൽമഴ",
@@ -55,8 +86,13 @@ def find_district(query: str) -> str | None:
 
 
 def weather(query: str) -> dict:
-    key = find_district(query) or DEFAULT_DISTRICT
-    name_ml, _, lat, lon = DISTRICTS[key]
+    place = find_place(query)
+    if place:
+        name, key, lat, lon = place
+        name_ml = f"{name} ({DISTRICTS[key][0]} ജില്ല)"
+    else:
+        key = find_district(query) or DEFAULT_DISTRICT
+        name_ml, _, lat, lon = DISTRICTS[key]
     r = requests.get("https://api.open-meteo.com/v1/forecast", headers=UA, timeout=TIMEOUT, params={
         "latitude": lat, "longitude": lon, "timezone": "Asia/Kolkata", "forecast_days": 2,
         "current": "temperature_2m,relative_humidity_2m,weather_code",
@@ -69,7 +105,12 @@ def weather(query: str) -> dict:
             f"{WMO.get(cur['weather_code'], 'കാലാവസ്ഥ ലഭ്യമല്ല')}. "
             f"ഇന്ന് കൂടിയ താപനില {round(day['temperature_2m_max'][0])}, കുറഞ്ഞത് {round(day['temperature_2m_min'][0])} ഡിഗ്രി. "
             f"മഴ സാധ്യത {day['precipitation_probability_max'][0]} ശതമാനം.")
-    return {"district": key, "district_found": key == find_district(query), "text": text,
+    found = bool(place) or find_district(query) is not None
+    if not found:
+        m = _UNKNOWN_PLACE.search(normalise(query))
+        if m and not any(m.group(1).startswith(normalise(x)) for x in _NOT_PLACES):
+            text = f"ആ സ്ഥലം എന്റെ പട്ടികയിൽ ഇല്ല. ജില്ലയുടെ പേര് പറഞ്ഞാൽ കൃത്യമായി പറയാം. {text}"
+    return {"district": key, "district_found": found, "text": text,
             "source": "Open-Meteo (open-meteo.com)", "raw": d}
 
 
@@ -99,7 +140,9 @@ def _clean(s: str) -> str:
 def _headline(title: str) -> str:
     """Google News titles end with ' - Publisher'; drop it for speech (kept in items for the UI)."""
     head, sep, tail = title.rpartition(" - ")
-    return head if sep and len(tail) <= 40 else title
+    title = head if sep and len(tail) <= 40 else title
+    # Video titles: "പെട്രോളില്‍ എഥനോള്‍ എത്രയുണ്ട്? | ഹലോ കേരളം | Latest News | 08 - 11 - 2026"
+    return title.split(" | ")[0].strip()
 
 
 def news(query: str = "", n: int = 3) -> dict:

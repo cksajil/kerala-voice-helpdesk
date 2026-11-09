@@ -63,7 +63,7 @@ python -m eval.run_eval --dense --full        # end-to-end with LLM + live tools
   questions (ration card and passport questions score as high as real ones),
   so the retrieval gate lets them through: 15/17. Refusal for these depends
   on the dense cosine threshold and the LLM's `UNSURE`; measure with `--full`.
-- Knowledge base: 48 entries (28 from two panchayat citizen charters, 8 Nov), each with example questions that are indexed
+- Knowledge base: 50 entries (28 from two panchayat citizen charters, 8 Nov), each with example questions that are indexed
   for retrieval but never sent to the LLM (written independently of the eval set).
 - Knowledge base: Entries with `verify: true` come from a 2018
   SOP or a secondary site; check them against current official pages.
@@ -121,3 +121,29 @@ misreading a correct passage. So, no fine-tuning; instead (`helpdesk/intent.py`)
 - **ASR fixes** for frequent mishearings (വേദന->വേതനം with തൊഴിൽ, പർമിത്->പെർമിറ്റ്,
   മുർഗം->മൃഗം, കാലാപതി->കാലാവധി, ...), plus strict fuzzy matching for long stems.
 - `eval/conversations.jsonl`: the logged conversations as multi-turn tests (27 turns).
+
+## Fixes from the 9 Nov Space log (21 turns)
+- Marriage fee: "തുക" now counts as a money question for the fee calculator, so "രജിസ്ട്രേഷൻ
+  തുക എത്ര?" (also as a follow-up) gets the full 120 / 220 / 370 schedule, not Gemma's partial one.
+- ASR: "രണ്ടു നാസമായി" -> "രണ്ടു മാസമായി" (only after a number).
+- Pets: cats, cows and goats route to the pet service and get "I only know about dogs and pigs"
+  in code (was "ട്രേഡ് ലൈസൻസിന്റെ..."). കോഴി/എരുമ/പോത്ത് are left out: കോഴിക്കോട്, എരുമേലി, പോത്തൻകോട്.
+- Weather: 15 tourist places (വാഗമൺ, മൂന്നാർ, കോവളം...) with their own coordinates; an unknown
+  "<place>ിലെ" says so before the default district's weather instead of silently answering for Thiruvananthapuram.
+- News: video-style titles lose their " | channel | date" tail.
+- Scope: ministers, "കേരളത്തിൽ എത്ര ... ഉണ്ട്" counts and India questions are never follow-ups.
+- KB: `svc-list-01` (services a panchayat offers) and `ptax-rate-01` (property tax: per sq m,
+  2023 panchayat residential rates; verify=yes, news source).
+
+## Tier 2: documents ingested automatically (9 Nov 2026)
+Hand-written entries do not scale, so `ingest/` builds `data/docs.jsonl` from panchayat citizen
+charters: download, OCR (Tesseract Malayalam: the PDFs' fonts are unreliable), table rows and
+prose chunks, service tags, cross-charter agreement. See `ingest/README.md`.
+- From two charters: ~600 passages, including services Tier 1 never covered (PHC, Krishi
+  Bhavan, veterinary, schools, MGNREGS job card, advertisement permission...).
+- Questions that name no known service reach them by title overlap; answers from one charter
+  say which panchayat's charter they come from.
+- `python -m ingest.check_kb` checks Tier-1 entries against the OCR of the pages they cite.
+  It found six entries with details the cited page does not support (four "plain-paper
+  application" errors from font decoding, one stamp-paper amount, one date); all fixed.
+- Dense retrieval embeddings are cached in `data/emb-*.npy` (hundreds of passages).

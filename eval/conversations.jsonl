@@ -6,3 +6,17 @@
 {"name": "general knowledge (8 Nov log)", "turns": [{"q": "കേരളത്തിന്റെ തലസ്ഥാനം എവിടെയാണ്?", "route": "other"}, {"q": "തിരുവനന്തപുരത്ത് നിന്നും എറണാകുളത്തേക്ക് എത്ര ദൂരമുണ്ട്?", "route": "other"}, {"q": "സെക്രട്ടറിയറ്റ് എവിടെ സ്ഥിതി ചെയ്യുന്നു", "route": "other"}, {"q": "തിരുവനന്തപുരത്.", "route": "other"}]}
 {"name": "earlier log (8 Nov evening)", "turns": [{"q": "അക്ഷയകേന്ദ്രത്തിൽ ലഭിക്കുന്ന സർവീസുകളൊന്നൊക്കെ", "entry": "access-01"}, {"q": "വിവാഹ രജിസ്ട്രേഷനായിട്ടുള്ള ഫീസ് എത്രയാണ്?", "tool": "fee_calc", "contains": "ഫീസ് 10 രൂപ"}, {"q": "പാസ്പോർട്ട് ലഭിക്കാൻ എന്ത് ചെയ്യണം?", "route": "other"}, {"q": "കർഷക തൊഴിലാളി പെൻഷൻ എത്രെയാണ്?", "entry": "ch-pen-amount-01"}]}
 {"name": "clarify when no service is named", "turns": [{"q": "തുക എത്രയാണ്?", "route": "other", "tool": "clarify"}]}
+{"name": "marriage fees (9 Nov log)", "turns": [{"q": "കല്യാണ രജിസ്ട്രേഷൻ നിർബന്ധമാണോ?", "entry": "ch-marr-compulsory-01"}, {"q": "രജിസ്ട്രേഷൻ തുക എത്രയാണ്?", "route_by": "follow-up", "tool": "fee_calc", "contains": "120 രൂപ"}, {"q": "വിവാഹ രജിസ്ട്രേഷൻ തുകയറ്റ്രയാണ്.", "tool": "fee_calc", "contains": "120 രൂപ"}, {"q": "വിവാഹം കഴിഞ്ഞ രണ്ടു നാസമായി രജിസ്ട്രേഷൻ തുകയറ്റയാണ്.", "tool": "fee_calc", "contains": "220"}, {"q": "വിവാഹം കഴിഞ്ഞ ആറു മാസമായ എത്രയാണ് രജിസ്ട്രേഷൻ തുക", "tool": "fee_calc", "contains": "220"}]}
+{"name": "pets other than dogs (9 Nov log)", "turns": [{"q": "വളർത്ത് മൃഗങ്ങൾക്ക് ലൈസൻസ് ആവശ്യമാണ്.", "entry": "ch-pet-01"}, {"q": "പൂച്ചെ വളർത്താൻ ലൈസൻസ് ആവശ്യമാണ്.", "service": "pet", "tool": "missing_facet", "contains": "പട്ടി, പന്നി"}, {"q": "പൂച്ചയെ വളർത്താൻ ലൈസൻസ് ആവശ്യമാണോ?", "service": "pet", "tool": "missing_facet"}]}
+{"name": "property tax then general knowledge (9 Nov log)", "turns": [{"q": "കെട്ടിട നികുതി എത്രയാണ്?", "entry": "ptax-rate-01"}, {"q": "കേരളത്തിൽ എത്ര പഞ്ചായത്തുകളുണ്ട്.", "route": "other"}, {"q": "കേരളത്തിന്റെ മുഖ്യമന്ത്രിയാരാണ്.", "route": "other"}]}
+{"name": "service lists (9 Nov log)", "turns": [{"q": "പഞ്ചായത്തിൽ ലഭിക്കുന്ന സേവനങ്ങൾ എന്തുക്കെയാണ്?", "entry": "svc-list-01"}, {"q": "അക്ഷയകേന്ദ്രത്തിൽ ലഭിക്കുന്ന സേവനങ്ങൾ എന്തൊക്കെയാണ്?", "entry": "access-01"}]}
+{"name": "tier 2 coverage 1 (9 Nov)", "turns": [{"q": "തൊഴിൽ കാർഡ് എടുക്കാൻ എന്തൊക്കെ രേഖകൾ വേണം", "entry": "kadanad-gp-2026-p11-r4"}]}
+{"name": "tier 2 coverage 2 (9 Nov)", "turns": [{"q": "വിള ഇൻഷ്വറൻസിന് എവിടെ അപേക്ഷിക്കണം", "entry": "kadanad-gp-2026-p15-r0"}]}
+{"name": "tier 2 coverage 3 (9 Nov)", "turns": [{"q": "കുട്ടികൾക്ക് കുത്തിവെപ്പ് എവിടെ കിട്ടും", "entry": "kadanad-gp-2026-p12-r6"}]}
+{"name": "tier 2 coverage 4 (9 Nov)", "turns": [{"q": "പരസ്യ ബോർഡ് വെക്കാൻ അനുമതി വേണോ", "entry": "kadanad-gp-2026-p11-r3"}]}
+{"name": "tier 2 coverage 5 (9 Nov)", "turns": [{"q": "വാസയോഗ്യമായ വീടില്ലെന്ന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും", "entry": "kadanad-gp-2026-p5-r2"}]}
+{"name": "tier 2 coverage 6 (9 Nov)", "turns": [{"q": "ഓമനമൃഗങ്ങളുടെ ചികിത്സയ്ക്ക് ഫീസ് എത്ര", "entry": "kadanad-gp-2026-p15-r9"}]}
+{"name": "tier 2 coverage 7 (9 Nov)", "turns": [{"q": "സിനിമ ടിക്കറ്റ് എവിടെ കിട്ടും", "route": "other"}]}
+{"name": "tier 2 coverage 8 (9 Nov)", "turns": [{"q": "മൂന്നാറിൽ കാണാൻ എന്തൊക്കെയുണ്ട്", "route": "other"}]}
+{"name": "tier 2 coverage 9 (9 Nov)", "turns": [{"q": "ബിരിയാണി എങ്ങനെ ഉണ്ടാക്കാം", "route": "other"}]}
+{"name": "follow-up after a charter-only answer (9 Nov)", "turns": [{"q": "പരസ്യ ബോർഡ് വെക്കാൻ അനുമതി വേണോ?", "entry": "kadanad-gp-2026-p11-r3"}, {"q": "അതിന് എത്ര ദിവസം എടുക്കും?", "route_by": "follow-up", "entry": "kadanad-gp-2026-p11-r3"}, {"q": "രജിസ്ട്രേഷൻ തുക എത്രയാണ്?", "route": "other"}]}

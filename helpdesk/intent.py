@@ -29,7 +29,8 @@ SERVICES: dict[str, list[tuple[str, int]]] = {
     "pension": [("പെൻഷ", 2), ("pension", 2)],
     "unemployment": [("തൊഴിലില്ലായ്മ", 2), ("തൊഴിൽരഹിത", 2), ("തൊഴിൽ രഹിത", 2), ("unemployment", 2)],
     "property_tax": [("നികുതി", 2), ("വീട്ടുകര", 2), ("ടാക്സ", 2), ("ഉടമസ്ഥ", 2), ("ഓണർഷിപ്പ", 2)],
-    "pet": [("പട്ടി", 2), ("നായ", 2), ("പന്നി", 2), ("മൃഗ", 2), ("dog", 2)],
+    "pet": [("പട്ടി", 2), ("നായ", 2), ("പന്നി", 2), ("മൃഗ", 2), ("dog", 2),
+            ("പൂച്ച", 2), ("പശു", 2), ("ആട", 2), ("cat", 2)],   # not കോഴി/എരുമ/പോത്ത: കോഴിക്കോട്, എരുമേലി, പോത്തൻകോട്
     "certificate": [("താമസ സർട്ടി", 2), ("റെസിഡൻസ", 2), ("സ്വഭാവ സർട്ടി", 2), ("കാരക്ടർ", 2),
                     ("തിരിച്ചറിയൽ സർട്ടി", 2), ("ഐഡന്റിറ്റി", 2), ("സർട്ടി", 1), ("സാക്ഷ്യപത്ര", 1),
                     ("certificate", 1)],
@@ -37,7 +38,8 @@ SERVICES: dict[str, list[tuple[str, int]]] = {
     "rti": [("വിവരാവകാശ", 2), ("ആർ.ടി.ഐ", 2), ("rti", 2)],
     "health": [("ഹെൽത്ത് കാർഡ", 2), ("മെഡിക്കൽ സർട്ടി", 2), ("ആരോഗ്യ കേന്ദ്ര", 2), ("പി.എച്ച്.സി", 2)],
     "general": [("അക്ഷയ", 2), ("കുടുംബശ്രീ", 2), ("കെ സ്മാർട്ട", 2), ("കെ-സ്മാർട്ട", 2), ("ksmart", 2),
-                ("k-smart", 2), ("സർവീസ് ചാർജ", 2)],
+                ("k-smart", 2), ("സർവീസ് ചാർജ", 2), ("ലഭിക്കുന്ന സേവന", 2), ("കിട്ടുന്ന സേവന", 2),
+                ("സേവനങ്ങൾ എന്ത", 2), ("ഏതൊക്കെ സേവന", 2), ("എന്തൊക്കെ സേവന", 2)],
 }
 
 # Other departments' topics. Without a service that names itself (weight 2), these are out of
@@ -45,12 +47,16 @@ SERVICES: dict[str, list[tuple[str, int]]] = {
 # question must not get marriage documents; "ഡ്രൈവിംഗ് ലൈസൻസ്" is not a trade licence.
 OUT_OF_SCOPE = ["പാസ്പോർട്ട", "passport", "ആധാർ", "aadhaar", "വോട്ടർ", "ഡ്രൈവിംഗ", "driving",
                 "റേഷൻ കാർഡിൽ പേര് ചേർ", "ഗ്യാസ് കണക്ഷ", "കെ.എസ്.ഇ.ബി", "വൈദ്യുതി ബിൽ", "ബസ്", "ട്രെയിൻ",
-                "ദൂരം", "ദൂരമ", "തലസ്ഥാന", "സെക്രട്ടറിയറ്റ", "സെക്രട്ടേറിയറ്റ", "പി.എസ്.സി"]
+                "ദൂരം", "ദൂരമ", "തലസ്ഥാന", "സെക്രട്ടറിയറ്റ", "സെക്രട്ടേറിയറ്റ", "പി.എസ്.സി",
+                "മുഖ്യമന്ത്രി", "പ്രധാനമന്ത്രി", "മന്ത്രി", "ഗവർണ", "കേരളത്തിൽ എത്ര", "ഇന്ത്യയിൽ",
+                "ഇന്ത്യയുടെ"]
+# General-knowledge counts: "കേരളത്തിൽ എത്ര പഞ്ചായത്തുകളുണ്ട്" is not a follow-up to property tax.
+_COUNT_Q = re.compile(r"എത്ര\s+\S*(?:കളു|ങ്ങളു|കൾ\s*ഉ|ങ്ങൾ\s*ഉ)ണ്ട")
 
 
 def out_of_scope(query: str) -> bool:
     q = fix_asr(query)
-    return any(normalise(s) in q for s in OUT_OF_SCOPE)
+    return any(normalise(s) in q for s in OUT_OF_SCOPE) or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
 
 
 # Genitive service names for the "I don't have that" reply.
@@ -101,11 +107,19 @@ _DETECT_ONLY = [
 _TOKEN = re.compile(r"[ഀ-ൿa-z.\-]+")
 
 
+# Context-dependent fixes: "രണ്ടു നാസമായി" -> "രണ്ടു മാസമായി" (after a number only).
+_ASR_REGEX = [
+    (re.compile(r"((?:\d+|ഒന്ന|ഒരു|രണ്ട|മൂന്ന|നാല|അഞ്ച|ആറ|ഏഴ|എട്ട|ഒമ്പത|പത്ത|പന്ത്രണ്ട)\S*\s+)നാസ"), r"\1മാസ"),
+]
+
+
 def fix_asr(query: str) -> str:
     q = normalise(query)
     for heard, meant, ctx in ASR_FIXES:
         if heard in q and (ctx is None or ctx in q):
             q = q.replace(heard, meant)
+    for pat, rep in _ASR_REGEX:
+        q = pat.sub(rep, q)
     return q
 
 
@@ -118,7 +132,18 @@ def _detect_text(query: str) -> str:
 
 # Short service stems that occur inside unrelated words ("നായ" in "രജിസ്ട്രേഷനായിട്ടുള്ള"):
 # word start only. Others stay substring matches so compounds work ("വളർത്തുമൃഗങ്ങൾ").
-_SVC_WORD_START = {"നായ", "പന്നി", "ടാക്സ", "dog", "rti"}
+_SVC_WORD_START = {"നായ", "പന്നി", "ടാക്സ", "dog", "rti", "ആട", "cat", "പശു"}
+
+# Animals the pet-licence entry does not cover (it names dogs and pigs only): say so in code
+# instead of "ട്രേഡ് ലൈസൻസിന്റെ..." (9 Nov log, "പൂച്ചയെ വളർത്താൻ ലൈസൻസ്").
+OTHER_ANIMALS = ["പൂച്ച", "പശു", "ആട", "cat"]
+OTHER_ANIMAL_MSG = ("പട്ടി, പന്നി എന്നിവ വളർത്താനുള്ള ലൈസൻസിനെക്കുറിച്ചുള്ള വിവരം മാത്രമേ എന്റെ പക്കലുള്ളൂ. "
+                    "മറ്റു മൃഗങ്ങൾക്ക് ലൈസൻസ് വേണോ എന്ന് പഞ്ചായത്ത് ഓഫീസിൽ ചോദിക്കൂ.")
+
+
+def other_animal(query: str) -> bool:
+    toks = _TOKEN.findall(_detect_text(query))
+    return any(t.startswith(normalise(a)) for a in OTHER_ANIMALS for t in toks)
 
 
 def _fuzzy_in(stem: str, q: str, toks: list[str]) -> bool:

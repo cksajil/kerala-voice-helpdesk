@@ -75,6 +75,11 @@ def _quantity(q: str, units: list[tuple[str, float]]) -> float | None:
 
 
 MONEY_INTENT = ["ഫീസ", "രൂപ", "ചാർജ", "fee", "പിഴ"]
+_TUKA = re.compile(r"(?<![ഀ-ൿ])തുക")      # "തുക", "തുകയെത്ര"; not "പുതുക്കാൻ"
+
+
+def _money(q: str) -> bool:
+    return _has(q, MONEY_INTENT) or bool(_TUKA.search(q))
 MARRIAGE_SCHEDULE = ("വിവാഹം കഴിഞ്ഞ് 45 ദിവസത്തിനകം രജിസ്റ്റർ ചെയ്താൽ രജിസ്ട്രേഷൻ ഫീ 100 രൂപയും "
                      "സർട്ടിഫിക്കറ്റ് ഫീ 20 രൂപയും, ആകെ 120 രൂപ. ദമ്പതികൾ ദാരിദ്ര്യരേഖയ്ക്ക് താഴെയുള്ളവരോ "
                      "പട്ടികജാതി-പട്ടികവർഗക്കാരോ ആണെങ്കിൽ ഫീസ് 10 രൂപ. 45 ദിവസം കഴിഞ്ഞാൽ 100 രൂപയും "
@@ -133,7 +138,7 @@ def answer(query: str) -> dict | None:
     # Marriage registration fee: marriage + a delay + registration or fee intent.
     if _has(q, MARRIAGE) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
         days = _quantity(q, DAY_UNITS)
-        if days is None and _has(q, MONEY_INTENT) and not _has(q, ["അക്ഷയ", "സർവീസ് ചാർജ", "ഓൺലൈൻ ചാർജ"]):
+        if days is None and _money(q) and not _has(q, ["അക്ഷയ", "സർവീസ് ചാർജ", "ഓൺലൈൻ ചാർജ"]):
             # No delay given: read out the whole schedule. Gemma paraphrased "BPL: ₹10" as
             # "₹10 less than ₹120" in the Space log (8 Nov).
             return {"answer": MARRIAGE_SCHEDULE, "source_ids": ["ch-marr-fee-01"]}

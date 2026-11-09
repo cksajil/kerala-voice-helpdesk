@@ -413,3 +413,150 @@ def test_conversation(app, conv):
 def test_service_detection_specificity(q, services):
     from helpdesk.intent import detect_services
     assert detect_services(q) == services
+
+
+@pytest.mark.parametrize("q,name", [
+    ("വാഗമണിലെ ഇപ്പോഴത്തെ കാലാവസ്ഥ എന്താണ്?", "വാഗമൺ"),
+    ("മൂന്നാറിൽ മഴയുണ്ടോ", "മൂന്നാർ"),
+    ("കോവളത്തെ കാലാവസ്ഥ", "കോവളം"),
+])
+def test_weather_tourist_places(q, name):
+    assert tools.find_place(q)[0] == name
+
+
+@pytest.mark.parametrize("q", ["കോഴിക്കോട് ജനന സർട്ടിഫിക്കറ്റ്", "എരുമേലിയിൽ വിവാഹ രജിസ്ട്രേഷൻ"])
+def test_place_names_are_not_animals(q):
+    from helpdesk.intent import detect_services
+    assert "pet" not in detect_services(q)
+
+
+def test_unknown_place_is_said_not_silently_defaulted(monkeypatch):
+    class R:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"current": {"temperature_2m": 29, "weather_code": 3},
+                    "daily": {"temperature_2m_max": [29], "temperature_2m_min": [24],
+                              "precipitation_probability_max": [80], "precipitation_sum": [3]}}
+    monkeypatch.setattr(tools.requests, "get", lambda *a, **k: R())
+    assert tools.weather("പാലായിലെ കാലാവസ്ഥ എന്താണ്?")["text"].startswith("ആ സ്ഥലം")
+    assert tools.weather("ഇപ്പോഴത്തെ കാലാവസ്ഥ എന്താണ്?")["text"].startswith("തിരുവനന്തപുരം")
+    assert tools.weather("വാഗമണിലെ കാലാവസ്ഥ")["text"].startswith("വാഗമൺ (ഇടുക്കി ജില്ല)")
+
+
+def test_video_headline_suffix_is_dropped():
+    t = "പെട്രോളില്‍ എഥനോള്‍ എത്രയുണ്ട്? | ഹലോ കേരളം | Hello Keralam | Latest News | 08 - 11 - 2026 - Asianet"
+    assert tools._headline(t) == "പെട്രോളില്‍ എഥനോള്‍ എത്രയുണ്ട്?"
+
+
+# --- Tier 2: passages built from charters (ingest/) ---------------------------
+_T2 = [
+    {"id": "x-p11-r3", "tier": 2, "kind": "row", "service": "lsgd_other", "lsgi": "കടനാട്",
+     "title": "പരസ്യങ്ങൾ പ്രദർശിപ്പിക്കുന്നതിന് അനുമതി",
+     "text": "പരസ്യങ്ങൾ പ്രദർശിപ്പിക്കുന്നതിന് അനുമതി. അപേക്ഷിക്കേണ്ട വിധം: K-SMART അപേക്ഷ. ലഭിക്കുന്ന സമയം: ഫീസ് അടച്ച് 7 ദിവസത്തിനകം.",
+     "facets": ["process", "time"], "source": "x", "questions": []},
+    {"id": "y-p15-r6", "tier": 2, "kind": "row", "service": "pet", "lsgi": "കടനാട്",
+     "title": "പശു, എരുമ എന്നിവയുടെ കൃത്രിമ ബീജാധാനം", "text": "പശു, എരുമ എന്നിവയുടെ കൃത്രിമ ബീജാധാനം.",
+     "facets": [], "source": "y", "questions": []},
+    {"id": "z-p9-c2", "tier": 2, "kind": "prose", "service": "lsgd_other", "lsgi": "തച്ചനാട്ടുകര",
+     "title": "15 143 കാരയിൽപ്പുറം 3 സിനി ചന്ദ്രൻ", "text": "15 143 കാരയിൽപ്പുറം 3 സിനി ചന്ദ്രൻ പി",
+     "facets": [], "source": "z", "questions": []},
+]
+
+
+@pytest.fixture(scope="module")
+def app2():
+    from helpdesk.retriever import load_kb
+    return G.build_graph(Retriever(docs=[{**d, "tier": 1} for d in load_kb()] + _T2, dense=False))
+
+
+def test_open_match_reaches_a_charter_row_and_names_the_panchayat(app2):
+    s = app2.invoke({"query": "പരസ്യം വെക്കാൻ അനുമതി വേണോ?"})
+    assert s["route_by"] == "open" and s["sources"][0]["id"] == "x-p11-r3"
+    assert "കടനാട് പഞ്ചായത്തിന്റെ പൗരാവകാശ രേഖ പ്രകാരം" in s["answer"]
+
+
+@pytest.mark.parametrize("q", ["സിനിമ കാണാൻ എവിടെ പോകണം", "കേരളത്തിന്റെ തലസ്ഥാനം എവിടെയാണ്?",
+                               "ഇന്ന് എന്ത് ഭക്ഷണം കഴിക്കണം"])
+def test_open_match_does_not_catch_general_questions(app2, q):
+    assert app2.invoke({"query": q})["answer"] == G.SCOPE
+
+
+def test_cow_service_is_not_declined_as_a_licence_question(app2):
+    s = app2.invoke({"query": "പശുവിന് കൃത്രിമ ബീജാധാനം എവിടെ കിട്ടും?"})
+    assert s.get("tool") != "missing_facet" and s["sources"][0]["id"] == "y-p15-r6"
+    assert app2.invoke({"query": "പശുവിനെ വളർത്താൻ ലൈസൻസ് വേണോ?"})["tool"] == "missing_facet"
+
+
+def test_tier1_answers_have_no_attribution(app2):
+    s = app2.invoke({"query": "വളർത്തുമൃഗങ്ങൾക്ക് ലൈസൻസ് വേണോ"})
+    assert s["sources"][0].get("tier") == 1 and "പൗരാവകാശ" not in s["answer"]
+
+
+def test_dense_vectors_are_cached(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    import numpy as np
+    from helpdesk import retriever as R
+    calls = []
+
+    class Fake:
+        def __init__(self, *a, **k): pass
+
+        def encode(self, texts, **k):
+            calls.append(len(texts))
+            return np.ones((len(texts), 4)) / 2
+
+    monkeypatch.setitem(sys.modules, "sentence_transformers", types.SimpleNamespace(SentenceTransformer=Fake))
+    monkeypatch.setattr(R, "KB_PATH", tmp_path / "kb.jsonl")
+    R.Retriever(docs=_T2, dense=True)
+    R.Retriever(docs=_T2, dense=True)
+    assert calls == [len(_T2)] and len(list(tmp_path.glob("emb-*.npy"))) == 1
+
+
+# --- ingest (no OCR needed) ----------------------------------------------------
+def test_clean_fixes_ocr_and_ksmart():
+    from ingest.build_docs import clean
+    assert clean("Ksmart അപേക്ഷ ; ഫീസ്: ജല") == "K-SMART അപേക്ഷ; ഫീസ്: ഇല്ല"
+    assert clean("ലൈസന്‍സ്‌") == "ലൈസൻസ്"
+
+
+def test_row_doc_text_and_facets():
+    from ingest.build_docs import row_doc
+    d = row_doc({"slug": "k", "lsgi_ml": "കടനാട്", "lsgi_en": "Kadanad", "url": "u", "year": "2026"}, 11, 2,
+                {"service": "പന്നി, പട്ടി എന്നിവ വളർത്തുന്നതിനുള്ള ലൈസൻസ്", "how": "Ksmart അപേക്ഷ",
+                 "fee": "10 രൂപ", "time": "15 ദിവസം", "section": ""})
+    assert d["service"] == "pet" and d["facets"] == ["amount", "process", "time"]
+    assert "ഫീസ്: 10 രൂപ." in d["text"] and d["id"] == "k-p11-r2" and "PDF p.11" in d["source"]
+
+
+def test_interleaved_table_text_is_not_a_prose_chunk():
+    from ingest.build_docs import prose_docs
+    src = {"slug": "t", "lsgi_ml": "ത", "lsgi_en": "T"}
+    garbled = "കുടുംബാംഗങ്ങളുടെ ഫോട്ടോകൾ 1. നിശ്ചിത ഫോറത്തിലുള്ള അപേക്ഷ 1. അപേക്ഷിച്ച് 14 ദിവസം 2. തൊഴിൽ കാർഡ് നമ്പർ രേഖപ്പെടുത്തിയിരിക്കണം മഹാത്മാഗാന്ധി ദേശീയ"
+    good = "മാസചന്തകൾ, സരസ് മേളകൾ, ഭക്ഷ്യ മേളകൾ, സംയോജിത വിപണന കേന്ദ്രങ്ങൾ, നാനോ മാർക്കറ്റ് എന്നിവയിലൂടെ കുടുംബശ്രീ ഉൽപന്നങ്ങൾ വിതരണം ചെയ്യുന്നു."
+    assert prose_docs(src, 1, garbled) == [] and len(prose_docs(src, 1, good)) == 1
+
+
+def test_pdf_links_prefers_the_charter():
+    from ingest.fetch import pdf_links
+    html = ('<a href="/files/budget.pdf">x</a><a href="https://cdn.web.lsgkerala.gov.in/G1/public-files/'
+            '2026-07/Pouravakasha%20rekha%202026.pdf">y</a>')
+    assert "Pouravakasha" in pdf_links(html, "https://x.lsgkerala.gov.in/en/node/1")[0]
+
+
+def test_header_detection_and_reading_order():
+    pytest.importorskip("pdfplumber")
+    from ingest.ocr import _is_header, reading_order
+    assert _is_header(["ക്രമ നമ്പർ", "ലഭ്യമാകുന്ന സേവനം", "അപേക്ഷിക്കുന്ന വിധം", "മറ്റ് നിബന്ധനകൾ", "ഫീസ്", "ദിവസം"])
+    assert not _is_header(["5", "ജനന സർട്ടിഫിക്കറ്റ്", "K-SMART അപേക്ഷ, ഫീസ് അടച്ച രസീത്, 21 ദിവസം കഴിഞ്ഞാൽ പിഴ സഹിതം അപേക്ഷിക്കണം", "", "", ""])
+    w = lambda t, x, y: {"t": t, "x": x, "y": y, "h": 20}
+    assert reading_order([w("ദിവസം", 60, 11), w("15", 10, 10), w("വരെ", 10, 40)]) == "15 ദിവസം വരെ"
+
+
+def test_kb_check_flags_plain_paper_against_ksmart(monkeypatch):
+    from ingest import check_kb
+    monkeypatch.setattr(check_kb, "page_text", lambda slug, page: "ksmartഅപേക്ഷ10രൂപ15ദിവസം")
+    assert check_kb.check({"text": "വെള്ളക്കടലാസിൽ അപേക്ഷ. ഫീസ് 10 രൂപ."}, "k", 11) == \
+        ["says plain-paper application; page says k-smart"]
+    assert check_kb.check({"text": "K-SMART അപേക്ഷ. ഫീസ് 10 രൂപ, 15 ദിവസം."}, "k", 11) == []
