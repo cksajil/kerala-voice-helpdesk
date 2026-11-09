@@ -64,12 +64,42 @@ _GENERIC = ["സർട്ടിഫിക്കറ്റ", "സർട്ടിഫ
             "ആവശ്യ", "ചെയ്യ", "നൽക", "കേരള", "ദിവസ", "ഫീസ", "രൂപ", "രേഖ", "സേവന", "ഓഫീസ", "എടുക്ക",
             "ഉള്ള", "ഇപ്പോ", "എനിക്ക", "എന്റെ", "നിങ്ങ", "കുറിച്ച", "പറ്റി", "സംബന്ധ", "വിവര", "ഏതൊക്ക",
             "എന്തൊക്ക", "എന്നിവ", "ഉണ്ട", "കഴിയ", "പറയ", "അറിയ", "സമയ", "തുക", "പണം", "കാര്യ", "പുതിയ",
-            "തുടങ്ങ", "ആരംഭ", "പോക", "വര", "ഇന്ന", "നാളെ", "എപ്പോ", "ആരാ", "ഏതാ", "പദ്ധതി", "ജോലി"]
+            "തുടങ്ങ", "ആരംഭ", "പോക", "വര", "ഇന്ന", "നാളെ", "എപ്പോ", "ആരാ", "ഏതാ", "പദ്ധതി", "ജോലി",
+            # pointing words: "അതിന് എത്ര ദിവസം?" names nothing new
+            "അതിന", "ഇതിന", "അതിൽ", "ഇതിൽ", "അത്", "ഇത്", "അവിടെ", "ഇവിടെ", "അങ്ങനെ", "ഇങ്ങനെ", "അപ്പോൾ",
+            "എല്ലാ", "മറ്റ", "കൂടി", "മാത്ര", "ആണോ", "ആണ്", "ഉണ്ടോ", "എടുത്ത", "കൊടുക്ക", "പറ്റുമോ"]
+
+
+# Spelling variants of the same word in charters and ASR output.
+_CANON = [("ഇൻഷ്വ", "ഇൻഷു"), ("ഇൻഷൂ", "ഇൻഷു"), ("കുത്തിവയ്", "കുത്തിവെയ്"), ("കുത്തിവെപ്പ", "കുത്തിവെയ്പ്പ"),
+          ("കുത്തിവെയ്പ്പ", "കുത്തിവെയ്പ")]
+
+
+def _place_stems() -> list[str]:
+    from .tools import DISTRICTS, PLACES
+    return [s for _, stems, *_ in [*DISTRICTS.values(), *PLACES.values()] for s in stems]
+
+
+_GENERIC += ["നിന്ന", "കേരള", "ഇന്ത്യ", *_place_stems()]   # places say where, not which service
 
 
 def _content_words(text: str) -> list[str]:
-    return [w for w in normalise(text, strip_punct=True).split()
-            if len(w) >= 4 and not any(w.startswith(normalise(g)) for g in _GENERIC)]
+    t = normalise(text, strip_punct=True)
+    for a, b in _CANON:
+        t = t.replace(a, b)
+    return [w for w in t.split()
+            if len(w) >= 3 and not any(w.startswith(normalise(g)) for g in _GENERIC)]
+
+
+def _match_score(a: str, b: str) -> float:
+    """1 for the same word, 0.8 for the same word plus a suffix, 0.6 for a shared stem:
+    'തൊഴിൽ' matches the row 'തൊഴിൽ കാർഡ്' better than 'കർഷക തൊഴിലാളി പെൻഷൻ' (9 Nov log)."""
+    if a == b:
+        return 1.0
+    if not _stem_match(a, b):
+        return 0.0
+    n = len(os.path.commonprefix([a, b]))
+    return 0.8 if n == min(len(a), len(b)) else 0.6
 
 
 def _stem_match(a: str, b: str) -> bool:
@@ -82,12 +112,14 @@ def _stem_match(a: str, b: str) -> bool:
     shorter = min(len(a), len(b))
     # One word is the other plus a suffix ('വേതന' / 'വേതനം'), or they share most of the shorter
     # word ('കുത്തിവെപ്പ്' / 'കുത്തിവെയ്പ്'); 'തൊഴിലില്ലായ്മ' / 'തൊഴിലാളി' share only 'തൊഴില'.
-    return a == b or (n >= 4 and n == shorter) or (n >= 5 and n >= 0.65 * shorter)
+    return a == b or (n >= 3 and n == shorter) or (n >= 4 and n >= 0.65 * shorter)
 
 
 class Retriever:
     def __init__(self, docs: list[dict] | None = None, dense: bool | None = None):
         self.docs = docs or load_all()
+        self._vocab: dict = {}
+        self._title_words = [_content_words(d["title"]) for d in self.docs]
         # Example questions are indexed (BM25 and dense) but never sent to the LLM.
         # The title counts twice: short, generic entries otherwise outrank the specific one
         # ("ട്രേഡ് ലൈസൻസ് ലഭിക്കാൻ..." went to the Akshaya entry). Chosen on the eval set and
@@ -173,6 +205,16 @@ class Retriever:
         tw = _content_words(doc["title"])
         return sum(any(_stem_match(q, t) for t in tw) for q in _content_words(fix_asr(query)))
 
+    def _score(self, qw: list[str], i: int) -> tuple[float, int]:
+        tw = self._title_words[i]
+        best = [max((_match_score(q, t) for t in tw), default=0.0) for q in qw]
+        return sum(best), sum(b > 0 for b in best)
+
+    @staticmethod
+    def _overlap_score(qw: list[str], title: str) -> float:
+        tw = _content_words(title)
+        return sum(max((_match_score(q, t) for t in tw), default=0.0) for q in qw)
+
     def open_match(self, query: str) -> Hit | None:
         """For a question that names no known service: the passage whose title shares a
         distinctive word with it ('പരസ്യം വെക്കാൻ അനുമതി' -> 'പരസ്യങ്ങൾ പ്രദർശിപ്പിക്കുന്നതിന്
@@ -182,18 +224,42 @@ class Retriever:
         if not qw:
             return None
         scores = self.bm25.get_scores(tokens(fix_asr(query)))
-        best, best_key = None, (0, 0.0)
+        best, best_key = None, (0.0, False, 0.0, 0)
         for i, d in enumerate(self.docs):
-            tw = _content_words(d["title"])
-            matched = sum(any(_stem_match(q, t) for t in tw) for q in qw)
+            score, matched = self._score(qw, i)
             if d.get("kind") == "prose" and matched < 2:   # a prose chunk's "title" is just its first words
                 continue
-            key = (matched, scores[i] * (TIER1_BOOST if d.get("tier", 1) == 1 else 1))
+            # Ties go to table rows and Tier-1 entries: a prose chunk that mentions the words
+            # ("തൊഴിൽ കാർഡിലും മസ്റ്റർ റോളിലും...") is not the service itself.
+            key = (score, d.get("kind") != "prose",
+                   scores[i] * (TIER1_BOOST if d.get("tier", 1) == 1 else 1), matched)
             if matched and key > best_key:
                 best, best_key = i, key
-        if best is None or (best_key[0] < 2 and best_key[1] < BM25_MIN):
+        if best is None or (best_key[3] < 2 and best_key[2] < BM25_MIN):
             return None
-        return Hit(self.docs[best], 0.0, float(best_key[1]), None)
+        return Hit(self.docs[best], 0.0, float(best_key[2]), None)
+
+    @staticmethod
+    def has_content(query: str) -> bool:
+        return bool(_content_words(fix_asr(query)))
+
+    def service_vocab(self, services: list[str]) -> list[str]:
+        """Distinctive words of every passage of these services (for the follow-up check)."""
+        key = tuple(sorted(services))
+        if key not in self._vocab:
+            words = set()
+            for d in self.docs:
+                if d.get("service") in services:
+                    words.update(_content_words(" ".join([d["title"], d["text"], *d.get("questions", [])])))
+            self._vocab[key] = sorted(words)
+        return self._vocab[key]
+
+    def fits_services(self, query: str, services: list[str]) -> bool:
+        """Can this short question continue a conversation about these services? Each of its
+        distinctive words must occur in their passages: "ബിരിയാണി എങ്ങനെ ഉണ്ടാക്കാം" after a
+        marriage question is not a follow-up (9 Nov log), "പുരുഷന്മാർക്ക് ബാധകമാണോ" is."""
+        vocab = self.service_vocab(services)
+        return all(any(_stem_match(q, v) for v in vocab) for q in _content_words(fix_asr(query)))
 
     def missing_facet(self, services: list[str], facet: str | None) -> bool:
         """True when the question asks a strict facet (amount, time, validity, compulsory)

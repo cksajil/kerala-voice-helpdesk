@@ -38,6 +38,8 @@ SCOPE = ("ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവന
 TOOL_FAIL = "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
 CLARIFY = "ഏത് സേവനത്തെക്കുറിച്ചാണ് ചോദിക്കുന്നത്? ഉദാഹരണത്തിന് വിവാഹ രജിസ്ട്രേഷൻ, പെൻഷൻ, കെട്ടിട പെർമിറ്റ്."
 FOLLOW_UP_MAX_WORDS = 8
+ACK = re.compile(r"^(ഇല്ല|അതെ|ശരി|ശരിയാണ്|ഓക്കെ|ഓക്കേ|ok|okay|നന്ദി|താങ്ക്സ്|thanks|thank you|വേണ്ട|മതി)$")
+ACK_REPLY = "ശരി. മറ്റെന്തെങ്കിലും അറിയണമെങ്കിൽ ചോദിക്കൂ."
 
 # Stems, not full words: Malayalam inflects heavily (മഴ / മഴയുണ്ടോ, വാർത്ത / വാർത്തകൾ).
 RULES: list[tuple[Route, list[str]]] = [
@@ -137,14 +139,19 @@ def build_graph(retriever: Retriever | None = None):
         # Checked before follow-ups: a new topic in a few words is not a follow-up.
         # Follow-up that names no service ("അതിന് എന്തൊക്കെ രേഖകൾ വേണം?"): carry the previous service.
         prev = s.get("previous_services") or detect_services(s.get("previous") or "")
+        if ACK.match(normalise(q, strip_punct=True)):
+            # "ഇല്ല", "ശരി", "നന്ദി": a reply to us, not a question ("ഇല്ല" got a vaccination passage).
+            return {"route": "other", "route_by": "ack", "facet": None}
         follow = (bool(prev) and s.get("previous_route") == "service_faq"
-                  and len(q.split()) <= FOLLOW_UP_MAX_WORDS and not out_of_scope(q))
-        if not out_of_scope(q):
+                  and len(q.split()) <= FOLLOW_UP_MAX_WORDS and not out_of_scope(q)
+                  and "lsgd_other" not in prev and retriever.fits_services(q, prev))
+        if not out_of_scope(q) and not follow:     # a question that fits the last service stays with it
             h = retriever.open_match(q)
-            if h is not None and not (follow and h.doc.get("service") in prev):
+            if h is not None:
                 return {"route": "service_faq", "route_by": "open", "services": [h.doc.get("service", "")],
                         "facet": facet, "open_id": h.doc["id"]}
-        if follow and "lsgd_other" in prev:
+        if ("lsgd_other" in prev and s.get("previous_route") == "service_faq"
+                and len(q.split()) <= FOLLOW_UP_MAX_WORDS and not retriever.has_content(q)):
             # The previous answer came from an untagged charter row: "lsgd_other" is a catch-all,
             # not a service to search ("രജിസ്ട്രേഷൻ തുക എത്ര?" after the advertisement question
             # found a paramedical-registration row). Re-find the previous passage instead.
@@ -152,7 +159,6 @@ def build_graph(retriever: Retriever | None = None):
             if h is not None:
                 return {"route": "service_faq", "route_by": "follow-up", "services": [h.doc.get("service", "")],
                         "facet": facet, "open_id": h.doc["id"]}
-            follow = False
         if follow:
             return {"route": "service_faq", "route_by": "follow-up", "services": prev, "facet": facet}
         # No service: answering from the knowledge base would only find a lookalike passage
@@ -230,6 +236,8 @@ def build_graph(retriever: Retriever | None = None):
              "cos": None if h.cos is None else round(h.cos, 3)} for h in hits[:CTX_K]]}
 
     def other(s: State) -> State:
+        if s.get("route_by") == "ack":
+            return {"answer": ACK_REPLY, "refused": True, "tool": "ack"}
         # "തുക എത്രയാണ്?" with no service and nothing to follow: ask which service.
         if s.get("facet") in CLARIFY_FACETS and not out_of_scope(s["query"]):
             return {"answer": CLARIFY, "refused": True, "tool": "clarify"}

@@ -147,3 +147,13 @@ prose chunks, service tags, cross-charter agreement. See `ingest/README.md`.
   It found six entries with details the cited page does not support (four "plain-paper
   application" errors from font decoding, one stamp-paper amount, one date); all fixed.
 - Dense retrieval embeddings are cached in `data/emb-*.npy` (hundreds of passages).
+
+### Fixes from the first Tier-2 Space log (9 Nov noon, 29 turns)
+Tier-2 answers took 2.0-3.9 s on the Space even without prompt-cache warm-up.
+- Follow-ups must fit: every distinctive word of a short question has to occur in the previous
+  service's passages ("ബിരിയാണി എങ്ങനെ ഉണ്ടാക്കാം" after a marriage question was answered
+  from the marriage KB). "ഇല്ല", "ശരി", "നന്ദി" get a short acknowledgement, not a passage.
+- Title matching scores exact words above shared stems, prefers table rows over prose
+  chunks, ignores place names and pointing words (അതിന്, ഇവിടെ), and unifies spellings
+  (ഇൻഷുറൻസ്/ഇൻഷ്വറൻസ്, കുത്തിവയ്പ്/കുത്തിവെയ്പ്). ASR: കുറ്റികൾ, ചനന, ജനനെ.
+- The whole log replays correctly in `eval/conversations.jsonl` (weather/news turns left out).
