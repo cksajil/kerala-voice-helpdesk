@@ -163,3 +163,13 @@ Tier-2 answers took 2.0-3.9 s on the Space even without prompt-cache warm-up.
 Tier 2; `ingest/changes.md` and `ingest/charter_changes.md` list what changed since the last
 run, and a weekly GitHub Actions workflow opens a pull request with the refreshed data.
 Page images are rendered with pypdfium2, so Tesseract is the only system dependency.
+
+### 22 charters (9 Nov evening)
+Kaggle OCR of 22 charters gave 3,712 passages; 242 officer/appeal-table and header rows are now
+dropped (3,470 left). More data exposed ranking problems, fixed and covered by the 20-question
+check now in `eval/conversations.jsonl`: Tier-1 boost 2.0 and charter prose x0.6; title matching
+ignores place/action words (മുന്നിൽ, കൊണ്ടു), treats അനുവാദം = അനുമതി, compares a final chillu as
+its consonant, breaks ties by how much of the title the question covers, and only overrides
+within the service the keywords named; follow-ups keep the previous passage; a new two-word
+service name beats a follow-up; no follow-up after the "other animals" decline; "സാധുവാണോ"
+is a validity question; from-X-to-Y questions are out of scope.

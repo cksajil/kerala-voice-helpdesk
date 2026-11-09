@@ -1,4 +1,5 @@
 """Offline tests: no LLM, no network (tools and LLM are monkeypatched)."""
+import json
 import os
 
 os.environ["HELPDESK_DENSE"] = "0"
@@ -402,7 +403,8 @@ def test_conversation(app, conv):
             assert t["service"] in (s.get("services") or []), where
         if "contains" in t:
             assert t["contains"] in s["answer"], where
-        prev = {"previous": t["q"], "previous_route": s["route"], "previous_services": s.get("services") or []}
+        prev = {"previous": t["q"], "previous_route": s["route"], "previous_services": s.get("services") or [],
+                "previous_tool": s.get("tool") or ""}           # as the Space app passes it
 
 
 @pytest.mark.parametrize("q,services", [
@@ -486,7 +488,7 @@ def test_open_match_does_not_catch_general_questions(app2, q):
 def test_cow_service_is_not_declined_as_a_licence_question(app2):
     s = app2.invoke({"query": "പശുവിന് കൃത്രിമ ബീജാധാനം എവിടെ കിട്ടും?"})
     assert s.get("tool") != "missing_facet" and s["sources"][0]["id"] == "y-p15-r6"
-    assert app2.invoke({"query": "പശുവിനെ വളർത്താൻ ലൈസൻസ് വേണോ?"})["tool"] == "missing_facet"
+    assert app2.invoke({"query": "പശുവിനെ വളർത്താൻ ലൈസൻസ് വേണോ?"})["tool"] == "other_animal"
 
 
 def test_tier1_answers_have_no_attribution(app2):
@@ -642,3 +644,54 @@ def test_refetched_changed_charter_is_marked_for_reextraction(tmp_path, monkeypa
     assert fetch.fetch_one({"slug": "k", "url": "https://x/a.pdf"}, manifest, force=True).startswith("CHANGED")
     assert not (tmp_path / "pages" / "k.jsonl").exists()
     assert fetch.fetch_one({"slug": "k", "url": "https://x/a.pdf"}, manifest, force=True) == "unchanged"
+
+
+# --- ingest.canon (task B) with a fake model ---------------------------------------
+def _fake_model(prompt: str) -> str:
+    import re as _re
+    if "<group " in prompt:
+        out = []
+        for gid, body in _re.findall(r'<group id="(\w+)"[^>]*>(.*?)</group>', prompt, _re.S):
+            rows = _re.findall(r'<row id="([^"]+)"[^>]*>(.*?)</row>', body, _re.S)
+            title = rows[0][1].split(".")[0]
+            junk = "ഡോക്ടറുടെ" in title
+            out.append({"group_id": gid, "is_service": not junk, "same_service": True, "service": "pet",
+                        "title_ml": title, "synonyms_ml": ["നായ ലൈസൻസ്"],
+                        "summary_ml": "K-SMART വഴി അപേക്ഷിക്കണം. ഫീസ് 999 രൂപ.",       # 999: not in the rows
+                        "variants": [{"row_id": rid, "fee": "10 രൂപ", "time": "15 ദിവസം"} for rid, _ in rows],
+                        "facets": ["amount"], "questions_ml": [f"{title} ചോദ്യം {i}" for i in range(8)]})
+        return json.dumps(out, ensure_ascii=False)
+    if "<entry " in prompt:
+        ids = _re.findall(r'<entry id="([^"]+)"', prompt)
+        return "```json\n" + json.dumps([{"id": i, "questions_ml": [f"{i} q{k}" for k in range(6)]} for i in ids]) + "\n```"
+    return json.dumps(["കേരളത്തിന്റെ തലസ്ഥാനം ഏതാണ്?", "മീൻ കറി എങ്ങനെ വെക്കാം?", "നിന്റെ പേരെന്താ?"],
+                      ensure_ascii=False)
+
+
+def test_canon_pipeline_with_fake_model(tmp_path, monkeypatch):
+    from ingest import canon
+    rows = [{"id": f"p{i}-r0", "kind": "row", "service": "pet", "lsgi": lsgi, "source": "s",
+             "title": "പട്ടി വളർത്തുന്നതിനുള്ള ലൈസൻസ്", "facets": ["amount"],
+             "text": "പട്ടി വളർത്തുന്നതിനുള്ള ലൈസൻസ്. ഫീസ്: 10 രൂപ. ലഭിക്കുന്ന സമയം: 15 ദിവസം."}
+            for i, lsgi in enumerate(["കടനാട്", "കൊപ്പം"])]
+    rows.append({"id": "x-r9", "kind": "row", "service": "health", "lsgi": "കടനാട്", "source": "s",
+                 "title": "ഡോക്ടറുടെ മുന്നിൽ ഹാജരാകണം", "text": "ഡോക്ടറുടെ മുന്നിൽ ഹാജരാകണം.", "facets": []})
+    (tmp_path / "docs.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
+    kb = [{"id": "ch-pet-01", "service": "pet", "title": "വളർത്തുമൃഗ ലൈസൻസ്", "text": "ഫീസ് 10 രൂപ."}]
+    (tmp_path / "kb.jsonl").write_text(json.dumps(kb[0], ensure_ascii=False) + "\n")
+    for name, f in [("DOCS", "docs.jsonl"), ("KB", "kb.jsonl"), ("CANON", "canon.jsonl"),
+                    ("SYNTH", "synth.jsonl"), ("CACHE", "cache.jsonl")]:
+        monkeypatch.setattr(canon, name, tmp_path / f)
+    calls = []
+    stats = canon.run(lambda p: calls.append(p) or _fake_model(p), batch=8)
+    assert len(calls) == 3                                   # groups, tier-1, out-of-scope
+    docs = [json.loads(l) for l in (tmp_path / "canon.jsonl").open()]
+    assert len(docs) == 1 and stats["not_a_service"] == 1    # the doctor row is not a service
+    d = docs[0]
+    assert d["members"] == ["p0-r0", "p1-r0"] and d["lsgis"] == ["കടനാട്", "കൊപ്പം"]
+    assert "999" not in d["text"] and "കടനാട്: ഫീസ്: 10 രൂപ" in d["text"]   # unsupported number dropped
+    synth = [json.loads(l) for l in (tmp_path / "synth.jsonl").open()]
+    held = {s["q"] for s in synth if s["kind"] == "canon"}
+    assert held and not held & set(d["questions"])           # eval questions are never indexed
+    assert {s["kind"] for s in synth} == {"canon", "tier1", "out_of_scope"}
+    assert len(canon.run(lambda p: calls.append(p) or _fake_model(p))) and len(calls) == 3   # all cached

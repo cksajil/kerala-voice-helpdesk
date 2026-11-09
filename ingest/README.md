@@ -94,3 +94,21 @@ run continues after you close the browser (up to 12 h; 4 CPU cores, `--jobs 4`).
 can be added as Input to the next version to resume, and `EXTRA_SOURCES` / `EXTRA_WEB_SOURCES` add
 charters or website sections for one run. `ingest.extract` writes `<slug>.jsonl.partial` and renames
 it only when a document is finished, so a timeout never leaves a half-read charter behind.
+
+## Canonical services and a held-out eval (Gemini, `ingest/canon.py`)
+`notebooks/kaggle_canon.ipynb` (Kaggle secret `GEMINI_API_KEY`, free tier, no billing):
+1. Groups the charter rows by service (no LLM). Header-only titles ("നല്കേണ്ട രേഖകൾ", "സമയപരിധി")
+   are dropped first by `build_docs`.
+2. Gemini, 8 groups per request: service or not, clean Malayalam title, synonyms, facts common to the
+   rows, each panchayat's fee/time, 8 citizen questions. Tier-1 entries get questions only; one request
+   gives out-of-scope questions.
+3. Checked in code: any number not in the group's rows is dropped; non-services are dropped.
+4. `data/canon.jsonl`: one passage per service, 4 questions indexed. `eval/synth_questions.jsonl`: the
+   other 4 (never indexed) + Tier-1 + out-of-scope questions.
+5. `python -m eval.run_synth` compares today's rows with the canonical services on those held-out
+   questions. The Space uses canon only with `HELPDESK_CANON=1`, after the numbers say so.
+
+Resumable: answers are cached in `ingest/canon_cache.jsonl`; when the daily quota ends, run again the
+next day with the previous output as Input.
+Known gap: some charters lay a service out as label/value lines (`അപേക്ഷ നല്കേണ്ടത്: …`) instead of
+columns; those services are not extracted yet.

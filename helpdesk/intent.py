@@ -75,7 +75,7 @@ SERVICE_GEN = {
 # facet -> stems. Order is priority when several match (documents before compulsory:
 # "എന്തൊക്കെ രേഖകൾ ആവശ്യമാണ്" asks for documents).
 FACETS: list[tuple[str, list[str]]] = [
-    ("validity", ["കാലാവധി", "വാലിഡിറ്റി", "validity", "പുതുക്ക", "റിന്യൂ"]),
+    ("validity", ["കാലാവധി", "വാലിഡിറ്റി", "validity", "പുതുക്ക", "റിന്യൂ", "സാധുവ", "എത്ര വർഷത്തേക്ക"]),
     ("time", ["എത്ര ദിവസ", "എത്ര സമയ", "എത്ര നാൾ", "സമയപരിധി", "എപ്പോൾ കിട്ട", "എപ്പോൾ ലഭി",
               "എത്ര കാത്തിരി", "how long"]),
     ("amount", ["തുക", "രൂപ", "ഫീസ", "ഫീ ", "ചാർജ", "പിഴ", "fee", "how much"]),
@@ -102,12 +102,14 @@ ASR_FIXES = [
     ("സക്കിറ്റ്", "സർട്ടിഫിക്കറ്റ്", None), ("കേസ് മാർട്ട", "കെ സ്മാർട്ട", None),
     ("ലൈക്സൻസ", "ലൈസൻസ", None), ("രേഖക്കൾ", "രേഖകൾ", None), (" മെത്ര", " എത്ര", None),
     ("കുറ്റികൾ", "കുട്ടികൾ", None), ("ചനന", "ജനന", None), ("ജനനെ ", "ജനന ", None), ("ജനന് ", "ജനന ", None),
-    ("ഇൻഷുറൻസ", "ഇൻഷ്വറൻസ", None), ("കാമെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"), ("കാറിലെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"),
+    ("ഇൻഷുറൻസ", "ഇൻഷ്വറൻസ", None), ("കാമെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"), ("കാറിലെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"), ("കാളാവസ്ഥ", "കാലാവസ്ഥ", None),
 ]
 # Rewrites for detection only (not shown to the LLM):
 _DETECT_ONLY = [
     (re.compile(r"വിവാഹം?\s*മോചി"), "മോചി"),         # divorced: not a marriage-registration question
     (re.compile(r"പട്ടികജാതി|പട്ടികവർഗ"), "എസ്സി"),     # Scheduled Caste/Tribe: not "dog" (പട്ടി)
+    # unmarried: the pension for unmarried women over 50, not marriage registration
+    (re.compile(r"അവിവാഹിത\S*|വിവാഹിതരാ\S*ില്ലാത്ത\S*|വിവാഹിതരല്ലാത്ത\S*"), "അവിവ പെൻഷൻ"),  # (no "വിവാഹ" left in it)
 ]
 _TOKEN = re.compile(r"[ഀ-ൿa-z.\-]+")
 

@@ -22,7 +22,13 @@ KB_PATH = Path(__file__).resolve().parent.parent / "data" / "kb.jsonl"
 # Tier 2: passages built from official documents by ingest/ (not hand-written). Optional.
 DOCS_PATH = Path(__file__).resolve().parent.parent / "data" / "docs.jsonl"
 # Curated Tier-1 entries win ties: they are checked and written for speech.
-TIER1_BOOST = float(os.getenv("HELPDESK_TIER1_BOOST", "1.5"))
+# 1.5 was enough with 2 charters; with 22, a service has dozens of charter rows and one of them
+# outranked the curated "₹120 a month" entry for "തൊഴിലില്ലായ്മ വേതനം എത്ര".
+TIER1_BOOST = float(os.getenv("HELPDESK_TIER1_BOOST", "2.0"))
+# Charter prose (scheme descriptions, notes) is long and mentions many services in passing: a
+# pension paragraph that says "വിവാഹം" outranked every marriage entry for "വിവാഹം കഴിഞ്ഞു രണ്ടു
+# മാസമായി". It still answers when nothing better matches.
+PROSE_WEIGHT = float(os.getenv("HELPDESK_PROSE_WEIGHT", "0.6"))
 DENSE_MODEL = os.getenv("HELPDESK_EMBED_MODEL", "BAAI/bge-m3")
 # The question's service filters the candidates and its facet boosts entries that answer
 # it (see intent.py). Boost chosen on the eval set and the 7-8 Nov Space logs.
@@ -50,11 +56,21 @@ def load_kb(path: Path = KB_PATH) -> list[dict]:
         return [json.loads(line) for line in f if line.strip()]
 
 
+CANON_PATH = Path(__file__).resolve().parent.parent / "data" / "canon.jsonl"
+
+
 def load_all() -> list[dict]:
-    """Tier 1 (kb.jsonl) then Tier 2 (docs.jsonl, if built). Set HELPDESK_TIER2=0 to leave it out."""
+    """Tier 1 (kb.jsonl) then Tier 2 (docs.jsonl, if built). Set HELPDESK_TIER2=0 to leave it out.
+    HELPDESK_CANON=1 adds the canonical services (ingest.canon) and drops the charter rows they
+    replace; it stays off until eval/run_synth.py shows it helps."""
     docs = [{**d, "tier": 1} for d in load_kb()]
     if os.getenv("HELPDESK_TIER2", "1") == "1" and DOCS_PATH.exists():
-        docs += [{**d, "tier": 2} for d in load_kb(DOCS_PATH)]
+        tier2 = [{**d, "tier": 2} for d in load_kb(DOCS_PATH)]
+        if os.getenv("HELPDESK_CANON", "0") == "1" and CANON_PATH.exists():
+            canon = [{**d, "tier": 2} for d in load_kb(CANON_PATH)]
+            replaced = {m for c in canon for m in c.get("members", [])}
+            tier2 = canon + [d for d in tier2 if d["id"] not in replaced]
+        docs += tier2
     return docs
 
 
@@ -67,12 +83,14 @@ _GENERIC = ["സർട്ടിഫിക്കറ്റ", "സർട്ടിഫ
             "തുടങ്ങ", "ആരംഭ", "പോക", "വര", "ഇന്ന", "നാളെ", "എപ്പോ", "ആരാ", "ഏതാ", "പദ്ധതി", "ജോലി",
             # pointing words: "അതിന് എത്ര ദിവസം?" names nothing new
             "അതിന", "ഇതിന", "അതിൽ", "ഇതിൽ", "അത്", "ഇത്", "അവിടെ", "ഇവിടെ", "അങ്ങനെ", "ഇങ്ങനെ", "അപ്പോൾ",
-            "എല്ലാ", "മറ്റ", "കൂടി", "മാത്ര", "ആണോ", "ആണ്", "ഉണ്ടോ", "എടുത്ത", "കൊടുക്ക", "പറ്റുമോ"]
+            "എല്ലാ", "മറ്റ", "കൂടി", "മാത്ര", "ആണോ", "ആണ്", "ഉണ്ടോ", "എടുത്ത", "കൊടുക്ക", "പറ്റുമോ",
+            # place and action words: "കടയുടെ മുന്നിൽ" matched "ഡോക്ടറുടെ മുന്നിൽ ഹാജരാകണം" (9 Nov log)
+            "മുന്നിൽ", "പിന്നിൽ", "അടുത്ത", "കൊണ്ട", "വെക്ക", "വയ്ക്ക", "ഇടാൻ", "പോകണ", "വരണ", "സാധിക്ക"]
 
 
 # Spelling variants of the same word in charters and ASR output.
 _CANON = [("ഇൻഷ്വ", "ഇൻഷു"), ("ഇൻഷൂ", "ഇൻഷു"), ("കുത്തിവയ്", "കുത്തിവെയ്"), ("കുത്തിവെപ്പ", "കുത്തിവെയ്പ്പ"),
-          ("കുത്തിവെയ്പ്പ", "കുത്തിവെയ്പ")]
+          ("കുത്തിവെയ്പ്പ", "കുത്തിവെയ്പ"), ("അനുവാദ", "അനുമതി"), ("പരസ്യബോർഡ", "പരസ്യ ബോർഡ")]
 
 
 def _place_stems() -> list[str]:
@@ -91,10 +109,18 @@ def _content_words(text: str) -> list[str]:
             if len(w) >= 3 and not any(w.startswith(normalise(g)) for g in _GENERIC)]
 
 
+_CHILLU_BASE = {"ൽ": "ല", "ർ": "ര", "ൻ": "ന", "ൾ": "ള", "ൺ": "ണ", "ൿ": "ക"}
+
+
 def _bare(w: str) -> str:
-    """Without a final virama or anusvara: 'കാർഡ്' -> 'കാർഡ', 'പരസ്യം' -> 'പരസ്യ', so the
-    inflected forms ('കാർഡിനു', 'പരസ്യങ്ങൾ') start with the whole word."""
-    return w[:-1] if len(w) > 3 and w[-1] in "്ം" else w
+    """Without a final virama or anusvara, and a final chillu as its consonant: 'കാർഡ്' -> 'കാർഡ',
+    'പരസ്യം' -> 'പരസ്യ', 'തൊഴിൽ' -> 'തൊഴില', so inflected forms ('കാർഡിനു', 'പരസ്യങ്ങൾ',
+    'തൊഴിലുറപ്പ്') start with the whole word."""
+    if len(w) > 3 and w[-1] in "്ം":
+        w = w[:-1]
+    if w and w[-1] in _CHILLU_BASE:
+        w = w[:-1] + _CHILLU_BASE[w[-1]]
+    return w
 
 
 def _match_score(a: str, b: str) -> float:
@@ -124,6 +150,7 @@ class Retriever:
     def __init__(self, docs: list[dict] | None = None, dense: bool | None = None):
         self.docs = docs or load_all()
         self._vocab: dict = {}
+        self.last_open = (0.0, 0)
         self._title_words = [_content_words(d["title"]) for d in self.docs]
         # Example questions are indexed (BM25 and dense) but never sent to the LLM.
         # The title counts twice: short, generic entries otherwise outrank the specific one
@@ -183,7 +210,8 @@ class Retriever:
             pool = list(range(len(self.docs)))
         scores = self.bm25.get_scores(tokens(query))
         bm = {i: scores[i] * (1 + FACET_BOOST if facet and facet in self.docs[i].get("facets", []) else 1)
-              * (TIER1_BOOST if self.docs[i].get("tier", 1) == 1 else 1) for i in pool}
+              * (TIER1_BOOST if self.docs[i].get("tier", 1) == 1 else 1)
+              * (PROSE_WEIGHT if self.docs[i].get("kind") == "prose" else 1) for i in pool}
         order_bm = sorted(pool, key=lambda i: -bm[i])
         rrf = {i: 1 / (rrf_k + r) for r, i in enumerate(order_bm)}
         cos = None
@@ -220,6 +248,10 @@ class Retriever:
         best = [max((_match_score(q, t) for t in tw), default=0.0) for q in qw]
         return sum(best), sum(b > 0 for b in best)
 
+    def _coverage(self, qw: list[str], i: int) -> float:
+        tw = self._title_words[i]
+        return sum(any(_stem_match(q, t) for q in qw) for t in tw) / max(len(tw), 1)
+
     @staticmethod
     def _overlap_score(qw: list[str], title: str) -> float:
         tw = _content_words(title)
@@ -234,20 +266,23 @@ class Retriever:
         if not qw:
             return None
         scores = self.bm25.get_scores(tokens(fix_asr(query)))
-        best, best_key = None, (0.0, False, 0.0, 0)
+        best, best_key = None, (0.0, 0.0, False, 0.0, 0)
         for i, d in enumerate(self.docs):
             score, matched = self._score(qw, i)
             if d.get("kind") == "prose" and matched < 2:   # a prose chunk's "title" is just its first words
                 continue
             # Ties go to table rows and Tier-1 entries: a prose chunk that mentions the words
             # ("തൊഴിൽ കാർഡിലും മസ്റ്റർ റോളിലും...") is not the service itself.
-            key = (score, d.get("kind") != "prose",
+            # Then: how much of the title the question covers (a 3-word service title over a
+            # 15-word OCR line that shares one word), rows over prose, BM25.
+            key = (round(score, 2), round(self._coverage(qw, i), 2), d.get("kind") != "prose",
                    scores[i] * (TIER1_BOOST if d.get("tier", 1) == 1 else 1), matched)
             if matched and key > best_key:
                 best, best_key = i, key
-        if best is None or (best_key[3] < 2 and best_key[2] < BM25_MIN):
+        if best is None or (best_key[4] < 2 and best_key[3] < BM25_MIN):
             return None
-        return Hit(self.docs[best], 0.0, float(best_key[2]), None)
+        self.last_open = (best_key[0], best_key[4])          # score, words matched (for the router)
+        return Hit(self.docs[best], 0.0, float(best_key[3]), None)
 
     @staticmethod
     def has_content(query: str) -> bool:

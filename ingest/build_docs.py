@@ -82,9 +82,18 @@ _ROLE = ["അധികാരി", "ഉദ്യോഗസ്ഥ", "സെക്�
          "രജിസ്ട്രാര", "അസിസ്റ്റന്റ"]
 
 
+# Column headers of other charter layouts read as a service ("നല്കേണ്ട രേഖകൾ" x70, "അടക്കേണ്ട ഫീസ്",
+# "സമയപരിധി"): a title made only of these words is a header.
+_HEADER = ["നല്കേണ്ട", "നൽകേണ്ട", "നലകേണ്ട", "അടക്കേണ്ട", "അടയ്ക്കേണ്ട", "സമർപ്പിക്കേണ്ട", "ഹാജരാക്കേണ്ട",
+           "രേഖ", "ഫീസ", "ഫീ", "സമയ", "കാലാവധി", "റിവിഷൻ", "അതോറിറ്റി", "ലഭ്യമാകുന്ന", "സേവന", "വിവര",
+           "നിബന്ധന", "മുഖേന", "മാത്രം", "കെ.സ്മാർട്ട", "ksmart", "k-smart", "ഇ-ഫയലിംഗ", "അപേക്ഷ", "ദിവസ"]
+
+
 def junk_title(title: str) -> bool:
     words = [w for w in normalise(title, strip_punct=True).split() if len(w) > 1]
     if len("".join(words)) < 6:
+        return True
+    if all(any(w.startswith(normalise(h)) for h in _HEADER) for w in words):
         return True
     role = sum(any(w.startswith(normalise(r)) for r in _ROLE) for w in words)
     return role >= max(1, len(words) / 2)
