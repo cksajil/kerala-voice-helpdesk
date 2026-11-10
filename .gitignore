@@ -8,3 +8,5 @@ ingest/raw/*.html
 data/emb-*.npy
 .venv/
 .DS_Store
+eval/asr_audio/
+eval/asr_bias_report.json
