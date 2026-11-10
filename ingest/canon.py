@@ -164,43 +164,63 @@ def parse_json(text: str):
 
 
 class Gemini:
-    """Thin wrapper: JSON mode where the model supports it, polite retries on 429/5xx, and a
-    clean stop when the daily quota is used up (the run is resumable from the cache)."""
+    """Thin wrapper: JSON mode where the model supports it, thinking turned off (these are
+    extraction jobs; thinking made each request take minutes), a hard timeout on every HTTP
+    call, polite retries on 429/5xx/timeouts, and a clean stop when the quota is used up or the
+    model keeps failing (the run is resumable from the cache)."""
 
-    def __init__(self, model: str, key: str | None = None, pause: float = 4.0):
+    def __init__(self, model: str, key: str | None = None, pause: float = 4.0, timeout_s: int = 180):
         from google import genai
-        self.genai = genai
-        self.client = genai.Client(api_key=key or os.environ["GEMINI_API_KEY"])
+        from google.genai import types
+        self.client = genai.Client(api_key=key or os.environ["GEMINI_API_KEY"],
+                                   http_options=types.HttpOptions(timeout=timeout_s * 1000))
         self.model, self.pause, self.requests = model, pause, 0
+        self.think_off = not model.startswith("gemma")
+
+    def _config(self):
+        from google.genai import types
+        extra = {}
+        if not self.model.startswith("gemma"):
+            extra["response_mime_type"] = "application/json"
+        if self.think_off:
+            extra["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+        return types.GenerateContentConfig(temperature=0.3, max_output_tokens=16384, **extra)
 
     def __call__(self, prompt: str) -> str:
-        from google.genai import errors, types
-        json_mode = not self.model.startswith("gemma")
-        cfg = types.GenerateContentConfig(temperature=0.3, max_output_tokens=16384,
-                                          **({"response_mime_type": "application/json"} if json_mode else {}))
+        from google.genai import errors
         for attempt in range(5):
+            time.sleep(self.pause)
+            self.requests += 1
+            t0 = time.time()
             try:
-                time.sleep(self.pause)
-                self.requests += 1
-                return self.client.models.generate_content(model=self.model, contents=prompt, config=cfg).text
+                text = self.client.models.generate_content(model=self.model, contents=prompt,
+                                                           config=self._config()).text
+                print(f"    reply in {time.time() - t0:.0f}s", flush=True)
+                return text or ""
             except errors.APIError as e:
                 msg = str(e)
+                if e.code == 400 and self.think_off and re.search(r"think", msg, re.I):
+                    self.think_off = False                   # model cannot switch thinking off
+                    print("    model needs thinking on; retrying with it", flush=True)
+                    continue
                 if e.code == 429 and re.search(r"per ?day|PerDay|daily", msg, re.I):
                     raise QuotaExhausted(msg) from e
-                if e.code in (429, 500, 502, 503, 504):
-                    wait = 30 * (2 ** attempt)
-                    m = re.search(r"retry(?:Delay| in)\D*(\d+)", msg)
-                    if m:
-                        wait = int(m.group(1)) + 2
-                    print(f"  {e.code}: waiting {wait}s", flush=True)
-                    time.sleep(wait)
-                    continue
-                raise
-        raise RuntimeError("model kept failing")
+                if e.code not in (429, 500, 502, 503, 504):
+                    raise
+                wait = 30 * (2 ** attempt)
+                m = re.search(r"retry(?:Delay| in)\D*(\d+)", msg)
+                if m:
+                    wait = min(int(m.group(1)) + 2, 300)
+                print(f"    {e.code}: waiting {wait}s", flush=True)
+            except Exception as e:                           # timeouts, dropped connections
+                wait = 30 * (2 ** attempt)
+                print(f"    {type(e).__name__} after {time.time() - t0:.0f}s: waiting {wait}s", flush=True)
+            time.sleep(wait)
+        raise QuotaExhausted("model kept failing after 5 attempts")
 
 
 class QuotaExhausted(Exception):
-    pass
+    """Stop requesting now; what is cached so far is kept and outputs are still written."""
 
 
 def numbers_ok(text: str, source: str) -> bool:
@@ -267,7 +287,8 @@ def load_cache() -> dict:
     return out
 
 
-def run(call, batch: int = 8, max_requests: int | None = None, dry_run: bool = False) -> dict:
+def run(call, batch: int = 8, max_requests: int | None = None, dry_run: bool = False,
+        budget_min: float | None = None) -> dict:
     docs = [json.loads(l) for l in DOCS.open(encoding="utf-8")]
     rows = [d for d in docs if d["kind"] == "row"]
     groups = group_rows(rows)
@@ -285,11 +306,14 @@ def run(call, batch: int = 8, max_requests: int | None = None, dry_run: bool = F
                                          groups="\n".join(group_block(g) for g in b))) for k, b in jobs if k == "groups"]
         print(f"{len(jobs)} requests to make; group prompts {min(sizes, default=0)}-{max(sizes, default=0)} chars")
         return {"groups": len(groups), "requests": len(jobs)}
-    done = 0
+    done, deadline = 0, (time.time() + 60 * budget_min) if budget_min else None
     with CACHE.open("a", encoding="utf-8") as f:
         for kind, b in jobs:
             if max_requests is not None and done >= max_requests:
                 print(f"stopping after {done} requests (--max-requests)")
+                break
+            if deadline and time.time() > deadline:
+                print(f"stopping after {budget_min:g} minutes (--budget-min); run again to continue")
                 break
             if kind == "groups":
                 prompt = GROUP_PROMPT.format(services=SERVICE_NAMES, facets=FACETS,
@@ -305,8 +329,8 @@ def run(call, batch: int = 8, max_requests: int | None = None, dry_run: bool = F
                     out = parse_json(call(prompt))
                     if isinstance(out, list):
                         break
-            except QuotaExhausted:
-                print("daily quota used up: run again tomorrow, finished groups are cached")
+            except QuotaExhausted as e:
+                print(f"stopping: {str(e)[:200]}\nfinished groups are cached; run again later to continue")
                 break
             done += 1
             if not isinstance(out, list):
@@ -395,6 +419,8 @@ def main():
     ap.add_argument("--batch", type=int, default=8, help="groups per request")
     ap.add_argument("--max-requests", type=int)
     ap.add_argument("--pause", type=float, default=4.0, help="seconds between requests")
+    ap.add_argument("--budget-min", type=float, default=120, help="stop starting requests after this many minutes")
+    ap.add_argument("--timeout", type=int, default=180, help="seconds before one request is abandoned")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--outputs-only", action="store_true", help="rebuild outputs from the cache, no requests")
     args = ap.parse_args()
@@ -402,8 +428,8 @@ def main():
         docs = [json.loads(l) for l in DOCS.open(encoding="utf-8")]
         write_outputs(group_rows([d for d in docs if d["kind"] == "row"]), load_kb(KB))
         return
-    call = None if args.dry_run else Gemini(args.model, pause=args.pause)
-    run(call, batch=args.batch, max_requests=args.max_requests, dry_run=args.dry_run)
+    call = None if args.dry_run else Gemini(args.model, pause=args.pause, timeout_s=args.timeout)
+    run(call, batch=args.batch, max_requests=args.max_requests, dry_run=args.dry_run, budget_min=args.budget_min)
 
 
 if __name__ == "__main__":
