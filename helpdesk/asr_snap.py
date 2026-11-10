@@ -240,6 +240,14 @@ def snap_in_context(prev: str, nxt: str) -> str:
     return max(family, key=lambda t: (seen[t], -len(t)))     # ജനന (48) over ജനനം (13)
 
 
+def _asks_service_thing(text: str) -> bool:
+    """Fee, documents, time, validity... or a word of a knowledge-base title other than a service name."""
+    from .intent import FACETS
+    if any(normalise(st) in text for _, v in FACETS for st in v):
+        return True
+    return False
+
+
 @lru_cache(maxsize=4096)
 def _names_service(word: str) -> bool:
     from .intent import SERVICES
@@ -265,7 +273,13 @@ def snap(text: str) -> str:
     service words heard as another real word (by the word that follows)."""
     if os.getenv("HELPDESK_ASR_SNAP", "1") == "0":
         return text
-    text = _WORD.sub(lambda m: snap_word(m.group(0)), text)
+    words = [m.group(0) for m in _WORD.finditer(text)]
+    fixed = {w: snap_word(w) for w in words}
+    if any(_names_service(n) and not _names_service(w) for w, n in fixed.items() if n != w):
+        cue = any(_names_service(w) for w in words) or _asks_service_thing(" ".join(fixed.values()))
+        if not cue:                    # "കഴിക്കാൻ പറ്റിയ കഞ്ഞി" must not become a dog-licence question
+            fixed = {w: (w if _names_service(n) and not _names_service(w) else n) for w, n in fixed.items()}
+    text = _WORD.sub(lambda m: fixed[m.group(0)], text)
     if not CONTEXT:
         return text
     ms = list(_WORD.finditer(text))

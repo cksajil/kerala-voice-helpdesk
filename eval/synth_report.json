@@ -38,9 +38,9 @@
   ],
   "by_kind": {
    "canon": [
-    97,
+    98,
     438,
-    150
+    151
    ],
    "tier1": [
     64,
@@ -48,17 +48,17 @@
     69
    ],
    "out_of_scope": [
-    14,
+    13,
     20,
-    14
+    13
    ]
   },
   "why": {
-   "wrong passage": 281,
+   "wrong passage": 280,
    "same service, other passage": 58,
    "routed other": 28,
    "declined (missing_facet)": 6,
-   "answered (service_faq)": 6
+   "answered (service_faq)": 7
   }
  },
  "flips_strict": {

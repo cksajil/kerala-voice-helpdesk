@@ -247,7 +247,7 @@ def test_asr_garbled_certificate_still_routes_to_service():
 
 
 @pytest.mark.parametrize("heard, meant", [          # 10 Nov logged clips, none in ASR_FIXES
-    ("കാലാവരി", "കാലാവധി"), ("പീസ്", "ഫീസ്"), ("പർമിത്തീന്റെ", "പെർമിറ്റിന്റെ"),
+    ("കാലാവരി", "കാലാവധി"), ("പീസ്", "ഫീസ്"), ("പർമിത്തീന്റെ ഫീസ്", "പെർമിറ്റിന്റെ ഫീസ്"),
     ("ജനനരജിസ്ട്രേഷനായി", "ജനന രജിസ്ട്രേഷനായി"),       # two words heard as one
 ])
 def test_asr_snap_fixes_unseen_mishearings(heard, meant):
@@ -266,6 +266,7 @@ def test_asr_snap_leaves_known_and_ambiguous_words(word):
     ("പൂച്ചയെ വളർത്താൻ ലൈസൻസ്", "പൂച്ചയെ വളർത്താൻ ലൈസൻസ്"),   # cat stays cat, not dog
     ("ഇന്ന് എന്ത് ഭക്ഷണം കഴിക്കണം", "ഇന്ന് എന്ത് ഭക്ഷണം കഴിക്കണം"),  # not കല്യാണം (marriage)
     ("ബിരിയാണി എങ്ങനെ ഉണ്ടാക്കാം", "ബിരിയാണി എങ്ങനെ ഉണ്ടാക്കാം"),
+    ("കഴിക്കാൻ പറ്റിയ നല്ല കഞ്ഞി ഏതാ", "കഴിക്കാൻ പറ്റിയ നല്ല കഞ്ഞി ഏതാ"),   # not പട്ടിയെ (dog)
 ])
 def test_asr_snap_in_context(heard, meant):
     from helpdesk.asr_snap import snap
