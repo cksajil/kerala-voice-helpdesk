@@ -35,8 +35,10 @@ from pathlib import Path
 from .normalise import normalise
 
 DATA = Path(__file__).resolve().parent.parent / "data"
-MAX_COST = float(os.getenv("HELPDESK_ASR_SNAP_MAX", "0.25"))  # edit cost / skeleton length
+MAX_COST = float(os.getenv("HELPDESK_ASR_SNAP_MAX", "0.15"))  # edit cost / skeleton length
 TARGETS = os.getenv("HELPDESK_ASR_SNAP_TARGETS", "domain")    # "domain" or "all" (every KB word)
+CONTEXT = os.getenv("HELPDESK_ASR_SNAP_CONTEXT", "1") == "1"  # also fix real words in the wrong place
+CONTEXT_MAX = float(os.getenv("HELPDESK_ASR_SNAP_CONTEXT_MAX", "0.35"))
 
 _CLASS = {}
 for letters, c in [("കഖഗഘ", "K"), ("ചഛജഝ", "C"), ("ടഠഡഢ", "T"), ("തഥദധ", "D"), ("പഫബഭ", "P"),
@@ -48,18 +50,34 @@ for letters, c in [("കഖഗഘ", "K"), ("ചഛജഝ", "C"), ("ടഠഡഢ"
         _CLASS[ch] = c
 _CHILLU = {"ൻ": "ന", "ർ": "ര", "ൽ": "ല", "ൾ": "ള", "ൺ": "ണ", "ൿ": "ക"}
 _VOWELS = set("aiueo")
+_SIGNS = set("ാിീുൂൃെേൈൊോൌ")
+VIRAMA = "്"
 _NEAR = {frozenset("TD"), frozenset("RL"), frozenset("NM")}
 _WORD = re.compile(r"[ഀ-ൿ]+")
 
 
 def skeleton(word: str) -> str:
+    """ജനന -> "CaNaNa", കാലാവധി -> "KaLaVaDi", പെർമിറ്റ് -> "PeRMiT", ഫീസ് -> "PiS"."""
     w = word.replace("റ്റ", "ട്ട").replace("ന്റ", "ണ്ട")   # pronounced tta / nda
-    w = "".join(_CHILLU.get(ch, ch) for ch in w)
     out = []
-    for ch in w:
+    for i, ch in enumerate(w):
+        if ch in _CHILLU:
+            out.append(_CLASS[_CHILLU[ch]])                  # chillu: the consonant, no vowel
+            continue
         c = _CLASS.get(ch)
-        if c and not (out and out[-1] == c and c not in _VOWELS):   # ത്ത -> D, not DD
+        if not c:
+            continue
+        nxt = w[i + 1] if i + 1 < len(w) else ""
+        if c in _VOWELS or ch == "ം" or ch in _SIGNS:
             out.append(c)
+        elif nxt == VIRAMA:
+            after = w[i + 2] if i + 2 < len(w) else ""
+            if _CLASS.get(after) != c:                       # ത്ത -> one D (doubling is not heard reliably)
+                out.append(c)
+        else:
+            out.append(c)
+            if nxt not in _SIGNS:
+                out.append("a")                              # inherent vowel
     return "".join(out)
 
 
@@ -161,13 +179,98 @@ def snap_word(word: str, split: bool = True) -> str:
         return word
     scored.sort()
     d0, t0 = scored[0]
-    if len(scored) > 1 and scored[1][0] - d0 < 0.5:     # two candidates about as close: don't guess
-        return word
+    if any(d - d0 < 0.5 and not _family(target[t], target[t0]) for d, t in scored[1:]):
+        return word                                   # two different words about as close: don't guess
     return target[t0]
 
 
+def _family(a: str, b: str) -> bool:
+    """Forms of one word: ജനന / ജനനം, പെർമിറ്റ് / പെർമിറ്റിന്റെ."""
+    n = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        n += 1
+    return n >= max(3, min(len(a), len(b)) - 1)
+
+
+@lru_cache(maxsize=1)
+def _context() -> dict[str, Counter]:
+    """Next word's first 5 letters -> Counter of the service words that come before it in the
+    knowledge base ("രജിസ്" <- ജനന, മരണ, വിവാഹ...)."""
+    _, _, _, clean = _vocab()
+    before: dict[str, Counter] = {}
+    for name in ("kb.jsonl", "canon.jsonl"):
+        for line in (DATA / name).open(encoding="utf-8"):
+            d = json.loads(line)
+            for text in [d.get("title", ""), d.get("text", "")] + list(d.get("questions") or []):
+                ws = _words(text)
+                for a, b in zip(ws, ws[1:]):
+                    if len(b) >= 5:
+                        before.setdefault(b[:5], Counter())[a] += 1
+    return {k: Counter({w: n for w, n in c.items() if w in clean and n >= 3})
+            for k, c in before.items() if sum(c.values()) >= 10}
+
+
+def snap_in_context(prev: str, nxt: str) -> str:
+    """A real word in the wrong place: "ജനറൽ രജിസ്ട്രേഷൻ" (no such service) -> "ജനന രജിസ്ട്രേഷൻ".
+    prev is replaced only if the knowledge base never puts it before nxt, and a service word that does
+    sounds almost the same."""
+    if not CONTEXT or len(nxt) < 5 or len(prev) < 3 or _names_service(prev):
+        return prev                     # പൂച്ചയെ (cat) must not become പട്ടിയെ (dog)
+    seen = _context().get(nxt[:5])
+    full = _CONTEXT_ALL().get(nxt[:5], ())
+    if not seen or prev in full:
+        return prev
+    s = skeleton(prev)
+    cap = CONTEXT_MAX * len(s)
+    scored = sorted((distance(s, skeleton(t), cap) + (0.5 if s[:1] != skeleton(t)[:1] else 0.0), t)
+                    for t in seen)
+    scored = [x for x in scored if x[0] <= cap]
+    if not scored:
+        return prev
+    rivals = [t for d, t in scored[1:] if d - scored[0][0] < 0.5 and not _family(t, scored[0][1])]
+    if rivals:
+        return prev
+    family = [t for d, t in scored if d - scored[0][0] < 0.5]
+    return max(family, key=lambda t: (seen[t], -len(t)))     # ജനന (48) over ജനനം (13)
+
+
+@lru_cache(maxsize=4096)
+def _names_service(word: str) -> bool:
+    from .intent import SERVICES
+    return any(word.startswith(normalise(st)) for v in SERVICES.values() for st, _ in v if " " not in st)
+
+
+@lru_cache(maxsize=1)
+def _CONTEXT_ALL() -> dict[str, set]:
+    """Every word (documents included) seen before a next word's first 5 letters."""
+    allb: dict[str, set] = {}
+    for name in ("kb.jsonl", "canon.jsonl", "docs.jsonl"):
+        for line in (DATA / name).open(encoding="utf-8"):
+            d = json.loads(line)
+            for text in [d.get("title", ""), d.get("text", "")] + list(d.get("questions") or []):
+                ws = _words(text)
+                for a, b in zip(ws, ws[1:]):
+                    allb.setdefault(b[:5], set()).add(a)
+    return allb
+
+
 def snap(text: str) -> str:
-    """Replace unknown Malayalam words with their closest-sounding knowledge-base word."""
+    """Replace unknown Malayalam words with their closest-sounding knowledge-base word, and
+    service words heard as another real word (by the word that follows)."""
     if os.getenv("HELPDESK_ASR_SNAP", "1") == "0":
         return text
-    return _WORD.sub(lambda m: snap_word(m.group(0)), text)
+    text = _WORD.sub(lambda m: snap_word(m.group(0)), text)
+    if not CONTEXT:
+        return text
+    ms = list(_WORD.finditer(text))
+    out, last = [], 0
+    for a, b in zip(ms, ms[1:]):
+        if text[a.end():b.start()].strip():             # punctuation between: not a phrase
+            continue
+        new = snap_in_context(a.group(0), b.group(0))
+        if new != a.group(0):
+            out.append(text[last:a.start()] + new)
+            last = a.end()
+    return "".join(out) + text[last:]

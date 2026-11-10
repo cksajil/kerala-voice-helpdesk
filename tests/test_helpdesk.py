@@ -261,6 +261,17 @@ def test_asr_snap_leaves_known_and_ambiguous_words(word):
     assert snap(normalise(word)) == normalise(word)
 
 
+@pytest.mark.parametrize("heard, meant", [
+    ("ജനറൽ രജിസ്ട്രേഷൻ ഫീസ്", "ജനന രജിസ്ട്രേഷൻ ഫീസ്"),     # real word, wrong place (3 clips, 10 Nov)
+    ("പൂച്ചയെ വളർത്താൻ ലൈസൻസ്", "പൂച്ചയെ വളർത്താൻ ലൈസൻസ്"),   # cat stays cat, not dog
+    ("ഇന്ന് എന്ത് ഭക്ഷണം കഴിക്കണം", "ഇന്ന് എന്ത് ഭക്ഷണം കഴിക്കണം"),  # not കല്യാണം (marriage)
+    ("ബിരിയാണി എങ്ങനെ ഉണ്ടാക്കാം", "ബിരിയാണി എങ്ങനെ ഉണ്ടാക്കാം"),
+])
+def test_asr_snap_in_context(heard, meant):
+    from helpdesk.asr_snap import snap
+    assert snap(normalise(heard)) == normalise(meant)
+
+
 def test_asr_snap_can_be_turned_off(monkeypatch):
     from helpdesk.asr_snap import snap
     monkeypatch.setenv("HELPDESK_ASR_SNAP", "0")
