@@ -48,6 +48,41 @@ def _has(q: str, stems: list[str]) -> bool:
     return any(s in q for s in stems)
 
 
+_TENS = {"ഇരുപത": 20, "മുപ്പത": 30, "നാൽപ്പത": 40, "നാല്പത": 40, "അമ്പത": 50, "അൻപത": 50}
+_UNITS = {"ഒന്ന": 1, "രണ്ട": 2, "മൂന്ന": 3, "നാല": 4, "അഞ്ച": 5, "ആറ": 6, "ഏഴ": 7, "എട്ട": 8,
+          "ഒൻപത": 9, "ഒമ്പത": 9}
+_SIGN_TO_VOWEL = {"ൊ": "ഒ", "േ": "ഏ", "െ": "എ", "ാ": "ആ", "ൂ": "ഊ"}
+
+
+def _tens(tok: str) -> float | None:
+    """'ഇരുപത്', 'ഇരുപത്തിമൂന്ന്', 'ഇരുപത്തേഴ്', 'മുപ്പത്തൊന്ന്' -> 20, 23, 27, 31. Anything else after
+    the tens word is not read as the bare tens: 'ഇരുപത്തെന്ന' (an ASR slip for 21) was read as 20
+    and answered 'within 21 days, no fee' (10 Nov Space log). Unknown -> None, so nothing is computed."""
+    for stem, ten in _TENS.items():
+        if not tok.startswith(stem):
+            continue
+        rest = tok[len(stem):]
+        if rest in ("", "്", "ു"):
+            return float(ten)
+        if not rest.startswith("്ത"):
+            return None
+        rest = rest[2:]                                   # "ത്ത" joins the units word
+        if rest.startswith("ി"):                          # ഇരുപത്തി-മൂന്ന്, ഇരുപത്തി-യൊന്ന്
+            rest = rest[1:]
+            if rest.startswith("യ"):                      # "യ" carries the units word's first vowel
+                rest = rest[1:]
+                rest = (_SIGN_TO_VOWEL[rest[0]] + rest[1:]) if rest[:1] in _SIGN_TO_VOWEL else "അ" + rest
+        elif rest[:1] in _SIGN_TO_VOWEL:                  # ഇരുപത്തൊന്ന്, ഇരുപത്തേഴ്, ഇരുപത്തെട്ട്
+            rest = _SIGN_TO_VOWEL[rest[0]] + rest[1:]
+        else:                                             # ഇരുപത്തഞ്ച്: inherent "അ"
+            rest = "അ" + rest
+        for w, u in _UNITS.items():
+            if rest.startswith(w):
+                return float(ten + u)
+        return None
+    return None
+
+
 def _num(tok: str) -> float | None:
     if tok[0].isdigit():
         t = tok.replace(",", "")
@@ -56,6 +91,10 @@ def _num(tok: str) -> float | None:
         except ValueError:
             return None
     for stem, val in _WORDS:
+        if stem in _TENS:                                 # compound tens: read the units too, or nothing
+            if tok.startswith(stem):
+                return _tens(tok)
+            continue
         if tok.startswith(stem):
             return float(val)
     return None

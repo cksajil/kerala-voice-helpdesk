@@ -762,3 +762,21 @@ def test_fee_after_n_days_is_past_the_boundary(q, fee):
     from helpdesk import fees
     a = fees.answer(q)["answer"]
     assert ("ഫീസ് ഇല്ല" in a) if fee == 0 else (f"ഫീസ് {fee} രൂപ" in a), a
+
+
+@pytest.mark.parametrize("word,n", [
+    ("ഇരുപത്", 20), ("ഇരുപത്തൊന്ന്", 21), ("ഇരുപത്തിയൊന്ന്", 21), ("ഇരുപത്തിമൂന്ന്", 23),
+    ("ഇരുപത്തഞ്ച്", 25), ("ഇരുപത്തേഴ്", 27), ("ഇരുപത്തെട്ട്", 28), ("മുപ്പത്തിയൊന്ന്", 31),
+    ("നാൽപ്പത്തിയഞ്ച്", 45), ("നാല്", 4),
+    ("ഇരുപത്തെന്ന", None), ("ഇരുപത്തുനിവസം", None),           # ASR slips (10 Nov log): not 20
+])
+def test_fee_number_words(word, n):
+    from helpdesk import fees
+    from helpdesk.normalise import normalise
+    assert fees._num(normalise(word)) == n
+
+
+def test_fee_unreadable_delay_computes_nothing():
+    """'ഇരുപത്തെന്ന ദിവസത്തിനു ശേഷം' was answered 'within 21 days, no fee' (10 Nov Space log)."""
+    from helpdesk import fees
+    assert fees.answer("ജനനര്ജിസ്ട്രേഷന് പീസ് ഇരുപത്തെന്ന ദിവസത്തിനു ശേഷം എത്രയാണ്?") is None
