@@ -83,6 +83,8 @@ class State(TypedDict, total=False):
     previous_route: Route
     previous_services: list[str]
     previous_tool: str        # e.g. "other_animal": the last answer was a decline, carry nothing
+    previous_topic: str       # the caller passes back the last turn's "topic"
+    topic: str               # title of the passage that started this thread of follow-ups
     services: list[str]      # services the question is about (detected, or carried from a follow-up)
     facet: str | None        # what it asks: amount, documents, time, validity, compulsory, ...
     context: str
@@ -221,9 +223,22 @@ def build_graph(retriever: Retriever | None = None):
             return {"answer": missing_message(services, facet), "refused": True, "tool": "missing_facet",
                     "sources": []}
         query = s["query"]
-        if s.get("route_by") == "follow-up" and s.get("previous"):
+        follow = s.get("route_by") == "follow-up"
+        if follow and s.get("previous"):
             query = s["previous"] + " " + query          # keeps specifics like "വിധവ" for retrieval
+        if follow and s.get("previous_topic"):
+            # Two follow-ups in a row lose the topic: "വിധവ പെൻഷൻ…" -> "എന്തൊക്കെ രേഖകൾ?" ->
+            # "തുകയെത്രയാണ്?" has no "വിധവ" in either question and found disability pension
+            # (10 Nov, canon on). The title of the passage that started the thread carries it.
+            query = s["previous_topic"] + " " + query
         hits = retriever.search(query, k=3, services=services, facet=facet)
+        if follow and facet in STRICT_FACETS and hits and facet not in hits[0].doc.get("facets", []):
+            # The topic words pull the topic's own passage to the top; when it does not answer the
+            # asked amount/time/validity, the best-ranked passage that does goes first
+            # ("തുകയെത്രയാണ്?" in a widow-pension thread: the pension-amount entry, not eligibility).
+            j = next((j for j, h in enumerate(hits) if facet in h.doc.get("facets", [])), None)
+            if j is not None:
+                hits = [hits[j]] + hits[:j] + hits[j + 1:]
         open_id = s.get("open_id")
         if not open_id and hits and s.get("route_by") != "follow-up":   # a follow-up keeps its service
             # A passage whose title says more of the question than the top hit's title does
@@ -253,7 +268,8 @@ def build_graph(retriever: Retriever | None = None):
             return {"context": "", "sources": []}
         # Only the top CTX_K passages go to the LLM (prefill dominates CPU latency).
         ctx = "\n\n".join(passage(h.doc) for h in hits[:CTX_K])
-        return {"context": ctx, "sources": [
+        topic = (s.get("previous_topic") if follow else "") or hits[0].doc["title"]
+        return {"context": ctx, "topic": topic, "sources": [
             {"id": h.doc["id"], "title": h.doc["title"], "url": h.doc["source"],
              "verify": h.doc.get("verify", False), "bm25": round(h.bm25, 2),
              "tier": h.doc.get("tier", 1), "lsgi": h.doc.get("lsgi"), "agreed_by": h.doc.get("agreed_by"),

@@ -382,6 +382,15 @@ from pathlib import Path as _Path
 _CONVS = [_json.loads(l) for l in (_Path(__file__).parent.parent / "eval" / "conversations.jsonl").open(encoding="utf-8") if l.strip()]
 
 
+def _spell(text: str) -> str:
+    from helpdesk.normalise import normalise
+    from helpdesk.retriever import _CANON
+    t = normalise(text, strip_punct=True)
+    for a, b in _CANON:
+        t = t.replace(a, b)
+    return t
+
+
 @pytest.mark.parametrize("conv", _CONVS, ids=[c["name"] for c in _CONVS])
 def test_conversation(app, conv):
     prev = {}
@@ -397,14 +406,15 @@ def test_conversation(app, conv):
             assert s.get("tool") == t["tool"], where
         if "entry" in t:
             assert s.get("sources") and s["sources"][0]["id"] == t["entry"], where
-        if "title" in t:     # Tier 2: any charter's row of that service will do
-            assert s.get("sources") and t["title"] in s["sources"][0]["title"], where
+        if "title" in t:     # Tier 2: any charter's row of that service will do; spelling variants
+            # (ഇൻഷ്വറൻസ്/ഇൻഷുറൻസ്, കുത്തിവെപ്പ്/കുത്തിവയ്പ്പ്) count as the same title
+            assert s.get("sources") and _spell(t["title"]) in _spell(s["sources"][0]["title"]), where
         if "service" in t:
             assert t["service"] in (s.get("services") or []), where
         if "contains" in t:
             assert t["contains"] in s["answer"], where
         prev = {"previous": t["q"], "previous_route": s["route"], "previous_services": s.get("services") or [],
-                "previous_tool": s.get("tool") or ""}           # as the Space app passes it
+                "previous_tool": s.get("tool") or "", "previous_topic": s.get("topic") or ""}  # as the Space app passes it
 
 
 @pytest.mark.parametrize("q,services", [
@@ -695,3 +705,46 @@ def test_canon_pipeline_with_fake_model(tmp_path, monkeypatch):
     assert held and not held & set(d["questions"])           # eval questions are never indexed
     assert {s["kind"] for s in synth} == {"canon", "tier1", "out_of_scope"}
     assert len(canon.run(lambda p: calls.append(p) or _fake_model(p))) and len(calls) == 3   # all cached
+
+
+def test_canon_check_group_odd_shapes():
+    """JSON mode guarantees valid JSON, not field types: a list summary (seen on Kaggle, 10 Nov),
+    None questions or a string variant must not crash write_outputs."""
+    from ingest import canon
+    g = {"id": "g1", "service": "pet", "rows": [{"id": "r1", "lsgi": "കടനാട്",
+         "text": "പട്ടി ലൈസൻസ്. ഫീസ്: 10 രൂപ. സമയം: 15 ദിവസം."}]}
+    c = canon.check_group({"is_service": True, "title_ml": ["പട്ടി ലൈസൻസ്"],
+                           "summary_ml": ["K-SMART വഴി അപേക്ഷിക്കണം.", "ഫീസ് 10 രൂപ."],
+                           "synonyms_ml": "നായ ലൈസൻസ്", "questions_ml": None, "facets": "amount",
+                           "variants": ["bad", {"row_id": "r1", "fee": ["10 രൂപ"], "time": None}]}, g)
+    assert c["title"] == "പട്ടി ലൈസൻസ്" and c["summary"].startswith("K-SMART") and "10" in c["summary"]
+    assert c["synonyms"] == ["നായ ലൈസൻസ്"] and c["questions"] == [] and c["facets"] == ["amount"]
+    assert c["variants"] == [{"row_id": "r1", "lsgi": "കടനാട്", "fee": "10 രൂപ", "time": ""}]
+    assert canon.check_group({"is_service": True, "title_ml": "x", "summary_ml": ["ഫീസ് 999"]}, g)["summary"] == ""
+    assert canon.check_group({"is_service": False, "title_ml": "x"}, g) is None
+    assert not canon.numbers_ok(["99"], "10") and canon.numbers_ok({"a": "10"}, "10")
+
+
+def test_canon_question_filters():
+    """Other-script slips are dropped; questions that lean on an earlier turn are not held out."""
+    from ingest import canon
+    assert canon._OTHER_SCRIPT.search("എത്ര ദിവസமாகும்?") and not canon._OTHER_SCRIPT.search("എത്ര ദിവസം?")
+    assert canon._DEICTIC.search("ഈ സർട്ടിഫിക്കറ്റിന് ഏതൊക്കെ രേഖകൾ?") and canon._DEICTIC.search("ഇതിന് എത്ര ഫീസ്?")
+    assert not canon._DEICTIC.search("അത്യാവശ്യമായി മരണ സർട്ടിഫിക്കറ്റ് വേണം")
+    assert not canon._DEICTIC.search("മരണ സർട്ടിഫിക്കറ്റിന് എത്ര രൂപ?")
+
+
+def test_canon_keeps_replaced_rows_vocabulary(tmp_path, monkeypatch):
+    """A canonical passage replaces its rows in the index, not in the follow-up vocabulary."""
+    from helpdesk import retriever as R
+    rows = [{"id": "r1", "kind": "row", "service": "pension", "title": "വിധവ പെൻഷൻ", "source": "s",
+             "text": "വിവാഹ മോചിതർക്കും അപേക്ഷിക്കാം."}]
+    canon = [{"id": "canon-g1", "kind": "canon", "service": "pension", "title": "വിധവ പെൻഷൻ", "source": "s",
+              "text": "വിധവ പെൻഷൻ.", "members": ["r1"]}]
+    for name, f, data in [("DOCS_PATH", "docs.jsonl", rows), ("CANON_PATH", "canon.jsonl", canon)]:
+        (tmp_path / f).write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in data))
+        monkeypatch.setattr(R, name, tmp_path / f)
+    monkeypatch.setenv("HELPDESK_CANON", "1")
+    docs = R.load_all()
+    assert "r1" not in {d["id"] for d in docs}
+    assert R.Retriever(docs=docs, dense=False).fits_services("വിവാഹ മോചിതർക്ക് അപേക്ഷിക്കാനോ?", ["pension"])

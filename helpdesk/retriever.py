@@ -29,6 +29,10 @@ TIER1_BOOST = float(os.getenv("HELPDESK_TIER1_BOOST", "2.0"))
 # pension paragraph that says "വിവാഹം" outranked every marriage entry for "വിവാഹം കഴിഞ്ഞു രണ്ടു
 # മാസമായി". It still answers when nothing better matches.
 PROSE_WEIGHT = float(os.getenv("HELPDESK_PROSE_WEIGHT", "0.6"))
+# Canonical services (HELPDESK_CANON=1) carry 4 indexed questions and up to 6 synonyms each, so
+# BM25 favours them on short generic questions ("തുകയെത്രയാണ്?" went to disability pension over the
+# Tier-1 amount entry). Tuned on the synth dev split and the conversation tests, not by hand.
+CANON_WEIGHT = float(os.getenv("HELPDESK_CANON_WEIGHT", "1.0"))
 DENSE_MODEL = os.getenv("HELPDESK_EMBED_MODEL", "BAAI/bge-m3")
 # The question's service filters the candidates and its facet boosts entries that answer
 # it (see intent.py). Boost chosen on the eval set and the 7-8 Nov Space logs.
@@ -69,6 +73,13 @@ def load_all() -> list[dict]:
         if os.getenv("HELPDESK_CANON", "0") == "1" and CANON_PATH.exists():
             canon = [{**d, "tier": 2} for d in load_kb(CANON_PATH)]
             replaced = {m for c in canon for m in c.get("members", [])}
+            rows = {d["id"]: d for d in tier2}
+            for c in canon:
+                # The rows a canonical passage replaces still define what its service talks about:
+                # kept for the follow-up vocabulary only, never indexed ("വിവാഹ മോചിതർക്ക്…" stopped
+                # being a widow-pension follow-up once the pension rows left the index, 10 Nov).
+                c["vocab"] = " ".join(rows[m]["title"] + " " + rows[m]["text"]
+                                      for m in c.get("members", []) if m in rows)
             tier2 = canon + [d for d in tier2 if d["id"] not in replaced]
         docs += tier2
     return docs
@@ -211,7 +222,8 @@ class Retriever:
         scores = self.bm25.get_scores(tokens(query))
         bm = {i: scores[i] * (1 + FACET_BOOST if facet and facet in self.docs[i].get("facets", []) else 1)
               * (TIER1_BOOST if self.docs[i].get("tier", 1) == 1 else 1)
-              * (PROSE_WEIGHT if self.docs[i].get("kind") == "prose" else 1) for i in pool}
+              * (PROSE_WEIGHT if self.docs[i].get("kind") == "prose" else 1)
+              * (CANON_WEIGHT if self.docs[i].get("kind") == "canon" else 1) for i in pool}
         order_bm = sorted(pool, key=lambda i: -bm[i])
         rrf = {i: 1 / (rrf_k + r) for r, i in enumerate(order_bm)}
         cos = None
@@ -295,7 +307,8 @@ class Retriever:
             words = set()
             for d in self.docs:
                 if d.get("service") in services:
-                    words.update(_content_words(" ".join([d["title"], d["text"], *d.get("questions", [])])))
+                    words.update(_content_words(" ".join([d["title"], d["text"], d.get("vocab", ""),
+                                                          *d.get("questions", [])])))
             self._vocab[key] = sorted(words)
         return self._vocab[key]
 

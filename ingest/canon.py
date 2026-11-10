@@ -49,6 +49,12 @@ CACHE = HERE / "canon_cache.jsonl"
 SERVICE_NAMES = sorted(set(SERVICES) | {"lsgd_other"})
 FACETS = ["amount", "documents", "time", "validity", "compulsory", "eligibility", "process"]
 _NUM = re.compile(r"\d[\d,]*(?:\.\d+)?")
+# Indic scripts other than Malayalam (Devanagari .. Kannada, Sinhala): the model sometimes slips
+# into Tamil mid-word ("ദിവസமாகும்"); such a question is not one a Malayalam speaker would say.
+_OTHER_SCRIPT = re.compile(r"[\u0900-\u0CFF\u0D80-\u0DFF]")
+# Questions that lean on an earlier turn ("ഈ സർട്ടിഫിക്കറ്റിന്...", "ഇതിന്..."): fine as indexed
+# paraphrases, but unanswerable alone, so they are not held out as single-turn eval questions.
+_DEICTIC = re.compile(r"(?:^|\s)(?:ഈ|ഇത്|ഇതൊക്കെ|ഇതിന്\S*|അത്|അതിന്\S*)(?=[\s?.,]|$)")
 
 # ---------------------------------------------------------------- 1. grouping (no LLM)
 
@@ -251,34 +257,68 @@ class QuotaExhausted(Exception):
     """Stop requesting now; what is cached so far is kept and outputs are still written."""
 
 
-def numbers_ok(text: str, source: str) -> bool:
-    src = source.replace(",", "")
-    return all(n.replace(",", "") in src for n in _NUM.findall(text or ""))
+def _txt(x) -> str:
+    """A model field that should be text, whatever shape came back: JSON mode guarantees valid
+    JSON, not the type of each field (a summary sometimes arrives as a list of sentences)."""
+    if x is None:
+        return ""
+    if isinstance(x, str):
+        return x
+    if isinstance(x, (list, tuple)):
+        return " ".join(t for t in (_txt(i).strip() for i in x) if t)
+    if isinstance(x, dict):
+        return " ".join(t for t in (_txt(v).strip() for v in x.values()) if t)
+    return str(x)
+
+
+def _strs(x) -> list[str]:
+    """A model field that should be a list of strings: a lone string becomes [string], items
+    are flattened to text, empty ones dropped."""
+    if x is None:
+        return []
+    if isinstance(x, str):
+        x = [x]
+    elif not isinstance(x, (list, tuple)):
+        x = [x]
+    return [t for t in (_txt(i).strip() for i in x) if t]
+
+
+def numbers_ok(text, source) -> bool:
+    src = _txt(source).replace(",", "")
+    return all(n.replace(",", "") in src for n in _NUM.findall(_txt(text)))
 
 
 def check_group(ans: dict, g: dict) -> dict | None:
     """The model's answer for one group, or None. Facts with numbers not in the rows are dropped."""
-    if not isinstance(ans, dict) or not ans.get("is_service") or not ans.get("title_ml"):
+    if not isinstance(ans, dict) or ans.get("is_service") in (False, None, "", "false", "no"):
+        return None
+    title = _txt(ans.get("title_ml")).strip()
+    if not title:
         return None
     rows = {r["id"]: r for r in g["rows"]}
     source = " ".join(r["text"] for r in g["rows"])
-    summary = ans.get("summary_ml", "") if numbers_ok(ans.get("summary_ml", ""), source) else ""
+    summary = _txt(ans.get("summary_ml"))
+    summary = summary if numbers_ok(summary, source) else ""
     variants = []
     for v in ans.get("variants") or []:
-        r = rows.get(v.get("row_id"))
+        if not isinstance(v, dict):
+            continue
+        r = rows.get(_txt(v.get("row_id")).strip())
         if r is None:
             continue
-        fee = v.get("fee", "") if numbers_ok(v.get("fee", ""), r["text"]) else ""
-        tm = v.get("time", "") if numbers_ok(v.get("time", ""), r["text"]) else ""
+        fee, tm = _txt(v.get("fee")).strip(), _txt(v.get("time")).strip()
+        fee = fee if numbers_ok(fee, r["text"]) else ""
+        tm = tm if numbers_ok(tm, r["text"]) else ""
         if fee or tm:
             variants.append({"row_id": r["id"], "lsgi": r.get("lsgi", ""), "fee": fee, "time": tm})
-    qs = [q.strip() for q in ans.get("questions_ml") or [] if isinstance(q, str) and 6 <= len(q.strip()) <= 200]
-    qs = list(dict.fromkeys(q for q in qs if not re.search(r"[A-Za-z]{4,}", q)))
-    service = ans.get("service") if ans.get("service") in SERVICE_NAMES else g["service"]
-    return {"title": ans["title_ml"].strip(), "synonyms": [s for s in ans.get("synonyms_ml") or [] if isinstance(s, str)][:6],
+    qs = [q for q in _strs(ans.get("questions_ml")) if 6 <= len(q) <= 200]
+    qs = list(dict.fromkeys(q for q in qs if not re.search(r"[A-Za-z]{4,}", q) and not _OTHER_SCRIPT.search(q)))
+    service = _txt(ans.get("service")).strip()
+    service = service if service in SERVICE_NAMES else g["service"]
+    return {"title": title, "synonyms": _strs(ans.get("synonyms_ml"))[:6],
             "summary": summary.strip(), "variants": variants, "questions": qs[:8], "service": service,
-            "facets": [f for f in ans.get("facets") or [] if f in FACETS],
-            "same_service": ans.get("same_service", True) is not False}
+            "facets": [f for f in _strs(ans.get("facets")) if f in FACETS],
+            "same_service": ans.get("same_service", True) not in (False, "false", "no")}
 
 
 def canon_doc(g: dict, c: dict) -> dict:
@@ -296,8 +336,10 @@ def canon_doc(g: dict, c: dict) -> dict:
         parts.append("മറ്റ് പഞ്ചായത്തുകളിൽ വ്യത്യാസമുണ്ടാകാം.")
     indexed = c["questions"][::2]                             # 0, 2, 4, 6 -> index; 1, 3, 5, 7 -> eval
     return {"id": f"canon-{g['id']}", "tier": 2, "kind": "canon", "service": c["service"], "title": c["title"],
-            "text": " ".join(parts), "questions": indexed + c["synonyms"], "facets": c["facets"] or
-            sorted({f for r in g["rows"] for f in r.get("facets", [])}),
+            # Facets come from the member rows (detected in code), not from the model: a facet
+            # decides whether the helpdesk answers or declines, so it must be grounded like a number.
+            "text": " ".join(parts), "questions": indexed + c["synonyms"],
+            "facets": sorted({f for r in g["rows"] for f in r.get("facets", [])}),
             "members": [r["id"] for r in g["rows"]], "lsgis": lsgis, "lsgi": lsgis[0] if len(lsgis) == 1 else "",
             "agreed_by": lsgis if len(lsgis) >= 2 else None, "verify": True,
             "source": "; ".join(dict.fromkeys(r["source"] for r in g["rows"][:3]))}
@@ -415,20 +457,27 @@ def merge_same(checked: list[tuple[dict, dict]]) -> list[tuple[dict, dict]]:
 
 def write_outputs(groups: list[dict], tier1: list[dict]) -> dict:
     cache = load_cache()
-    canon, synth, stats, checked = [], [], defaultdict(int), []
+    canon, synth, stats, checked, bad = [], [], defaultdict(int), [], []
     for g in groups:
         if g["id"] not in cache:
             stats["not_done"] += 1
             continue
-        c = check_group(cache[g["id"]], g)
+        try:
+            c = check_group(cache[g["id"]], g)
+        except Exception as e:                                # one odd reply must not sink the run
+            stats["bad_shape"] += 1
+            bad.append((g["id"], repr(e)[:120]))
+            continue
         if c is None:
             stats["not_a_service"] += 1
             continue
         if not c["same_service"]:
             stats["mixed_group"] += 1                          # kept, but flagged for a human
         raw = cache[g["id"]] or {}
-        stats["facts_dropped"] += (bool(raw.get("summary_ml")) and not c["summary"]) + \
-            sum(1 for v in raw.get("variants") or [] if v.get("fee") or v.get("time")) - len(c["variants"])
+        raw_v = [v for v in raw.get("variants") or [] if isinstance(v, dict)]
+        stats["facts_dropped"] += (bool(_txt(raw.get("summary_ml")).strip()) and not c["summary"]) + \
+            max(0, sum(1 for v in raw_v if _txt(v.get("fee")).strip() or _txt(v.get("time")).strip())
+                - len(c["variants"]))
         checked.append((g, c))
     merged = merge_same(checked)
     stats["merged_away"] = len(checked) - len(merged)
@@ -436,21 +485,27 @@ def write_outputs(groups: list[dict], tier1: list[dict]) -> dict:
         doc = canon_doc(g, c)
         canon.append(doc)
         for q in c["questions"][1::2]:
+            if _DEICTIC.search(q):
+                stats["held_out_deictic_skipped"] += 1
+                continue
             synth.append({"q": q, "kind": "canon", "expect": [doc["id"], *doc["members"]],
-                          "service": c["service"], "split": split_of(g["id"])})
+                          "title": c["title"], "service": c["service"], "split": split_of(g["id"])})
         stats["canon"] += 1
     for e in tier1:
-        a = cache.get(f"t1:{e['id']}") or {}
-        for q in [q for q in a.get("questions_ml") or [] if isinstance(q, str)][:4]:
-            synth.append({"q": q.strip(), "kind": "tier1", "expect": [e["id"]], "service": e["service"],
+        a = cache.get(f"t1:{e['id']}")
+        a = a if isinstance(a, dict) else {}
+        for q in _strs(a.get("questions_ml"))[:4]:
+            synth.append({"q": q, "kind": "tier1", "expect": [e["id"]], "title": e["title"], "service": e["service"],
                           "split": split_of(e["id"])})
-    for i, q in enumerate([q for q in cache.get("scope") or [] if isinstance(q, str)]):
-        synth.append({"q": q.strip(), "kind": "out_of_scope", "expect": [], "service": "",
+    for i, q in enumerate(_strs(cache.get("scope"))):
+        synth.append({"q": q, "kind": "out_of_scope", "expect": [], "service": "",
                       "split": "test" if i % 3 == 0 else "dev"})
     CANON.write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in canon), encoding="utf-8")
     SYNTH.write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in synth), encoding="utf-8")
     print(f"wrote {len(canon)} canonical services to {CANON} and {len(synth)} eval questions to {SYNTH}")
     print("  " + ", ".join(f"{k} {v}" for k, v in sorted(stats.items())))
+    if bad:
+        print(f"  {len(bad)} groups skipped (reply in an unexpected shape), e.g.:", *bad[:5], sep="\n    ")
     return {"canon": len(canon), "synth": len(synth), **stats}
 
 
