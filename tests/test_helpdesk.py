@@ -246,6 +246,27 @@ def test_asr_garbled_certificate_still_routes_to_service():
     assert G.rule_route("ജനങ്ങൾ സർട്ടിപ്പിക്ക്ഷ്.") == "service_faq"     # turn 7
 
 
+@pytest.mark.parametrize("heard, meant", [          # 10 Nov logged clips, none in ASR_FIXES
+    ("കാലാവരി", "കാലാവധി"), ("പീസ്", "ഫീസ്"), ("പർമിത്തീന്റെ", "പെർമിറ്റിന്റെ"),
+    ("ജനനരജിസ്ട്രേഷനായി", "ജനന രജിസ്ട്രേഷനായി"),       # two words heard as one
+])
+def test_asr_snap_fixes_unseen_mishearings(heard, meant):
+    from helpdesk.asr_snap import snap
+    assert snap(normalise(heard)) == normalise(meant)
+
+
+@pytest.mark.parametrize("word", ["ഇന്നത്തെ", "എത്ര", "അനുകുതി", "കോഴിക്കോട്", "കാലാവസ്ഥ"])
+def test_asr_snap_leaves_known_and_ambiguous_words(word):
+    from helpdesk.asr_snap import snap      # അനുകുതി (അനുമതി) must not become നികുതി (tax)
+    assert snap(normalise(word)) == normalise(word)
+
+
+def test_asr_snap_can_be_turned_off(monkeypatch):
+    from helpdesk.asr_snap import snap
+    monkeypatch.setenv("HELPDESK_ASR_SNAP", "0")
+    assert snap("പീസ്") == "പീസ്"
+
+
 def test_news_three_headlines_without_publisher(monkeypatch):
     items = "".join(f"<item><title>വാർത്ത {i} - Publisher {i}</title><link>https://x/{i}</link></item>"
                     for i in range(5)).encode()
