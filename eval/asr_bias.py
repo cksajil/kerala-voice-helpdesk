@@ -75,11 +75,23 @@ def load_model():
     return m
 
 
+def prompt_tokens(model, prompt: str | None) -> int:
+    return len(model.hf_tokenizer.encode(" " + prompt, add_special_tokens=False).ids) if prompt else 0
+
+
+def max_new_tokens(model, prompt: str | None) -> int:
+    """Whisper's decoder has 448 positions for everything it sees: <|startofprev|> + the prompt's tokens +
+    the 4 start tokens + the output. With no prompt that leaves 444 (the Space's budget). A prompt takes
+    its tokens out of the output budget: a 100-token prompt caps the answer at ~343 tokens (~12 s of
+    Malayalam). Asking for more crashed on Kaggle: 'No position encodings ... >= 448' (10 Nov)."""
+    n = prompt_tokens(model, prompt)
+    return 448 - 4 - ((1 + n) if n else 0)
+
+
 def transcribe(model, audio, prompt: str | None) -> str:
     """Same settings as the Space (app.py WhisperCT2), including its max_new_tokens rule.
     audio: a file path, or a 16 kHz float array."""
-    n = len(model.hf_tokenizer.encode(" " + prompt, add_special_tokens=False).ids) if prompt else 0
-    new = 888 - 4 - ((1 + min(n, 888 // 2 - 1)) if n else 0)
+    new = max_new_tokens(model, prompt)
     if isinstance(audio, (str, Path)):
         import librosa
         wav, _ = librosa.load(str(audio), sr=16000, mono=True)
@@ -175,23 +187,11 @@ def main():
         for p in prompts:
             prompt = None if p == "none" else p
             runs[p] = {c["id"]: transcribe(model, wavs[c["id"]], prompt) for c in clips}
-            print(f"transcribed {len(clips)} clips with prompt {p[:30]!r}", flush=True)
-
-    general = {}
-    if args.wer_dataset and not args.from_log:
-        arrays, texts = wer_set(args.wer_dataset, args.wer_split, args.wer_per_source, args.wer_clean_csv)
-        for p in prompts:
-            prompt = None if p == "none" else p
-            e = n = 0
-            for arr, ref in zip(arrays, texts):
-                r = normalise(ref, True).split()
-                d, L = cer(r, normalise(transcribe(model, arr, prompt), True).split())   # same DP on words
-                e, n = e + d, n + L
-            general[p] = 100 * e / max(n, 1)
-            print(f"general WER {general[p]:.1f}% with prompt {p[:30]!r}", flush=True)
+            print(f"transcribed {len(clips)} clips with prompt {p[:30]!r}: {prompt_tokens(model, prompt)} prompt "
+                  f"tokens, output cap {max_new_tokens(model, prompt)} tokens", flush=True)
 
     print(f"{len(clips)} clips; {sum(c['check'] == 'verify' for c in clips)} references still marked verify\n")
-    print(f"{'prompt':48} {'CER':>6} {'terms':>8} {'same answer':>12} {'general WER':>12}")
+    print(f"{'prompt':48} {'CER':>6} {'terms':>8} {'same answer':>12}")
     report = []
     for name, hyps in runs.items():
         e = n = th = tt = same = 0
@@ -207,15 +207,37 @@ def main():
             if hyps[c["id"]] != c["heard_v0"]:
                 changed.append((ok, c["heard_v0"], hyps[c["id"]]))
         label = name if len(name) <= 46 else name[:43] + "..."
-        gw = f"{general[name]:.1f}%" if name in general else "-"
-        print(f"{label:48} {100 * e / max(n, 1):5.1f}% {th:>3}/{tt:<4} {same:>5}/{len(clips)} {gw:>12}")
+        print(f"{label:48} {100 * e / max(n, 1):5.1f}% {th:>3}/{tt:<4} {same:>5}/{len(clips)}")
         report.append({"prompt": name, "cer": round(100 * e / max(n, 1), 2), "terms": [th, tt],
-                       "same_answer": [same, len(clips)], "general_wer": general.get(name),
+                       "same_answer": [same, len(clips)], "general_wer": None,
                        "transcripts": hyps})
         for ok, old, new in changed[:args.show]:
             print(f"    {'ok ' if ok else 'BAD'} {old}  ->  {new}")
 
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
+    general = {}
+    if args.wer_dataset and not args.from_log:
+        arrays, texts = wer_set(args.wer_dataset, args.wer_split, args.wer_per_source, args.wer_clean_csv)
+        for p in prompts:
+            prompt = None if p == "none" else p
+            e = n = 0
+            for arr, ref in zip(arrays, texts):
+                r = normalise(ref, True).split()
+                d, L = cer(r, normalise(transcribe(model, arr, prompt), True).split())   # same DP on words
+                e, n = e + d, n + L
+            general[p] = 100 * e / max(n, 1)
+            for r in report:
+                if r["prompt"] == p:
+                    r["general_wer"] = round(general[p], 2)
+            args.out.write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"general WER {general[p]:.1f}% with prompt {p[:30]!r}", flush=True)
+
+    if general:
+        print(f"\n{'prompt':48} {'same answer':>12} {'general WER':>12}")
+        for r in report:
+            if r["general_wer"] is not None:
+                label = r["prompt"] if len(r["prompt"]) <= 46 else r["prompt"][:43] + "..."
+                print(f"{label:48} {r['same_answer'][0]:>5}/{r['same_answer'][1]:<6} {r['general_wer']:>11.1f}%")
     print(f"\nwrote {args.out}")
 
 
