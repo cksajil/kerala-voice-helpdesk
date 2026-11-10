@@ -154,13 +154,29 @@ def group_block(g: dict) -> str:
 
 
 def parse_json(text: str):
+    """The model's JSON array, or as many complete items as can be read from it (a reply cut off
+    at the token limit still yields its first groups). None if nothing is readable; never raises."""
     text = (text or "").strip()
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text)
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        m = re.search(r"\[.*\]", text, re.S)
-        return json.loads(m.group(0)) if m else None
+        pass
+    start = text.find("[")
+    if start < 0:
+        return None
+    dec, i, items = json.JSONDecoder(), start + 1, []
+    while i < len(text):
+        while i < len(text) and text[i] in " \t\r\n,":
+            i += 1
+        if i >= len(text) or text[i] == "]":
+            break
+        try:
+            item, i = dec.raw_decode(text, i)
+        except json.JSONDecodeError:
+            break                                           # cut off or broken from here on
+        items.append(item)
+    return items or None
 
 
 class Gemini:
@@ -192,7 +208,7 @@ class Gemini:
             extra["response_mime_type"] = "application/json"
         if o["think"]:
             extra["thinking_config"] = types.ThinkingConfig(**o["think"])
-        return types.GenerateContentConfig(temperature=0.3, max_output_tokens=8192, **extra)
+        return types.GenerateContentConfig(temperature=0.3, max_output_tokens=32768, **extra)
 
     def __call__(self, prompt: str) -> str:
         from google.genai import errors
@@ -202,10 +218,12 @@ class Gemini:
             self.requests += 1
             t0 = time.time()
             try:
-                text = self.client.models.generate_content(model=self.model, contents=prompt,
-                                                           config=self._config()).text
-                print(f"    reply in {time.time() - t0:.0f}s", flush=True)
-                return text or ""
+                r = self.client.models.generate_content(model=self.model, contents=prompt,
+                                                        config=self._config())
+                why = str(getattr((r.candidates or [None])[0], "finish_reason", "") or "")
+                cut = " (CUT OFF at the token limit)" if "MAX_TOKENS" in why else ""
+                print(f"    reply in {time.time() - t0:.0f}s, {len(r.text or '')} chars{cut}", flush=True)
+                return r.text or ""
             except errors.APIError as e:
                 msg = str(e)
                 if e.code == 400 and self.step + 1 < len(self.ladder):
@@ -316,9 +334,12 @@ def run(call, batch: int = 8, max_requests: int | None = None, dry_run: bool = F
                                          groups="\n".join(group_block(g) for g in b))) for k, b in jobs if k == "groups"]
         print(f"{len(jobs)} requests to make; group prompts {min(sizes, default=0)}-{max(sizes, default=0)} chars")
         return {"groups": len(groups), "requests": len(jobs)}
-    done, deadline = 0, (time.time() + 60 * budget_min) if budget_min else None
+    from collections import deque
+    done, deadline, total = 0, (time.time() + 60 * budget_min) if budget_min else None, len(jobs)
+    jobs = deque(jobs)
     with CACHE.open("a", encoding="utf-8") as f:
-        for kind, b in jobs:
+        while jobs:
+            kind, b = jobs.popleft()
             if max_requests is not None and done >= max_requests:
                 print(f"stopping after {done} requests (--max-requests)")
                 break
@@ -344,12 +365,22 @@ def run(call, batch: int = 8, max_requests: int | None = None, dry_run: bool = F
                 break
             done += 1
             if not isinstance(out, list):
-                print(f"  {kind}: unparseable reply, skipped")
-                continue
+                out = []
             if kind == "groups":
                 by_id = {a.get("group_id"): a for a in out if isinstance(a, dict)}
+                missing = [g for g in b if g["id"] not in by_id]
+                if missing and len(b) > 1:                    # reply cut off: ask again in halves
+                    h = (len(missing) + 1) // 2
+                    for part in ([missing[h:], missing[:h]] if len(missing) > 1 else [missing]):
+                        jobs.appendleft(("groups", part))
+                    total += 2 if len(missing) > 1 else 1
+                    print(f"  {len(missing)} of {len(b)} groups missing from the reply; asking again in smaller batches")
                 for g in b:
-                    f.write(json.dumps({"key": g["id"], "answer": by_id.get(g["id"])}, ensure_ascii=False) + "\n")
+                    if g["id"] in by_id or len(b) == 1:       # a single group that still fails is cached as None
+                        f.write(json.dumps({"key": g["id"], "answer": by_id.get(g["id"])}, ensure_ascii=False) + "\n")
+            elif not out:
+                print(f"  {kind}: unparseable reply, skipped")
+                continue
             elif kind == "tier1":
                 by_id = {a.get("id"): a for a in out if isinstance(a, dict)}
                 for e in b:
@@ -357,7 +388,7 @@ def run(call, batch: int = 8, max_requests: int | None = None, dry_run: bool = F
             else:
                 f.write(json.dumps({"key": "scope", "answer": out}, ensure_ascii=False) + "\n")
             f.flush()
-            print(f"  request {done}/{len(jobs)} ({kind}) ok", flush=True)
+            print(f"  request {done}/{total} ({kind}) ok", flush=True)
     return write_outputs(groups, tier1)
 
 
