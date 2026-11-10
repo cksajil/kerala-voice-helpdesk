@@ -6,3 +6,4 @@ ingest/work/
 ingest/raw/*.pdf
 ingest/raw/*.html
 data/emb-*.npy
+.venv/
