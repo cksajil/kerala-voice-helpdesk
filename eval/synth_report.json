@@ -1,0 +1,72 @@
+{
+ "baseline (charter rows)": {
+  "total": [
+   159,
+   554,
+   198
+  ],
+  "by_kind": {
+   "canon": [
+    84,
+    438,
+    120
+   ],
+   "tier1": [
+    65,
+    96,
+    68
+   ],
+   "out_of_scope": [
+    10,
+    20,
+    10
+   ]
+  },
+  "why": {
+   "wrong passage": 319,
+   "same service, other passage": 39,
+   "routed other": 21,
+   "declined (missing_facet)": 6,
+   "answered (service_faq)": 10
+  }
+ },
+ "canonical services": {
+  "total": [
+   175,
+   554,
+   233
+  ],
+  "by_kind": {
+   "canon": [
+    97,
+    438,
+    150
+   ],
+   "tier1": [
+    64,
+    96,
+    69
+   ],
+   "out_of_scope": [
+    14,
+    20,
+    14
+   ]
+  },
+  "why": {
+   "wrong passage": 281,
+   "same service, other passage": 58,
+   "routed other": 28,
+   "declined (missing_facet)": 6,
+   "answered (service_faq)": 6
+  }
+ },
+ "flips_strict": {
+  "gained": 46,
+  "lost": 30
+ },
+ "flips_same_service": {
+  "gained": 58,
+  "lost": 23
+ }
+}

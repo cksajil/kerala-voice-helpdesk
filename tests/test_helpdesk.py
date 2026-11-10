@@ -748,3 +748,17 @@ def test_canon_keeps_replaced_rows_vocabulary(tmp_path, monkeypatch):
     docs = R.load_all()
     assert "r1" not in {d["id"] for d in docs}
     assert R.Retriever(docs=docs, dense=False).fits_services("വിവാഹ മോചിതർക്ക് അപേക്ഷിക്കാനോ?", ["pension"])
+
+
+@pytest.mark.parametrize("q,fee", [
+    ("ജനനരജിസ്ട്രേഷനായി ഉള്ള ഫീസ് എത്രയാണ് ഇരുപത്തൊന്നു ദിവസത്തിനു ശേഷം.", 2),   # 10 Nov Space log
+    ("ജനന രജിസ്ട്രേഷൻ 21 ദിവസത്തിനുശേഷം ഫീസ്", 2),
+    ("ജനന രജിസ്ട്രേഷൻ 21 ദിവസം കഴിഞ്ഞാൽ ഫീസ് എത്ര", 2),
+    ("ജനന രജിസ്ട്രേഷൻ 21 ദിവസത്തിനുള്ളിൽ ഫീസ്", 0),
+    ("ജനന രജിസ്ട്രേഷൻ 10 ദിവസം കഴിഞ്ഞു ഫീസ്", 0),
+    ("മരണ രജിസ്ട്രേഷൻ 30 ദിവസത്തിനു ശേഷം ഫീസ് എത്ര", 5),
+])
+def test_fee_after_n_days_is_past_the_boundary(q, fee):
+    from helpdesk import fees
+    a = fees.answer(q)["answer"]
+    assert ("ഫീസ് ഇല്ല" in a) if fee == 0 else (f"ഫീസ് {fee} രൂപ" in a), a

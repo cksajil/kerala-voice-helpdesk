@@ -7,3 +7,4 @@ ingest/raw/*.pdf
 ingest/raw/*.html
 data/emb-*.npy
 .venv/
+.DS_Store

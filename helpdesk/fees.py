@@ -74,6 +74,27 @@ def _quantity(q: str, units: list[tuple[str, float]]) -> float | None:
     return None
 
 
+# "<N> ദിവസത്തിനു ശേഷം", "<N> ദിവസം കഴിഞ്ഞാൽ": past N, so the band above N. A bare "21 ദിവസം"
+# reads as within 21 days. Read "ഇരുപത്തൊന്നു ദിവസത്തിനു ശേഷം" as 21 and answered "no fee, within 21
+# days" (10 Nov Space log). Only words right after the unit count: "വിവാഹം കഴിഞ്ഞു രണ്ട് മാസമായി" has
+# "കഴിഞ്ഞു" before the quantity, about the event.
+AFTER = ["ശേഷം", "ശേഷമ", "കഴിഞ്ഞ", "കഴിഞ്ഞിട്ട", "പിന്നിട്ട", "വൈകി"]
+_AFTER_GLUED = re.compile(r"(?:ത്തിന്|ത്തിനു|ത്തിൻ)?\s*ശേഷ")
+
+
+def _past(q: str, units: list[tuple[str, float]]) -> bool:
+    """True when the first '<number> <unit>' is followed by an 'after' word."""
+    toks = _TOKEN.findall(q)
+    for i in range(len(toks) - 1):
+        if _num(toks[i]) is None or not any(toks[i + 1].startswith(st) for st, _ in units):
+            continue
+        if _AFTER_GLUED.search(toks[i + 1][2:]):                     # "ദിവസത്തിനുശേഷം"
+            return True
+        nxt = toks[i + 2:i + 4]                                      # "ദിവസത്തിനു ശേഷം", "ദിവസം കഴിഞ്ഞാൽ"
+        return any(t.startswith(a) for t in nxt for a in AFTER)
+    return False
+
+
 MONEY_INTENT = ["ഫീസ", "രൂപ", "ചാർജ", "fee", "പിഴ"]
 _TUKA = re.compile(r"(?<![ഀ-ൿ])തുക")      # "തുക", "തുകയെത്ര"; not "പുതുക്കാൻ"
 
@@ -138,6 +159,8 @@ def answer(query: str) -> dict | None:
     # Marriage registration fee: marriage + a delay + registration or fee intent.
     if _has(q, MARRIAGE) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
         days = _quantity(q, DAY_UNITS)
+        if days is not None and _past(q, DAY_UNITS):
+            days += 0.5
         if days is None and _money(q) and not _has(q, ["അക്ഷയ", "സർവീസ് ചാർജ", "ഓൺലൈൻ ചാർജ"]):
             # No delay given: read out the whole schedule. Gemma paraphrased "BPL: ₹10" as
             # "₹10 less than ₹120" in the Space log (8 Nov).
@@ -153,6 +176,8 @@ def answer(query: str) -> dict | None:
     is_birth, is_death = _has(q, BIRTH), _has(q, DEATH)
     if (is_birth or is_death) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
         days = _quantity(q, DAY_UNITS)
+        if days is not None and _past(q, DAY_UNITS):
+            days += 0.5                                              # past the boundary day
         if days is not None:
             _, rule = registration_fee(days)
             return {"answer": rule + " ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ 40 രൂപ സർവീസ് ചാർജ് കൂടി ഉണ്ട്.",
