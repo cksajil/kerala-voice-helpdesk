@@ -17,7 +17,8 @@ Guards (a correction must never break a question Whisper heard right):
   - a word found anywhere in the documents (inflected forms included) is never changed;
   - short words (< 4 letters), numbers and Latin words are never changed, and words of under five
     sounds only when they sound identical (പീസ് = ഫീസ്);
-  - two words heard as one are split only into a service word and a known word;
+  - two words heard as one are split only into a service name and a known word;
+  - another ending of the same word is not a correction (സാക്ഷ്യപത്രത്തിന് stays): the index matches stems;
   - the best candidate must be clearly better than the second-best different one.
 
 HELPDESK_ASR_SNAP=0 turns it off.
@@ -38,7 +39,7 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 MAX_COST = float(os.getenv("HELPDESK_ASR_SNAP_MAX", "0.15"))  # edit cost / skeleton length
 TARGETS = os.getenv("HELPDESK_ASR_SNAP_TARGETS", "domain")    # "domain" or "all" (every KB word)
 CONTEXT = os.getenv("HELPDESK_ASR_SNAP_CONTEXT", "1") == "1"  # also fix real words in the wrong place
-CONTEXT_MAX = float(os.getenv("HELPDESK_ASR_SNAP_CONTEXT_MAX", "0.35"))
+CONTEXT_MAX = float(os.getenv("HELPDESK_ASR_SNAP_CONTEXT_MAX", "0.3"))
 
 _CLASS = {}
 for letters, c in [("കഖഗഘ", "K"), ("ചഛജഝ", "C"), ("ടഠഡഢ", "T"), ("തഥദധ", "D"), ("പഫബഭ", "P"),
@@ -160,7 +161,8 @@ def snap_word(word: str, split: bool = True) -> str:
     if split:                       # two words heard as one: "ജനനരജിസ്ട്രേഷനായി" = ജനന + രജിസ്ട്രേഷനായി
         for i in range(len(word) - 3, 2, -1):
             left, right = word[:i], word[i:]
-            if left in clean and len(right) >= 5 and right[0] not in "്ാിീുൂൃെേൈൊോൌംഃ":
+            if (left in clean and _names_service(left) and len(right) >= 5
+                    and right[0] not in "്ാിീുൂൃെേൈൊോൌംഃ" and right[1] != VIRAMA):   # not ...ത്തിന്റെ
                 if len(right) >= 8:           # long enough to correct safely
                     right = snap_word(right, split=False)
                 if right in known:
@@ -181,6 +183,8 @@ def snap_word(word: str, split: bool = True) -> str:
     d0, t0 = scored[0]
     if any(d - d0 < 0.5 and not _family(target[t], target[t0]) for d, t in scored[1:]):
         return word                                   # two different words about as close: don't guess
+    if _family(word, target[t0]):                     # another ending of the same word: the index matches
+        return word                                   # stems anyway, and the swap only moves the ranking
     return target[t0]
 
 
@@ -208,8 +212,8 @@ def _context() -> dict[str, Counter]:
                 for a, b in zip(ws, ws[1:]):
                     if len(b) >= 5:
                         before.setdefault(b[:5], Counter())[a] += 1
-    return {k: Counter({w: n for w, n in c.items() if w in clean and n >= 3})
-            for k, c in before.items() if sum(c.values()) >= 10}
+    return {k: Counter({w: n for w, n in c.items() if _names_service(w) and n >= 3})
+            for k, c in before.items() if sum(c.values()) >= 10}         # only service names: ജനന, മരണ...
 
 
 def snap_in_context(prev: str, nxt: str) -> str:
