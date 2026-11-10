@@ -175,20 +175,29 @@ class Gemini:
         self.client = genai.Client(api_key=key or os.environ["GEMINI_API_KEY"],
                                    http_options=types.HttpOptions(timeout=timeout_s * 1000))
         self.model, self.pause, self.requests = model, pause, 0
-        self.think_off = not model.startswith("gemma")
+        # Settings to try, in order; a 400 "invalid argument" moves to the next one. Model
+        # families differ: 2.5 takes thinking_budget, 3.x takes thinking_level, Gemma takes neither.
+        gemma = model.startswith("gemma")
+        self.ladder = ([] if gemma else [
+            {"json": True, "think": {"thinking_budget": 0}},
+            {"json": True, "think": {"thinking_level": "minimal"}},
+            {"json": True, "think": {"thinking_level": "low"}},
+            {"json": True, "think": None}]) + [{"json": False, "think": None}]
+        self.step = 0
 
     def _config(self):
         from google.genai import types
-        extra = {}
-        if not self.model.startswith("gemma"):
+        o, extra = self.ladder[self.step], {}
+        if o["json"]:
             extra["response_mime_type"] = "application/json"
-        if self.think_off:
-            extra["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
-        return types.GenerateContentConfig(temperature=0.3, max_output_tokens=16384, **extra)
+        if o["think"]:
+            extra["thinking_config"] = types.ThinkingConfig(**o["think"])
+        return types.GenerateContentConfig(temperature=0.3, max_output_tokens=8192, **extra)
 
     def __call__(self, prompt: str) -> str:
         from google.genai import errors
-        for attempt in range(5):
+        attempt = 0
+        while attempt < 5:
             time.sleep(self.pause)
             self.requests += 1
             t0 = time.time()
@@ -199,9 +208,9 @@ class Gemini:
                 return text or ""
             except errors.APIError as e:
                 msg = str(e)
-                if e.code == 400 and self.think_off and re.search(r"think", msg, re.I):
-                    self.think_off = False                   # model cannot switch thinking off
-                    print("    model needs thinking on; retrying with it", flush=True)
+                if e.code == 400 and self.step + 1 < len(self.ladder):
+                    self.step += 1                           # setting not accepted: try the next
+                    print(f"    400 with {self.ladder[self.step - 1]}; trying {self.ladder[self.step]}", flush=True)
                     continue
                 if e.code == 429 and re.search(r"per ?day|PerDay|daily", msg, re.I):
                     raise QuotaExhausted(msg) from e
@@ -216,6 +225,7 @@ class Gemini:
                 wait = 30 * (2 ** attempt)
                 print(f"    {type(e).__name__} after {time.time() - t0:.0f}s: waiting {wait}s", flush=True)
             time.sleep(wait)
+            attempt += 1
         raise QuotaExhausted("model kept failing after 5 attempts")
 
 
