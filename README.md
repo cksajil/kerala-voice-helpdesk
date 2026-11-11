@@ -55,6 +55,7 @@ HELPDESK_DENSE=0 pytest -q                    # 17 offline tests
 python -m eval.run_eval                       # route / hit@3 / refusal gate, BM25 only
 python -m eval.run_eval --dense               # same with BGE-M3; use it to tune HELPDESK_COS_MIN
 python -m eval.run_eval --dense --full        # end-to-end with LLM + live tools
+python -m eval.run_answer_eval                # 100 questions, answers scored with Gemma in the loop (~6 min)
 ```
 
 ## Status (7 Nov 2026)
@@ -219,3 +220,29 @@ p = 0.3 83.4% against rules only 86.7%, 75.9% (about a third of the slip losses 
 clean kept 573/574; `eval.run_synth` out-of-scope declines back to 35/60 as with snap off; 194 tests pass.
 Still wrong on the logged clips: number words (ഇരുപത്തെന്ന, നാപുര: deliberately not guessed),
 "പ്രകാരം" heard for "എങ്ങനെ" (a real word: no sound rule can tell), "ഭീസിത്രേ" (ഫീസ് എത്ര run together).
+
+## Answer eval: 100 questions with the LLM in the loop (11 Nov 2026)
+`eval/answer_eval.jsonl`: one question per KB entry (50), colloquial variants (15), fee arithmetic (8),
+government questions the KB does not cover (10), off-topic (10), weather (4), news (3). Drafted with Gemini
+from `data/kb.jsonl`, then checked (every kb_id exists, every key fact is in the cited entry, fee answers match
+`helpdesk/fees.py`, no copied KB example questions; 12 labels corrected). `python -m eval.run_answer_eval`
+runs Gemma 4 E2B Q4_0 in-process and scores the answer itself (key facts, must-not facts, refusals), which
+`eval.run_eval` and `eval.run_synth` do not. About 6 min on 4 CPU threads; `--rescore` re-scores saved answers.
+
+Baseline 78/100: knowledge-base questions 39/50, colloquial 9/15, fee arithmetic 8/8, not-in-KB declined 8/10,
+off-topic declined 7/10, weather and news routed 7/7. Fixed from it (now 83/100, 5 fixed, 0 broken):
+- Fee calculator: a delay plus "register" no longer makes a fee question. "എത്ര" counts as how-much unless the
+  question asks a time, a person or a procedure (എത്ര ദിവസം, ആരുടെ, അനുമതി, എങ്ങനെ, എവിടെ, രേഖ): "whose
+  permission after a year" got ₹10 and "how many days for the certificate" got ₹220.
+- "Is <document> compulsory?" (സമ്മതപത്രം, കരാർ, സാക്ഷ്യപത്രം, എഞ്ചിനീയർ...) is a documents question; it was
+  declined as an unknown "compulsory" fact although the documents entry lists it.
+- Out of scope: medical advice (symptoms at word start, "which medicine to take"; a fever question got the
+  palliative-care row) and other states' services (a Tamil Nadu birth certificate got Kerala's K-SMART steps,
+  now checked before the service rule).
+Checked against the other suites: 208 tests pass (13 new); `eval.run_eval` unchanged; `eval.run_synth --split all`
+with canonical services strict 425 -> 428, same service 619 -> 619. Tried and dropped: rejecting a one-word title
+match in a question of 3+ (or 4+) content words. It fixed two off-topic cases here but declined a logged
+conversation turn ("പരസ്യ ബോൾ വെക്കാൻ അനുകുതി വേണോ") and 13 real service questions in the synthetic set
+(family planning, gobar gas, job card age): word count cannot tell a distinctive shared word from a generic one.
+Still wrong (17): mostly retrieval, a charter row read instead of the KB entry (10); LIFE Mission and a joke
+answered from lookalike rows; "ആർ ടി ഐ" not recognised; Gemma misreading a passage (2).

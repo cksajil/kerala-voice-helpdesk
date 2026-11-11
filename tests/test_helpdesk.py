@@ -843,3 +843,50 @@ def test_fee_unreadable_delay_computes_nothing():
     """'ഇരുപത്തെന്ന ദിവസത്തിനു ശേഷം' was answered 'within 21 days, no fee' (10 Nov Space log)."""
     from helpdesk import fees
     assert fees.answer("ജനനര്ജിസ്ട്രേഷന് പീസ് ഇരുപത്തെന്ന ദിവസത്തിനു ശേഷം എത്രയാണ്?") is None
+
+
+# --- 100-question answer eval (eval/answer_eval.jsonl, 11 Nov) --------------
+@pytest.mark.parametrize("q", [
+    "ജനിച്ചിട്ട് ഒരു വർഷം കഴിഞ്ഞ കുട്ടിയുടെ ജനനം രജിസ്റ്റർ ചെയ്യാൻ ആരുടെയൊക്കെ അനുമതി വേണം?",     # hd021: who approves
+    "വിവാഹം കഴിഞ്ഞ് ഒരു വർഷത്തിന് ശേഷം അപേക്ഷിച്ചാൽ സർട്ടിഫിക്കറ്റ് കിട്ടാൻ എത്ര ദിവസമെടുക്കും?",  # hd028: how long
+])
+def test_fee_calculator_leaves_non_fee_questions(q):
+    """A delay plus 'register' is not a fee question: these got ₹10 and ₹220."""
+    assert fees.answer(q) is None
+
+
+@pytest.mark.parametrize("q", [
+    "വാടക കെട്ടിടത്തിൽ ഒരു കട തുടങ്ങാൻ ലൈസൻസിന് അപേക്ഷിക്കുമ്പോൾ കെട്ടിട ഉടമയുടെ സമ്മതപത്രം നിർബന്ധമാണോ?",  # hd006
+    "വാടക വീട്ടിൽ താമസിക്കുന്നവർക്ക് റെസിഡൻസ് സർട്ടിഫിക്കറ്റ് കിട്ടാൻ വാടകക്കരാർ നിർബന്ധമാണോ?",  # hd033
+])
+def test_compulsory_document_is_a_documents_question(app, q):
+    """Was declined as an unknown 'compulsory' fact; the documents entry lists the document."""
+    from helpdesk.intent import detect_facet
+    assert detect_facet(q) == "documents"
+    s = app.invoke({"query": q})
+    assert s.get("tool") != "missing_facet" and not s.get("refused"), s
+
+
+@pytest.mark.parametrize("q", ["വിവാഹ രജിസ്ട്രേഷൻ നിർബന്ധമാണോ", "പട്ടിയെ വളർത്താൻ ലൈസൻസ് വേണോ"])
+def test_service_itself_compulsory_keeps_the_facet(q):
+    from helpdesk.intent import detect_facet
+    assert detect_facet(q) == "compulsory"
+
+
+@pytest.mark.parametrize("q,oos", [
+    ("എനിക്ക് രണ്ട് ദിവസമായിട്ട് ഭയങ്കര തലവേദനയും പനിയും ആണ്, എന്ത് മരുന്നാണ് കഴിക്കേണ്ടത്?", True),  # hd086
+    ("പനിക്ക് ഏത് ഗുളിക കഴിക്കണം", True),
+    ("കമ്പനി തുടങ്ങാൻ ട്രേഡ് ലൈസൻസ് വേണോ", False),              # കമ്പനി contains പനി
+    ("സെക്രട്ടറിയുടെ ചുമതല ആർക്കാണ്", False),                   # ചുമതല starts like ചുമ
+    ("ഹോട്ടൽ ജോലിക്കാർക്ക് ഹെൽത്ത് കാർഡ് എവിടെ കിട്ടും", False),
+    ("പാലിയേറ്റീവ് കെയർ രോഗികൾക്ക് മരുന്ന് വിതരണം എപ്പോൾ", False),
+])
+def test_medical_advice_is_out_of_scope(q, oos):
+    from helpdesk.intent import out_of_scope
+    assert out_of_scope(q) is oos
+
+
+def test_other_state_service_is_out_of_scope(app):
+    """A Tamil Nadu birth certificate got Kerala's K-SMART steps (hd089)."""
+    s = app.invoke({"query": "തമിഴ്നാട്ടിലെ ഒരു പഞ്ചായത്തിൽ നിന്ന് ജനന സർട്ടിഫിക്കറ്റ് എടുക്കാൻ എന്താണ് വഴി?"})
+    assert s["route"] == "other" and s.get("refused"), s

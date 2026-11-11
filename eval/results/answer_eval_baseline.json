@@ -1,0 +1,1773 @@
+[
+ {
+  "id": "hd001",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "cr-fee-01",
+   "svc-charge-01"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 1.12,
+  "answer": "30 ദിവസത്തിനു ശേഷം ഒരു വർഷത്തിനുള്ളിൽ ആയതിനാൽ രജിസ്ട്രേഷൻ ഫീസ് 5 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ 40 രൂപ സർവീസ് ചാർജ് കൂടി ഉണ്ട്."
+ },
+ {
+  "id": "hd002",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "cr-fee-02"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 15,
+  "secs": 4.46,
+  "answer": "Non-availability certificate കിട്ടാൻ 2 രൂപ ഫീസ് ആകും."
+ },
+ {
+  "id": "hd003",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "svc-charge-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 31,
+  "secs": 3.87,
+  "answer": "അക്ഷയ കേന്ദ്രത്തിൽ പോയി ജനന സർട്ടിഫിക്കറ്റ് തിരുത്താൻ 50 രൂപ സർവീസ് ചാർജ് കൊടുക്കണം."
+ },
+ {
+  "id": "hd004",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "svc-charge-02"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 26,
+  "secs": 3.36,
+  "answer": "ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റിന് 50 രൂപ സർവീസ് ചാർജ് ഈടാക്കും."
+ },
+ {
+  "id": "hd005",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "trade-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 44,
+  "secs": 4.46,
+  "answer": "ട്രേഡ് ലൈസൻസിന് K-SMART-ൽ 'Application for New Enterprises License' എന്ന സേവനം വഴി അപേക്ഷിക്കാം. ഇത് ഓഫീസ് ജീവനക്കാർ IFTE and OS License എന്ന് വിളിക്കുന്നു."
+ },
+ {
+  "id": "hd006",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "false_refusal",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "missing_facet",
+  "refused": true,
+  "sources": [],
+  "kb_hit": false,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ക്ഷമിക്കണം, ട്രേഡ് ലൈസൻസിന്റെ നിർബന്ധമാണോ എന്നതിനെക്കുറിച്ച് എന്റെ പക്കൽ ഉറപ്പുള്ള വിവരം ഇല്ല. പഞ്ചായത്ത് ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd007",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "trade-03-svc"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "സേവന മേഖലയിൽ 10 ലക്ഷം രൂപ മുതൽമുടക്കിന് പരമാവധി വാർഷിക ലൈസൻസ് ഫീസ് 500 രൂപ. ഈ തുകകൾ 2018-ലെ നിർദ്ദേശപ്രകാരമുള്ളതാണ്; ഇപ്പോഴത്തെ തുക ഓഫീസിൽ ഉറപ്പാക്കുക."
+ },
+ {
+  "id": "hd008",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "trade-03-mfg"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.02,
+  "answer": "നിർമ്മാണ മേഖലയിൽ 2 കോടി രൂപ മുതൽമുടക്കിന് പരമാവധി വാർഷിക ലൈസൻസ് ഫീസ് 5,000 രൂപ. ഈ തുകകൾ 2018-ലെ നിർദ്ദേശപ്രകാരമുള്ളതാണ്; ഇപ്പോഴത്തെ തുക ഓഫീസിൽ ഉറപ്പാക്കുക."
+ },
+ {
+  "id": "hd009",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "trade-04"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 14,
+  "secs": 2.47,
+  "answer": "ട്രേഡ് ലൈസൻസിന്റെ കാലാവധി 5 വർഷമാണ്."
+ },
+ {
+  "id": "hd010",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ksmart-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 22,
+  "secs": 3.06,
+  "answer": "K-SMART സംവിധാനം 2024 ജനുവരി 1-ന് ആരംഭിച്ചു."
+ },
+ {
+  "id": "hd011",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ksmart-02"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 25,
+  "secs": 3.08,
+  "answer": "അതെ, K-SMART ആപ്പ് വഴി പ്രൊഫഷണൽ ടാക്സ് അടയ്ക്കാൻ സാധിക്കും."
+ },
+ {
+  "id": "hd012",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "kadanad-gp-2026-p2-r1"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 24,
+  "secs": 4.79,
+  "answer": "കെ സ്മാർട്ടിലൂടെ മരണ സർട്ടിഫിക്കറ്റ് നേരിട്ട് ഡൗൺലോഡ് ചെയ്യാൻ കഴിയില്ല. (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം.)"
+ },
+ {
+  "id": "hd013",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "partial",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "svc-charge-02"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 33,
+  "secs": 4.35,
+  "answer": "ഓൺലൈൻ അപേക്ഷിക്കാൻ അറിയാത്തവർക്ക് അക്ഷയ സർവീസ് ചാർജ് വഴി ലൈസൻസ് അപേക്ഷ 40 രൂപയ്ക്ക് നൽകാം."
+ },
+ {
+  "id": "hd014",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "marriage-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 26,
+  "secs": 2.79,
+  "answer": "K-SMART വഴി വീഡിയോ KYC വഴിയാണ് വിവാഹ രജിസ്ട്രേഷൻ ലോകത്ത് എവിടെ നിന്നും ഓൺലൈനായി ചെയ്യാൻ സാധിക്കുന്നത്."
+ },
+ {
+  "id": "hd015",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bp-time-01"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 86,
+  "secs": 5.84,
+  "answer": "അപകടസാധ്യത കുറഞ്ഞ വീടിന് കെട്ടിട പെർമിറ്റ് 30 ദിവസത്തിനകം നൽകും. ടൗൺ പ്ലാനിംഗ്, ഫയർഫോഴ്സ്, ജില്ലാ കളക്ടർ, നാഷണൽ ഹൈവേ പോലുള്ള മറ്റ് വകുപ്പുകളുടെ അനുമതി കിട്ടിയാൽ 5 പ്രവൃത്തി ദിവസത്തിനകം ലഭിക്കും. ചില പഞ്ചായത്തുകൾ ഇത് 15 പ്രവൃത്തി ദിവസം എന്ന് പറയുന്നു."
+ },
+ {
+  "id": "hd016",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ptax-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 21,
+  "secs": 2.54,
+  "answer": "K-SMART-ലെ Quick Pay വഴി കെട്ടിട നികുതി ഓൺലൈനായി അടയ്ക്കാം."
+ },
+ {
+  "id": "hd017",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "grievance-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 38,
+  "secs": 3.5,
+  "answer": "അതെ, K-SMART-ലെ Public Grievance Redressal മൊഡ്യൂൾ വഴി ഒന്നിലധികം പേർ ചേർന്നുള്ള കൂട്ടപ്പരാതി നൽകാൻ സാധിക്കും."
+ },
+ {
+  "id": "hd018",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-cert-pres-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 29,
+  "secs": 2.77,
+  "answer": "റേഷൻ കാർഡിൽ പേര് ഇല്ല എന്ന സർട്ടിഫിക്കറ്റ് പഞ്ചായത്ത് പ്രസിഡന്റ് നൽകുന്നതാണ്, അതിന് ഫീസ് ഇല്ല."
+ },
+ {
+  "id": "hd019",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-widow-01"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 26,
+  "secs": 3.71,
+  "answer": "പുനർവിവാഹം ചെയ്തിട്ടില്ല എന്ന സ്വയം സാക്ഷ്യപത്രം ലഭിക്കാൻ ആധാർ കാർഡ് ആവശ്യമാണ്."
+ },
+ {
+  "id": "hd020",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bd-report-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 21,
+  "secs": 2.69,
+  "answer": "ആശുപത്രിയിൽ നടന്ന ജനനവും മരണവും ആശുപത്രി അധികൃതരാണ് റിപ്പോർട്ട് ചെയ്യേണ്ടത്."
+ },
+ {
+  "id": "hd021",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "cr-fee-01",
+   "svc-charge-01"
+  ],
+  "kb_hit": false,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.02,
+  "answer": "ഒരു വർഷം കഴിഞ്ഞതിനാൽ രജിസ്ട്രേഷൻ ഫീസ് 10 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ 40 രൂപ സർവീസ് ചാർജ് കൂടി ഉണ്ട്."
+ },
+ {
+  "id": "hd022",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bd-cert-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 39,
+  "secs": 3.62,
+  "answer": "പഞ്ചായത്തിൽ രജിസ്റ്റർ ചെയ്ത ജനന സർട്ടിഫിക്കറ്റിന്റെ പകർപ്പ് ഫീസായി 5 രൂപ നൽകിയാൽ 3 പ്രവൃത്തി ദിവസത്തിനകം കിട്ടും."
+ },
+ {
+  "id": "hd023",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bd-name-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 26,
+  "secs": 3.2,
+  "answer": "കുട്ടിക്ക് 6 വയസ്സ് വരെ മാതാപിതാക്കളുടെ ജനനക്രമ സ്റ്റേറ്റ്മെന്റ് മതിയാകും."
+ },
+ {
+  "id": "hd024",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bd-abroad-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 46,
+  "secs": 3.81,
+  "answer": "വിദേശത്ത് ജനിച്ച കുട്ടിയുമായി ഇന്ത്യയിൽ സ്ഥിരതാമസത്തിന് തിരിച്ചെത്തിയാൽ എത്തിയ തീയതി മുതൽ 60 ദിവസത്തിനകം താമസസ്ഥലത്തെ രജിസ്ട്രേഷൻ യൂണിറ്റിൽ അപേക്ഷിക്കണം."
+ },
+ {
+  "id": "hd025",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bd-adopt-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 43,
+  "secs": 3.23,
+  "answer": "ദത്തെടുത്ത കുട്ടിയുടെ ജനന രജിസ്ട്രേഷൻ ചെയ്യാൻ കോടതി ഉത്തരവിന്റെയോ അഡോപ്ഷൻ ഡീഡിന്റെയോ പകർപ്പ് സഹിതം ജനന രജിസ്ട്രാർക്ക് അപേക്ഷിക്കണം."
+ },
+ {
+  "id": "hd026",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-marr-compulsory-01"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 14,
+  "secs": 2.4,
+  "answer": "എസ്.എസ്.എൽ.സി ബുക്ക് നിർബന്ധമാണ്."
+ },
+ {
+  "id": "hd027",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "ch-marr-fee-01",
+   "svc-charge-01"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "വിവാഹം കഴിഞ്ഞ് 45 ദിവസത്തിനകമായതിനാൽ രജിസ്ട്രേഷൻ ഫീ 100 രൂപയും സർട്ടിഫിക്കറ്റ് ഫീ 20 രൂപയും, ആകെ 120 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ സർവീസ് ചാർജ് വേറെ."
+ },
+ {
+  "id": "hd028",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "ch-marr-fee-01",
+   "svc-charge-01"
+  ],
+  "kb_hit": false,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "45 ദിവസം കഴിഞ്ഞതിനാൽ 120 രൂപ ഫീസിനൊപ്പം 100 രൂപ പിഴ കൂടി, ആകെ 220 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ സർവീസ് ചാർജ് വേറെ."
+ },
+ {
+  "id": "hd029",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bp-docs-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 23,
+  "secs": 3.23,
+  "answer": "അംഗീകൃത ഡിസൈനറും ഉടമയും ഒപ്പിട്ട സൈറ്റ് പ്ലാൻ വെക്കേണ്ടതാണ്."
+ },
+ {
+  "id": "hd030",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bp-time-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 40,
+  "secs": 3.36,
+  "answer": "മറ്റ് വകുപ്പുകളുടെ അനുമതി വേണ്ട കെട്ടിടങ്ങൾക്ക് 5 പ്രവൃത്തി ദിവസത്തിനകം പെർമിറ്റ് ലഭിക്കും. ചില പഞ്ചായത്തുകൾ ഇത് 15 പ്രവൃത്തി ദിവസം എന്ന് പറയുന്നു."
+ },
+ {
+  "id": "hd031",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bp-fee-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 33,
+  "secs": 3.0,
+  "answer": "200 ചതുരശ്ര മീറ്റർ വലുപ്പമുള്ള വീടിന് കെട്ടിട പെർമിറ്റ് ഫീസ് 500 രൂപയാണ്."
+ },
+ {
+  "id": "hd032",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bt-own-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 18,
+  "secs": 2.11,
+  "answer": "കെട്ടിട ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റിന് ഫീസ് ഇല്ല."
+ },
+ {
+  "id": "hd033",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "false_refusal",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "missing_facet",
+  "refused": true,
+  "sources": [],
+  "kb_hit": false,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ക്ഷമിക്കണം, ഈ സർട്ടിഫിക്കറ്റിന്റെ നിർബന്ധമാണോ എന്നതിനെക്കുറിച്ച് എന്റെ പക്കൽ ഉറപ്പുള്ള വിവരം ഇല്ല. പഞ്ചായത്ത് ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd034",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "false_refusal",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "kanhirapuzha-gp-p18-c1"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 3,
+  "secs": 2.66,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd035",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bt-appeal-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 39,
+  "secs": 3.51,
+  "answer": "കെട്ടിട നികുതി അപ്പീൽ നൽകാൻ നികുതി അടച്ച് 30 ദിവസത്തിനകം ധനകാര്യ സ്റ്റാൻഡിംഗ് കമ്മിറ്റിക്ക് അപേക്ഷിക്കണം."
+ },
+ {
+  "id": "hd036",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-griev-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 32,
+  "secs": 2.8,
+  "answer": "സാധാരണ പരാതികളിൽ 15 ദിവസത്തിനകവും അന്വേഷണം വേണ്ട പരാതികളിൽ 30 ദിവസത്തിനകവും മറുപടി നൽകും."
+ },
+ {
+  "id": "hd037",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-old-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 24,
+  "secs": 3.03,
+  "answer": "60 വയസ്സിന് മുകളിലുള്ളവർക്ക് വാർദ്ധക്യകാല പെൻഷൻ അപേക്ഷിക്കാം."
+ },
+ {
+  "id": "hd038",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-widow-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 20,
+  "secs": 3.1,
+  "answer": "കുടുംബ വാർഷിക വരുമാനം ഒരു ലക്ഷം രൂപയിൽ താഴെ ആയിരിക്കണം."
+ },
+ {
+  "id": "hd039",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-disab-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 33,
+  "secs": 3.14,
+  "answer": "40 ശതമാനമോ അതിൽ കൂടുതലോ ഭിന്നശേഷി മെഡിക്കൽ ബോർഡ് സർട്ടിഫിക്കറ്റിലുള്ളവർക്ക് അപേക്ഷിക്കാം."
+ },
+ {
+  "id": "hd040",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-agri-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 25,
+  "secs": 2.67,
+  "answer": "കർഷക തൊഴിലാളി പെൻഷൻ കിട്ടാൻ കഴിഞ്ഞ 10 വർഷമായി കേരളത്തിൽ താമസിച്ചിരിക്കണം."
+ },
+ {
+  "id": "hd041",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-unmarried-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 29,
+  "secs": 3.08,
+  "answer": "അതെ, അവിവാഹിതരായ സ്ത്രീകൾക്ക് പെൻഷൻ ലഭിക്കാൻ വരുമാന സർട്ടിഫിക്കറ്റ് ആവശ്യമാണ്."
+ },
+ {
+  "id": "hd042",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pet-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 22,
+  "secs": 2.48,
+  "answer": "പട്ടി വളർത്താൻ പഞ്ചായത്തിൽ നിന്ന് ലൈസൻസ് എടുക്കുന്നതിനുള്ള ഫീസ് 10 രൂപയാണ്."
+ },
+ {
+  "id": "hd043",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-unemp-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 39,
+  "secs": 4.32,
+  "answer": "എംപ്ലോയ്മെന്റ് എക്സ്ചേഞ്ചിൽ രജിസ്റ്റർ ചെയ്ത് 3 വർഷം കഴിഞ്ഞവർക്ക് തൊഴിൽരഹിത വേതനത്തിന് അപേക്ഷിക്കാം."
+ },
+ {
+  "id": "hd044",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-rti-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 88,
+  "secs": 6.25,
+  "answer": "പഞ്ചായത്തിലെ പബ്ലിക് ഇൻഫർമേഷൻ ഓഫീസർ വഴിയാണെങ്കിൽ 30 ദിവസത്തിനകം മറുപടി ലഭിക്കും. അസിസ്റ്റന്റ് പബ്ലിക് ഇൻഫർമേഷൻ ഓഫീസർ വഴിയാണെങ്കിൽ 35 ദിവസം. ഒരാളുടെ ജീവനെയോ സ്വാതന്ത്ര്യത്തെയോ ബാധിക്കുന്ന വിവരമാണെങ്കിൽ 48 മണിക്കൂറിനകം മറുപടി ലഭിക്കും."
+ },
+ {
+  "id": "hd045",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-phc-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 38,
+  "secs": 3.94,
+  "answer": "ഹോട്ടൽ ജോലിക്കാർക്ക് ആവശ്യമായ ഹെൽത്ത് കാർഡ് കിട്ടാൻയുടെ ദുരിതാശ്വാസ നിധിയിലേക്ക് 100 രൂപ അടയ്ക്കണം."
+ },
+ {
+  "id": "hd046",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-marr-compulsory-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 34,
+  "secs": 3.32,
+  "answer": "അതെ, വ്യത്യസ്ത മതവിഭാഗങ്ങളിൽ പെട്ടവരുടെ വിവാഹവും വിവാഹം നടന്ന പഞ്ചായത്തിലോ നഗരസഭയിലോ രജിസ്റ്റർ ചെയ്യേണ്ടതാണ്."
+ },
+ {
+  "id": "hd047",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-amount-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 41,
+  "secs": 3.45,
+  "answer": "സാമൂഹ്യ സുരക്ഷാ ക്ഷേമ പെൻഷൻ ഒരാൾക്ക് മാസം 2,000 രൂപയാണ് 2026 ജൂലൈയിലെ വിതരണത്തിൽ നൽകിയത്."
+ },
+ {
+  "id": "hd048",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-unemp-amount-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 21,
+  "secs": 2.3,
+  "answer": "തൊഴിൽരഹിത വേതനം ഇപ്പോൾ പ്രതിമാസം 120 രൂപയാണ്."
+ },
+ {
+  "id": "hd049",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "svc-list-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 100,
+  "secs": 6.63,
+  "answer": "പഞ്ചായത്തിൽ ജനനം, മരണം, വിവാഹം രജിസ്ട്രേഷനും സർട്ടിഫിക്കറ്റും, കെട്ടിട നിർമ്മാണ പെർമിറ്റ്, ട്രേഡ് ലൈസൻസ്, കെട്ടിട നികുതിയും ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റും, സാമൂഹ്യ സുരക്ഷാ പെൻഷനുകൾ, തൊഴിൽരഹിത വേതനം, താമസ സർട്ടിഫിക്കറ്റ്, വളർത്തുമൃഗ ലൈസൻസ്, പരാതി പരി"
+ },
+ {
+  "id": "hd050",
+  "category": "kb_grounded",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ptax-rate-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 44,
+  "secs": 4.53,
+  "answer": "300 ചതുരശ്ര മീറ്ററിൽ താഴെ വലിപ്പമുള്ള വീടിന് ഒരു സ്ക്വയർ മീറ്ററിന് വർഷം 6 മുതൽ 10 രൂപ വരെയാണ് അടിസ്ഥാന നിരക്ക്."
+ },
+ {
+  "id": "hd051",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-cert-pres-01"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 39,
+  "secs": 3.36,
+  "answer": "അതെ, K-SMART വഴി അപേക്ഷിക്കാം. അക്ഷയ കേന്ദ്രം വഴിയും ഇത് ചെയ്യാവുന്നതാണ്. ഫീസ് ഇല്ല, അപേക്ഷയിൽ ഫോൺ നമ്പർ എഴുതണം."
+ },
+ {
+  "id": "hd052",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ksmart-02"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 25,
+  "secs": 2.39,
+  "answer": "അതെ, K-SMART ആപ്പ് വഴി പ്രൊഫഷണൽ ടാക്സ് അടയ്ക്കാൻ സാധിക്കും."
+ },
+ {
+  "id": "hd053",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "trade-04"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 44,
+  "secs": 4.01,
+  "answer": "കാലാവധി തീരുന്നതിന് 30 ദിവസം മുൻപ് ഫീസ് അടച്ചാൽ സ്വയം പുതുക്കപ്പെടും. അതിനു കഴിഞ്ഞില്ലെങ്കിൽ 90 ദിവസത്തിനുള്ളിൽ പുതുക്കൽ അപേക്ഷ നൽകണം."
+ },
+ {
+  "id": "hd054",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "false_refusal",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "missing_facet",
+  "refused": true,
+  "sources": [],
+  "kb_hit": false,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ക്ഷമിക്കണം, ട്രേഡ് ലൈസൻസിന്റെ നിർബന്ധമാണോ എന്നതിനെക്കുറിച്ച് എന്റെ പക്കൽ ഉറപ്പുള്ള വിവരം ഇല്ല. പഞ്ചായത്ത് ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd055",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "false_refusal",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "cr-fee-02"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 3,
+  "secs": 1.99,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd056",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bd-cert-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 30,
+  "secs": 3.24,
+  "answer": "പഞ്ചായത്തിൽ രജിസ്റ്റർ ചെയ്ത ജനന-മരണ സർട്ടിഫിക്കറ്റ് പകർപ്പ് ഫീസായി 5 രൂപയാണ്."
+ },
+ {
+  "id": "hd057",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "partial",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bt-own-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 35,
+  "secs": 3.05,
+  "answer": "കെട്ടിട ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റിന് K-SMART വഴി അപേക്ഷിക്കണം. അപേക്ഷയിൽ കെട്ടിട നമ്പർ എഴുതണം."
+ },
+ {
+  "id": "hd058",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "thachanattukara-gp-p28-c3"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 57,
+  "secs": 4.42,
+  "answer": "വിവാഹിതരായിട്ടില്ലാത്തവരുമായ 50 വയസ്സ് കഴിഞ്ഞ സ്ത്രീകൾക്ക് മേൽവിവരങ്ങൾ കാണിച്ച് വില്ലേജ് ഓഫീസർ നൽകുന്ന സർട്ടിഫിക്കറ്റ് ഒന്നിലധികം പെൻഷനുകളുടെ സാധുതയ്ക്ക് മതിയാകും. (തച്ചനാട്ടുകര പഞ്ചായത്തിന്റെ പൗരാവകാശ രേഖ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+ },
+ {
+  "id": "hd059",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pen-widow-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 39,
+  "secs": 3.73,
+  "answer": "അതെ, വിവാഹമോചിതരായ സ്ത്രീകൾക്ക് വിധവ പെൻഷൻ ലഭിക്കാൻ സാധ്യതയുണ്ട്. കുറഞ്ഞത് 2 വർഷമായി പഞ്ചായത്തിൽ താമസിച്ചിരിക്കണം."
+ },
+ {
+  "id": "hd060",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "false_refusal",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "canon-gea4c659818"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 19,
+  "secs": 2.26,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd061",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "canon-gf8559c0de1"
+  ],
+  "kb_hit": false,
+  "llm": true,
+  "tokens": 70,
+  "secs": 5.13,
+  "answer": "വാസയോഗ്യമായ കെട്ടിടമില്ല എന്നുള്ള സർട്ടിഫിക്കറ്റിനായി വാർഡ് മെമ്പറുടെ സർട്ടിഫിക്കറ്റും വി.ഇ.ഒ.യിൽ നിന്നും ഭവനനിർമ്മാണം, പുനരുദ്ധാരണം ആനുകൂല്യം ലഭിച്ചിട്ടില്ല എന്നുള്ള സാക്ഷ്യപത്രവും ഹാജരാക്കണം. (അയർക്കുന്നം പഞ്ചായത്തിന്റെ പൗരാവകാശ രേഖ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+ },
+ {
+  "id": "hd062",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-pet-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 29,
+  "secs": 2.8,
+  "answer": "അതെ, പട്ടി, പന്നി എന്നിവ വളർത്താൻ പഞ്ചായത്തിൽ നിന്ന് ലൈസൻസ് വേണം. ഫീസ് 10 രൂപയാണ്."
+ },
+ {
+  "id": "hd063",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-phc-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 26,
+  "secs": 2.97,
+  "answer": "മെഡിക്കൽ സർട്ടിഫിക്കറ്റിന് 100 രൂപ ഫീസ് ഉണ്ട്, അത് അതേ ദിവസം തന്നെ ലഭിക്കും."
+ },
+ {
+  "id": "hd064",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-marr-docs-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 16,
+  "secs": 2.63,
+  "answer": "വിവാഹ രജിസ്ട്രേഷന് രണ്ട് സാക്ഷികൾ ഒപ്പിടണം."
+ },
+ {
+  "id": "hd065",
+  "category": "kb_colloquial",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bt-transfer-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 34,
+  "secs": 3.09,
+  "answer": "അതെ, കൈമാറ്റം കഴിഞ്ഞ് 3 മാസത്തിനകം പേര് മാറ്റിയില്ലെങ്കിൽ 500 രൂപ പിഴ അടയ്‌ക്കേണ്ടി വരും."
+ },
+ {
+  "id": "hd066",
+  "category": "fee_calc",
+  "expected": "fee_calc",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "cr-fee-01",
+   "svc-charge-01"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "21 ദിവസത്തിനു ശേഷം 30 ദിവസത്തിനുള്ളിൽ ആയതിനാൽ രജിസ്ട്രേഷൻ ഫീസ് 2 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ 40 രൂപ സർവീസ് ചാർജ് കൂടി ഉണ്ട്."
+ },
+ {
+  "id": "hd067",
+  "category": "fee_calc",
+  "expected": "fee_calc",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "cr-fee-01",
+   "svc-charge-01"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ഒരു വർഷം കഴിഞ്ഞതിനാൽ രജിസ്ട്രേഷൻ ഫീസ് 10 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ 40 രൂപ സർവീസ് ചാർജ് കൂടി ഉണ്ട്."
+ },
+ {
+  "id": "hd068",
+  "category": "fee_calc",
+  "expected": "fee_calc",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "ch-marr-fee-01",
+   "svc-charge-01"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "45 ദിവസം കഴിഞ്ഞതിനാൽ 120 രൂപ ഫീസിനൊപ്പം 100 രൂപ പിഴ കൂടി, ആകെ 220 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ സർവീസ് ചാർജ് വേറെ."
+ },
+ {
+  "id": "hd069",
+  "category": "fee_calc",
+  "expected": "fee_calc",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "trade-03-svc"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.02,
+  "answer": "സേവന മേഖലയിൽ 15 ലക്ഷം രൂപ മുതൽമുടക്കിന് പരമാവധി വാർഷിക ലൈസൻസ് ഫീസ് 1,000 രൂപ. ഈ തുകകൾ 2018-ലെ നിർദ്ദേശപ്രകാരമുള്ളതാണ്; ഇപ്പോഴത്തെ തുക ഓഫീസിൽ ഉറപ്പാക്കുക."
+ },
+ {
+  "id": "hd070",
+  "category": "fee_calc",
+  "expected": "fee_calc",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "trade-03-mfg"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "നിർമ്മാണ മേഖലയിൽ 6 കോടി രൂപ മുതൽമുടക്കിന് പരമാവധി വാർഷിക ലൈസൻസ് ഫീസ് 10,000 രൂപ. ഈ തുകകൾ 2018-ലെ നിർദ്ദേശപ്രകാരമുള്ളതാണ്; ഇപ്പോഴത്തെ തുക ഓഫീസിൽ ഉറപ്പാക്കുക."
+ },
+ {
+  "id": "hd071",
+  "category": "fee_calc",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "svc-charge-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 32,
+  "secs": 3.61,
+  "answer": "ജനന രജിസ്ട്രേഷനും മരണ രജിസ്ട്രേഷനും ഒന്നിച്ച് ചെയ്താൽ ആകെ 80 രൂപ സർവീസ് ചാർജ് വരും."
+ },
+ {
+  "id": "hd072",
+  "category": "fee_calc",
+  "expected": "answer",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "ch-bp-fee-01"
+  ],
+  "kb_hit": true,
+  "llm": true,
+  "tokens": 28,
+  "secs": 3.09,
+  "answer": "250 ചതുരശ്ര മീറ്റർ വലിപ്പമുള്ള വീടിന് 500 രൂപ ഫീസ് അടയ്ക്കണം."
+ },
+ {
+  "id": "hd073",
+  "category": "fee_calc",
+  "expected": "fee_calc",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": "fee_calc",
+  "refused": false,
+  "sources": [
+   "ch-marr-fee-01"
+  ],
+  "kb_hit": true,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "വിവാഹം കഴിഞ്ഞ് 45 ദിവസത്തിനകം രജിസ്റ്റർ ചെയ്താൽ രജിസ്ട്രേഷൻ ഫീ 100 രൂപയും സർട്ടിഫിക്കറ്റ് ഫീ 20 രൂപയും, ആകെ 120 രൂപ. ദമ്പതികൾ ദാരിദ്ര്യരേഖയ്ക്ക് താഴെയുള്ളവരോ പട്ടികജാതി-പട്ടികവർഗക്കാരോ ആണെങ്കിൽ ഫീസ് 10 രൂപ. 45 ദിവസം കഴിഞ്ഞാൽ 100 രൂപയും 5 വർഷം കഴിഞ്ഞാൽ 250 രൂപയും പിഴ കൂടി അടയ്ക്കണം."
+ },
+ {
+  "id": "hd074",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "thachanattukara-gp-p42-c2"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 26,
+  "secs": 3.05,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd075",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "canon-gb97c5d3e35"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 56,
+  "secs": 3.96,
+  "answer": "ലൈഫ് സർട്ടിഫിക്കറ്റ് ലഭിക്കാൻ പെൻഷൻകാർ തിരിച്ചറിയൽ കാർഡോ അടുത്ത പെൻഷൻ പേമെന്റ് ഓർഡറോ സഹിതം നേരിട്ട് അപേക്ഷ സമർപ്പിക്കണം. അന്ന് തന്നെ സർട്ടിഫിക്കറ്റ് ലഭിക്കുന്നതാണ്. (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+ },
+ {
+  "id": "hd076",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd077",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "ksmart-02"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 34,
+  "secs": 2.87,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd078",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "ksmart-02"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 34,
+  "secs": 2.29,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd079",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd080",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "thachanattukara-gp-p103-c0"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 34,
+  "secs": 3.58,
+  "answer": "വാട്ടർ കണക്ഷനു വേണ്ടി വാർഡ്, വീട്ടുനമ്പർ രേഖപ്പെടുത്തി 5 രൂപ കോർട്ട് ഫീ നൽകി ഓൺലൈനായി അപേക്ഷ നൽകാം. (തച്ചനാട്ടുകര പഞ്ചായത്തിന്റെ പൗരാവകാശ രേഖ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+ },
+ {
+  "id": "hd081",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd082",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.0,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd083",
+  "category": "not_in_kb",
+  "expected": "decline",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "ongallur-gp-2026-p102-r3"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 22,
+  "secs": 1.79,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd084",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "canon-g4aaee92266"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 3,
+  "secs": 2.47,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd085",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.24,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd086",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "nooranad-gp-p35-r8"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 29,
+  "secs": 2.57,
+  "answer": "നിങ്ങൾക്ക് പാലിയേറ്റീവ് മരുന്ന് വിതരണം ലഭ്യമാണ്. ഇത് എല്ലാ വ്യാഴാഴ്ചയും ലഭിക്കുന്ന സേവനമാണ്. (നൂറനാട് പഞ്ചായത്തിന്റെ പൗരാവകാശ രേഖ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+ },
+ {
+  "id": "hd087",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd088",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "canon-gb825f96e8e"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 18,
+  "secs": 2.21,
+  "answer": "നിങ്ങൾക്ക് ചിരിക്കാൻ നല്ലൊരു തമാശ നൽകാൻ എനിക്ക് കഴിയില്ല. (റാന്നി-പെരുനാട് പഞ്ചായത്തിന്റെ പൗരാവകാശ രേഖ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+ },
+ {
+  "id": "hd089",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "wrong",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": false,
+  "sources": [
+   "cr-cert-01"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 26,
+  "secs": 2.39,
+  "answer": "ജനന സർട്ടിഫിക്കറ്റ് K-SMART-ലെ Civil Registration സേവനത്തിലാണ്. അപേക്ഷ ഓൺലൈനായി നൽകാം."
+ },
+ {
+  "id": "hd090",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.0,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd091",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "canon-gc921bfa64a"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 3,
+  "secs": 2.14,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd092",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "correct",
+  "route": "other",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.01,
+  "answer": "ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം."
+ },
+ {
+  "id": "hd093",
+  "category": "out_of_scope",
+  "expected": "scope",
+  "verdict": "correct",
+  "route": "service_faq",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [
+   "kanhirapuzha-gp-p35-r1"
+  ],
+  "kb_hit": null,
+  "llm": true,
+  "tokens": 15,
+  "secs": 2.28,
+  "answer": "ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ."
+ },
+ {
+  "id": "hd094",
+  "category": "weather",
+  "expected": "weather",
+  "verdict": "correct",
+  "route": "weather",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.26,
+  "answer": "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+ },
+ {
+  "id": "hd095",
+  "category": "weather",
+  "expected": "weather",
+  "verdict": "correct",
+  "route": "weather",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.22,
+  "answer": "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+ },
+ {
+  "id": "hd096",
+  "category": "weather",
+  "expected": "weather",
+  "verdict": "correct",
+  "route": "weather",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.23,
+  "answer": "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+ },
+ {
+  "id": "hd097",
+  "category": "weather",
+  "expected": "weather",
+  "verdict": "correct",
+  "route": "weather",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.24,
+  "answer": "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+ },
+ {
+  "id": "hd098",
+  "category": "news",
+  "expected": "news",
+  "verdict": "correct",
+  "route": "news",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.73,
+  "answer": "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+ },
+ {
+  "id": "hd099",
+  "category": "news",
+  "expected": "news",
+  "verdict": "correct",
+  "route": "news",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.81,
+  "answer": "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+ },
+ {
+  "id": "hd100",
+  "category": "news",
+  "expected": "news",
+  "verdict": "correct",
+  "route": "news",
+  "route_by": null,
+  "tool": null,
+  "refused": true,
+  "sources": [],
+  "kb_hit": null,
+  "llm": false,
+  "tokens": null,
+  "secs": 0.65,
+  "answer": "ക്ഷമിക്കണം, ഇപ്പോൾ ആ വിവരം ലഭിക്കുന്നില്ല. കുറച്ചു കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ."
+ }
+]
