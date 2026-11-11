@@ -173,3 +173,38 @@ its consonant, breaks ties by how much of the title the question covers, and onl
 within the service the keywords named; follow-ups keep the previous passage; a new two-word
 service name beats a follow-up; no follow-up after the "other animals" decline; "സാധുവാണോ"
 is a validity question; from-X-to-Y questions are out of scope.
+
+## ASR slips: snap misheard words to the knowledge base by sound (10 Nov night)
+`ASR_FIXES` lists mishearings one by one, but every log brings new ones (കാലാവരി, പീസ്, ഭീസ്,
+പർമിത്തീന്റെ...). `helpdesk/asr_snap.py` handles the general case inside `fix_asr`, so routing, retrieval,
+the fee calculator and the LLM prompt all see the corrected text:
+- a word found nowhere in the documents (or the helpdesk's own replies) is replaced by the service, facet or
+  KB-title word that sounds most like it: phonetic skeletons (ക/ഖ/ഗ/ഘ alike, ത/ദ/ധ alike, ഫ = പ, chillu =
+  consonant, doubling ignored, inherent vowel kept), weighted edit distance <= 0.15 per sound, a different
+  first sound costs extra, and two different candidates about as close means no change;
+- two words heard as one are split if the first is a service name (ജനനരജിസ്ട്രേഷനായി);
+- a real word in the wrong place is restored if it sounds like a service name the KB uses before the
+  next word: "ജനറൽ രജിസ്ട്രേഷൻ" -> "ജനന രജിസ്ട്രേഷൻ" (3 of 24 logged clips);
+- guards from failures seen while tuning: cat never becomes dog (a word that names a service is kept),
+  a service name is brought in only when the question asks a service thing (fee, documents, time...)
+  ("കഴിക്കാൻ പറ്റിയ കഞ്ഞി" stayed food), another ending of the same word is not a correction, and
+  number words are left alone (the fee calculator deliberately computes nothing from an unreadable number).
+- Cost: 0.3 s once at start, ~5 ms per unfamiliar word. `HELPDESK_ASR_SNAP=0` turns it off.
+
+Measured with `python -m eval.asr_robust` (new): each word of a question is hit with probability p by one
+random Malayalam ASR-style slip (aspiration/voicing, ര/റ, ല/ള, ന/ണ, ത/ട, vowel sign, chillu, merged
+words); "same answer" = same route, tool and top passage as the clean question. Tuned on 500 dev
+questions, reported on the test split (574 questions: synthetic test split + eval/questions.jsonl, 3 seeds):
+
+| | clean questions unchanged | 24 logged clips, same answer | p = 0.15 | p = 0.3 |
+|---|---|---|---|---|
+| rules only (before) | 574/574 | 16/24 | 86.2% | 75.0% |
+| rules + snap | 574/574 | 18/24 | 92.6% | 84.8% |
+
+So about 46% (p = 0.15) and 39% (p = 0.3) of the answers lost to slips are won back, with no clean question
+changed on the test split; `eval.run_synth` on clean questions: 175 -> 176 strict, 233 -> 234 same service;
+`eval.run_eval` 20/20 unchanged; 187 tests pass. Caveats: the noise is a model of Whisper's slips, not
+Whisper; the 24 clips were also used while developing (they are not a held-out set); and one guard (food
+question -> dog licence) came from a test-split case, so the test numbers are slightly optimistic.
+Still wrong on the logged clips: number words (ഇരുപത്തെന്ന, നാപുര: deliberately not guessed),
+"പ്രകാരം" heard for "എങ്ങനെ" (a real word: no sound rule can tell), "ഭീസിത്രേ" (ഫീസ് എത്ര run together).

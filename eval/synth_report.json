@@ -32,15 +32,15 @@
  },
  "canonical services": {
   "total": [
-   175,
+   176,
    554,
-   233
+   234
   ],
   "by_kind": {
    "canon": [
-    97,
+    98,
     438,
-    150
+    151
    ],
    "tier1": [
     64,
@@ -54,7 +54,7 @@
    ]
   },
   "why": {
-   "wrong passage": 281,
+   "wrong passage": 280,
    "same service, other passage": 58,
    "routed other": 28,
    "declined (missing_facet)": 6,
@@ -62,11 +62,11 @@
   }
  },
  "flips_strict": {
-  "gained": 46,
+  "gained": 47,
   "lost": 30
  },
  "flips_same_service": {
-  "gained": 58,
+  "gained": 59,
   "lost": 23
  }
 }

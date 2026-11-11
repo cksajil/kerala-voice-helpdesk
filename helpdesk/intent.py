@@ -15,6 +15,7 @@ from __future__ import annotations
 import difflib
 import re
 
+from . import asr_snap
 from .normalise import normalise
 
 # service -> [(stem, weight)]; weight 2 = names the service, 1 = generic word
@@ -127,7 +128,7 @@ def fix_asr(query: str) -> str:
             q = q.replace(heard, meant)
     for pat, rep in _ASR_REGEX:
         q = pat.sub(rep, q)
-    return q
+    return asr_snap.snap(q)
 
 
 def _detect_text(query: str) -> str:
