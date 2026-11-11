@@ -297,7 +297,7 @@ def build_graph(retriever: Retriever | None = None):
             best = ctx.split("\n\n")[0].split("\n", 1)[1]
             return {"answer": best.split(" Keywords:")[0] + attribution(s.get("sources", [])), "refused": False}
         try:
-            out = llm.chat(ANSWER_PROMPT, answer_message(ctx, fix_asr(s["query"])),
+            out = llm.chat(ANSWER_PROMPT, answer_message(ctx, fix_asr(s["query"], snap=False)),
                            max_tokens=ANSWER_TOKENS, temperature=0)
         except Exception:
             return {"answer": TOOL_FAIL, "refused": True}

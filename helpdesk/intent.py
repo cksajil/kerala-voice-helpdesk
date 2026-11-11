@@ -121,14 +121,16 @@ _ASR_REGEX = [
 ]
 
 
-def fix_asr(query: str) -> str:
+def fix_asr(query: str, snap: bool = True) -> str:
+    """Known mishearings (ASR_FIXES, regexes), then the sound-based snap layer. snap=False is the text
+    the LLM reads: snap corrections steer routing and retrieval only."""
     q = normalise(query)
     for heard, meant, ctx in ASR_FIXES:
         if heard in q and (ctx is None or ctx in q):
             q = q.replace(heard, meant)
     for pat, rep in _ASR_REGEX:
         q = pat.sub(rep, q)
-    return asr_snap.snap(q)
+    return asr_snap.snap(q) if snap else q
 
 
 def _detect_text(query: str) -> str:

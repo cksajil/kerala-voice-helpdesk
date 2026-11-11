@@ -279,6 +279,36 @@ def test_asr_snap_can_be_turned_off(monkeypatch):
     assert snap("പീസ്") == "പീസ്"
 
 
+@pytest.mark.parametrize("clean", [          # correctly heard eval questions the first version rewrote (11 Nov)
+    "രോഗികളുടെ വീട്ടിൽ ചെന്നുള്ള പരിചരണം എങ്ങനെയാണ് ക്രമീകരിച്ചിരിക്കുന്നത്?",   # not രേഖകളുടെ
+    "കെട്ടിടത്തിന്റെ ഉടമസ്ഥൻ മാറിയാൽ പേര് മാറ്റാൻ വൈകിയാൽ പിഴയുണ്ടോ?",           # not മരിച്ചാൽ / മരണ
+    "ചെറിയ വീടുകളുടെ നികുതി ഒഴിവാക്കാൻ എത്ര സമയമെടുക്കും?",                        # not വിത്തുകളുടെ
+    "അപേക്ഷയോടൊപ്പം എന്ത് കോർട്ട് ഫീ സ്റ്റാമ്പാണ് പതിക്കേണ്ടത്?",                    # not പുതുക്കേണ്ടത്
+    "ഒ.പിയിൽ കാണിക്കാനുള്ള ഫീസ് എത്രയാണ്?",                                      # not കണക്ഷനുള്ള
+    "പഠനത്തിനായി റഫറൻസ് ബുക്കുകൾ ലഭ്യമാണോ?",                                     # not പുതുക്കൽ
+])
+def test_asr_snap_leaves_inflected_words(clean):
+    from helpdesk.asr_snap import snap
+    assert snap(normalise(clean)) == normalise(clean)
+
+
+def test_llm_reads_the_question_without_snap():
+    from helpdesk.intent import fix_asr
+    assert fix_asr("ഒരു പീസ്") != fix_asr("ഒരു പീസ്", snap=False) == normalise("ഒരു പീസ്")
+
+
+def test_asr_snap_rewrites_almost_no_clean_question():
+    """Clean eval questions (Gemini-written, never misheard) must come through unchanged: 36 of 1,694 were
+    rewritten before the inflection guard, 2 after (വ്യാവസായിക -> വ്യവസായ, പഴമാ -> ഫലം)."""
+    from pathlib import Path
+    from helpdesk.asr_snap import snap
+    root = Path(__file__).resolve().parent.parent / "eval"
+    qs = [json.loads(l)["q"] for l in (root / "synth_questions.jsonl").open(encoding="utf-8")]
+    qs += [json.loads(l)["question"] for l in (root / "questions.jsonl").open(encoding="utf-8")]
+    changed = [q for q in qs if snap(normalise(q)) != normalise(q)]
+    assert len(changed) <= 3, changed[:5]
+
+
 def test_news_three_headlines_without_publisher(monkeypatch):
     items = "".join(f"<item><title>വാർത്ത {i} - Publisher {i}</title><link>https://x/{i}</link></item>"
                     for i in range(5)).encode()

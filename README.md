@@ -206,5 +206,16 @@ changed on the test split; `eval.run_synth` on clean questions: 175 -> 176 stric
 `eval.run_eval` 20/20 unchanged; 187 tests pass. Caveats: the noise is a model of Whisper's slips, not
 Whisper; the 24 clips were also used while developing (they are not a held-out set); and one guard (food
 question -> dog licence) came from a test-split case, so the test numbers are slightly optimistic.
+Review fix (11 Nov): "clean kept" counts answers, not wording. Checking the wording showed 36 of 1,694
+clean eval questions rewritten, some into another meaning (രോഗികളുടെ -> രേഖകളുടെ, "പേര് മാറ്റാൻ വൈകിയാൽ" ->
+"പേര് മരണ വൈകിയാൽ", വീടുകളുടെ -> വിത്തുകളുടെ, പതിക്കേണ്ടത് -> പുതുക്കേണ്ടത്), and the LLM read that text; one
+out-of-scope question was answered (ഏത് പഴമാ നല്ലത് -> ഫലം -> a fruit-tree scheme). Now: a known stem + a
+case or verb ending is not an unknown word; the context rule fires only before a service head noun
+(രജിസ്ട്രേഷൻ, സർട്ടിഫിക്കറ്റ്...); a title word (not a service or facet word) comes in only if the question
+already names a service or asks a service thing; and the LLM reads the question without snap corrections
+(they steer routing and retrieval only). Clean questions rewritten: 36 -> 1 (വ്യാവസായിക -> വ്യവസായ; a test
+guards the count). Cost, test split, 3 seeds, canon on: logged clips 18/24 (unchanged), p = 0.15 91.3%,
+p = 0.3 83.4% against rules only 86.7%, 75.9% (about a third of the slip losses won back, down from ~40%),
+clean kept 573/574; `eval.run_synth` out-of-scope declines back to 35/60 as with snap off; 194 tests pass.
 Still wrong on the logged clips: number words (ഇരുപത്തെന്ന, നാപുര: deliberately not guessed),
 "പ്രകാരം" heard for "എങ്ങനെ" (a real word: no sound rule can tell), "ഭീസിത്രേ" (ഫീസ് എത്ര run together).

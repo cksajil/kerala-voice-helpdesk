@@ -19,7 +19,13 @@ Guards (a correction must never break a question Whisper heard right):
     sounds only when they sound identical (പീസ് = ഫീസ്);
   - two words heard as one are split only into a service name and a known word;
   - another ending of the same word is not a correction (സാക്ഷ്യപത്രത്തിന് stays): the index matches stems;
+  - an inflected form of a word the documents use is not unknown: stem + a case or verb ending
+    (രോഗികളുടെ, പതിക്കേണ്ടത്, മാറ്റാൻ) is left alone. Without this, 36 of 1,694 clean eval questions were
+    rewritten, some into another meaning (രോഗികളുടെ -> രേഖകളുടെ, മാറ്റാൻ -> മരണ, വീടുകളുടെ -> വിത്തുകളുടെ);
+  - the context rule only fires before a service head noun (രജിസ്ട്രേഷൻ, സർട്ടിഫിക്കറ്റ്...);
   - the best candidate must be clearly better than the second-best different one.
+The LLM is given the question without these corrections (graph.py): they steer routing and retrieval,
+and a wrong one must not reach the answer's wording.
 
 HELPDESK_ASR_SNAP=0 turns it off.
 """
@@ -55,6 +61,17 @@ _SIGNS = set("ാിീുൂൃെേൈൊോൌ")
 VIRAMA = "്"
 _NEAR = {frozenset("TD"), frozenset("RL"), frozenset("NM")}
 _WORD = re.compile(r"[ഀ-ൿ]+")
+# Nouns a service name stands in front of ("ജനന രജിസ്ട്രേഷൻ", "മരണ സർട്ടിഫിക്കറ്റ്"): the context rule's anchors.
+_HEADS = ("രജിസ്ട്ര", "സർട്ടിഫിക്ക", "റിപ്പോർട്ട", "പെൻഷ", "ലൈസൻസ", "പെർമിറ്റ")
+# Case and verb endings (normalised spelling): a word = known stem + one of these is an inflection,
+# not a mishearing. Longest first.
+SUFFIXES = sorted({
+    "ുകളുടെ", "കളുടെ", "ങ്ങളുടെ", "ുടെ", "യുടെ", "ിന്റെ", "ന്റെ", "ിനായുള്ള", "ിനുള്ള", "ിനായി", "ിന്", "ിനു",
+    "ക്കായുള്ള", "ക്കുള്ള", "ക്കായി", "ക്കാണ്", "ക്ക്", "ക്കു", "ങ്ങൾക്ക്", "ങ്ങൾക്കാണ്", "ിൽ", "യിൽ", "ിലെ",
+    "ിലേക്ക്", "ാൻ", "ാനുള്ള", "ാനും", "ും", "യും", "ോട്", "ോടൊപ്പം", "ോടെ", "ായ", "ായുള്ള", "ുള്ള", "ാമോ",
+    "ുമോ", "ാണ്", "ാണോ", "ാണെങ്കിൽ", "െന്ന്", "േണ്ടത്", "ണം", "ുക", "ുന്ന", "ുന്നത്", "ുന്നതിനുള്ള", "ിയ",
+    "ിയാൽ", "ിച്ചാൽ", "ാൽ", "ാതെ", "ില്ലാത്ത", "ുകൾ", "കൾ", "ങ്ങൾ", "യെ", "െ", "ോ", "ുണ്ടോ", "മുണ്ടോ",
+    "യുണ്ടോ", "ിട്ടുണ്ടോ", "ിക്കാം", "ാം", "ിച്ച", "ിക്കുന്നത്", "ർക്ക്", "യായ"}, key=len, reverse=True)
 
 
 def skeleton(word: str) -> str:
@@ -153,10 +170,28 @@ def _vocab():
     return set(known), {s: w for s, (n, w) in best.items()}, by_len, {w for w in clean if len(w) >= 3}
 
 
+@lru_cache(maxsize=1)
+def _sorted_known() -> list[str]:
+    return sorted(_vocab()[0])
+
+
+def _inflected(word: str) -> bool:
+    """രോഗികളുടെ = രോഗികൾ.. + ുടെ: a stem the documents use (as the start of some word) + an ending."""
+    import bisect
+    words = _sorted_known()
+    for suf in SUFFIXES:
+        if word.endswith(suf) and len(word) - len(suf) >= 3:
+            stem = word[: -len(suf)]
+            i = bisect.bisect_left(words, stem)
+            if i < len(words) and words[i].startswith(stem):
+                return True
+    return False
+
+
 @lru_cache(maxsize=20000)
 def snap_word(word: str, split: bool = True) -> str:
     known, target, by_len, clean = _vocab()
-    if word in known or len(word) < 4:
+    if word in known or len(word) < 4 or _inflected(word):
         return word
     if split:                       # two words heard as one: "ജനനരജിസ്ട്രേഷനായി" = ജനന + രജിസ്ട്രേഷനായി
         for i in range(len(word) - 3, 2, -1):
@@ -222,6 +257,8 @@ def snap_in_context(prev: str, nxt: str) -> str:
     sounds almost the same."""
     if not CONTEXT or len(nxt) < 5 or len(prev) < 3 or _names_service(prev):
         return prev                     # പൂച്ചയെ (cat) must not become പട്ടിയെ (dog)
+    if not (_names_service(nxt) or nxt.startswith(_HEADS)):   # only before a service head noun: before a verb
+        return prev                     # it turned "പേര് മാറ്റാൻ വൈകിയാൽ" into "പേര് മരണ വൈകിയാൽ"
     seen = _context().get(nxt[:5])
     full = _CONTEXT_ALL().get(nxt[:5], ())
     if not seen or prev in full:
@@ -268,7 +305,7 @@ def _CONTEXT_ALL() -> dict[str, set]:
     return allb
 
 
-def snap(text: str) -> str:
+def snap(text: str) -> str:  # noqa: C901
     """Replace unknown Malayalam words with their closest-sounding knowledge-base word, and
     service words heard as another real word (by the word that follows)."""
     if os.getenv("HELPDESK_ASR_SNAP", "1") == "0":
@@ -279,6 +316,12 @@ def snap(text: str) -> str:
         cue = any(_names_service(w) for w in words) or _asks_service_thing(" ".join(fixed.values()))
         if not cue:                    # "കഴിക്കാൻ പറ്റിയ കഞ്ഞി" must not become a dog-licence question
             fixed = {w: (w if _names_service(n) and not _names_service(w) else n) for w, n in fixed.items()}
+    # A title word (not a service or facet word) is brought in only when the question, as heard, already
+    # names a service or asks a service thing: "ഏത് പഴമാ നല്ലത്" (a snack recipe) became "ഏത് ഫലം",
+    # which matched a fruit-tree scheme title and was answered (11 Nov review).
+    if any(n != w and not _names_service(n) and not _asks_service_thing(n) for w, n in fixed.items()):
+        if not (any(_names_service(w) for w in words) or _asks_service_thing(text)):
+            fixed = {w: (n if _names_service(n) or _asks_service_thing(n) else w) for w, n in fixed.items()}
     text = _WORD.sub(lambda m: fixed[m.group(0)], text)
     if not CONTEXT:
         return text
