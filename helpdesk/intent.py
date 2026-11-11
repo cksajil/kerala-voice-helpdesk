@@ -57,10 +57,25 @@ _ROUTE_Q = re.compile(r"നിന്ന\S*\s+(?:\S+\s+)?\S+ലേക്ക")
 _COUNT_Q = re.compile(r"എത്ര\s+\S*(?:കളു|ങ്ങളു|കൾ\s*ഉ|ങ്ങൾ\s*ഉ)ണ്ട")
 
 
+# Medical advice: symptoms, or asking which medicine to take. A PHC certificate or health card is
+# still in scope (no symptom words). "തലവേദനയും പനിയും, എന്ത് മരുന്ന്" got a palliative-care row (eval hd086).
+# Word-start only: "കമ്പനി" (company) contains പനി; "ചുമതല" (duty) is why ചുമ is not listed.
+_MEDICAL_Q = re.compile(r"(?<![ഀ-ൿ])(?:പനി|തലവേദന|ജലദോഷ|വയറുവേദന|ഛർദ്ദി|ഷുഗർ|പ്രഷർ)|"
+                        r"(?:മരുന്ന|ഗുളിക)\S*\s+(?:\S+\s+)?(?:കഴിക്ക|കുടിക്ക|വാങ്ങ)")
+# Services of another state: the help desk only knows Kerala's (eval hd089).
+OTHER_STATES = ["തമിഴ്നാട", "കർണാടക", "ആന്ധ്ര", "തെലങ്കാന", "മഹാരാഷ്ട്ര", "ഗോവയിലെ", "ഡൽഹിയിലെ"]
+
+
+def other_state(query: str) -> bool:
+    q = fix_asr(query)
+    return any(normalise(s) in q for s in OTHER_STATES)
+
+
 def out_of_scope(query: str) -> bool:
     q = fix_asr(query)
-    return (any(normalise(s) in q for s in OUT_OF_SCOPE) or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
-            or bool(_ROUTE_Q.search(q)))
+    return (any(normalise(s) in q for s in OUT_OF_SCOPE + OTHER_STATES)
+            or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
+            or bool(_ROUTE_Q.search(q)) or bool(_MEDICAL_Q.search(q)))
 
 
 # Genitive service names for the "I don't have that" reply.
@@ -80,7 +95,10 @@ FACETS: list[tuple[str, list[str]]] = [
     ("time", ["എത്ര ദിവസ", "എത്ര സമയ", "എത്ര നാൾ", "സമയപരിധി", "എപ്പോൾ കിട്ട", "എപ്പോൾ ലഭി",
               "എത്ര കാത്തിരി", "how long"]),
     ("amount", ["തുക", "രൂപ", "ഫീസ", "ഫീ ", "ചാർജ", "പിഴ", "fee", "how much"]),
-    ("documents", ["രേഖ", "ഡോക്യുമെന്റ", "document"]),
+    # Naming a document makes "…നിർബന്ധമാണോ / വേണോ" a documents question: "സമ്മതപത്രം നിർബന്ധമാണോ"
+    # was declined as an unknown "compulsory" fact although the documents entry lists it (eval hd006, hd033).
+    ("documents", ["രേഖ", "ഡോക്യുമെന്റ", "document", "സമ്മതപത്ര", "കരാർ", "സാക്ഷ്യപത്ര", "സത്യവാങ്മൂല",
+                   "എഞ്ചിനീയ", "എൻജിനീയ"]),
     ("compulsory", ["നിർബന്ധ", "ആവശ്യമാണോ", "ആവശ്യമാണ്", "വേണോ", "എടുക്കണോ", "എടുക്കണം",
                     "compulsory", "mandatory"]),
     ("eligibility", ["ആർക്ക", "അർഹത", "ബാധക", "അപേക്ഷിക്കാമോ", "അപേക്ഷിക്കാനോ", "eligib"]),

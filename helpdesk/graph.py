@@ -23,7 +23,7 @@ from langgraph.graph import END, StateGraph
 
 from . import fees, llm, tools
 from .normalise import normalise
-from .intent import (CLARIFY_FACETS, STRICT_FACETS, OTHER_ANIMAL_MSG, detect_facet, detect_services, fix_asr, missing_message,
+from .intent import (other_state, CLARIFY_FACETS, STRICT_FACETS, OTHER_ANIMAL_MSG, detect_facet, detect_services, fix_asr, missing_message,
                      other_animal, out_of_scope)
 from .retriever import BM25_MIN, Hit, Retriever
 
@@ -137,6 +137,9 @@ def build_graph(retriever: Retriever | None = None):
         q = s["query"]
         facet = detect_facet(q)
         r = rule_route(q)
+        if r == "service_faq" and other_state(q):
+            # "തമിഴ്നാട്ടിലെ പഞ്ചായത്തിൽ നിന്ന് ജനന സർട്ടിഫിക്കറ്റ്": Kerala's K-SMART answer would be wrong (eval hd089).
+            return {"route": "other", "route_by": "rule", "facet": facet}
         if r == "service_faq":
             return {"route": r, "route_by": "rule", "services": detect_services(q), "facet": facet}
         if r:

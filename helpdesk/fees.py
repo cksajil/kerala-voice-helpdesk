@@ -140,6 +140,16 @@ _TUKA = re.compile(r"(?<![ഀ-ൿ])തുക")      # "തുക", "തുകയ
 
 def _money(q: str) -> bool:
     return _has(q, MONEY_INTENT) or bool(_TUKA.search(q))
+
+
+# "എത്ര" alone asks how much ("ജനിച്ചിട്ട് 25 ദിവസം, രജിസ്ട്രേഷന് എത്ര?") unless the question asks for a time,
+# a person or a procedure: "എത്ര ദിവസമെടുക്കും" (eval hd028), "ആരുടെ അനുമതി വേണം" (eval hd021).
+NOT_MONEY = ["എത്ര ദിവസ", "എത്ര സമയ", "എത്ര നാൾ", "എത്ര ആഴ്ച", "ആരുടെ", "ആരാണ", "അനുമതി", "എങ്ങനെ",
+             "എവിടെ", "രേഖ"]
+
+
+def _asks_amount(q: str) -> bool:
+    return _money(q) or (_has(q, ["എത്ര"]) and not _has(q, NOT_MONEY))
 MARRIAGE_SCHEDULE = ("വിവാഹം കഴിഞ്ഞ് 45 ദിവസത്തിനകം രജിസ്റ്റർ ചെയ്താൽ രജിസ്ട്രേഷൻ ഫീ 100 രൂപയും "
                      "സർട്ടിഫിക്കറ്റ് ഫീ 20 രൂപയും, ആകെ 120 രൂപ. ദമ്പതികൾ ദാരിദ്ര്യരേഖയ്ക്ക് താഴെയുള്ളവരോ "
                      "പട്ടികജാതി-പട്ടികവർഗക്കാരോ ആണെങ്കിൽ ഫീസ് 10 രൂപ. 45 ദിവസം കഴിഞ്ഞാൽ 100 രൂപയും "
@@ -195,8 +205,9 @@ def answer(query: str) -> dict | None:
     q = normalise(query)
     q = re.sub(r"(\d)([^\d\s.,])", r"\1 \2", q)  # '2മാസം' -> '2 മാസം'
 
-    # Marriage registration fee: marriage + a delay + registration or fee intent.
-    if _has(q, MARRIAGE) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
+    # Marriage registration fee: marriage + a delay + a how-much question. Registration words alone are
+    # not enough: "ഒരു വർഷത്തിന് ശേഷം അപേക്ഷിച്ചാൽ എത്ര ദിവസമെടുക്കും" asks for time, not ₹220 (eval hd028).
+    if _has(q, MARRIAGE) and _asks_amount(q) and not _has(q, NOT_REGISTRATION):
         days = _quantity(q, DAY_UNITS)
         if days is not None and _past(q, DAY_UNITS):
             days += 0.5
@@ -211,9 +222,10 @@ def answer(query: str) -> dict | None:
             return {"answer": rule + " ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ സർവീസ് ചാർജ് വേറെ.",
                     "source_ids": ["ch-marr-fee-01", "svc-charge-01"]}
 
-    # Birth/death late-registration fee: needs the event, a delay and registration intent.
+    # Birth/death late-registration fee: needs the event, a delay and a how-much question
+    # ("ഒരു വർഷം കഴിഞ്ഞ ജനനം രജിസ്റ്റർ ചെയ്യാൻ ആരുടെ അനുമതി വേണം" asks who approves, not ₹10: eval hd021).
     is_birth, is_death = _has(q, BIRTH), _has(q, DEATH)
-    if (is_birth or is_death) and _has(q, REGISTER + FEE_INTENT) and not _has(q, NOT_REGISTRATION):
+    if (is_birth or is_death) and _asks_amount(q) and not _has(q, NOT_REGISTRATION):
         days = _quantity(q, DAY_UNITS)
         if days is not None and _past(q, DAY_UNITS):
             days += 0.5                                              # past the boundary day
