@@ -1,4 +1,28 @@
-# Kerala Voice Helpdesk — reply stage (v1, day 1)
+# Kerala Voice Helpdesk
+
+**Ask a question in Malayalam, hear the answer in Malayalam, all on a CPU.**
+A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's weather and today's news.
+
+🎙️ **[Try the live demo](https://sajilck-malayalam-voice-assistant.hf.space)** ([Hugging Face Space](https://huggingface.co/spaces/sajilck/malayalam-voice-assistant))
+
+| Stage | What runs |
+|---|---|
+| Speech to text | Malayalam ASR on CPU (see [malayalam-asr-eval](https://github.com/cksajil/malayalam-asr-eval) for how the models compare) |
+| **Reply (this repo)** | LangGraph agent: explicit routing, BM25 + BGE-M3 retrieval over a knowledge base built from panchayat citizen charters, Gemma 4 E2B through llama.cpp |
+| Text to speech | [sajilck/mms-tts-malayalam-sajil](https://huggingface.co/sajilck/mms-tts-malayalam-sajil) (VITS) |
+
+**Highlights**
+- Answers only from retrieved passages; when the passage does not hold the answer the model must say `UNSURE`, which becomes a polite refusal.
+- Fees with band arithmetic are computed in code, and weather and news numbers go out through templates, so the LLM never does arithmetic or copies figures.
+- `ingest/` turns citizen-charter PDFs into ~600 cited passages (Malayalam OCR with Tesseract) and checks hand-written entries against the pages they cite.
+- An eval suite (routing, retrieval hit@3, refusals, a 100-question answer eval and multi-turn conversations) and fixes driven by real conversation logs, recorded below.
+- A whole spoken turn takes 1.7–6.2 s on the Space's shared CPU.
+
+The rest of this README is the development log, newest sections last.
+
+---
+
+## Reply stage (v1, day 1)
 
 LangGraph agent that answers Malayalam questions about Kerala local-body
 (LSGD / K-SMART) services, today's weather and today's news. It is the reply
