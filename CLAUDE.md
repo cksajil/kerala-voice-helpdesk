@@ -14,7 +14,7 @@
   Push the notebook, ask the owner to run it, then fetch the output.
 
 ## Privacy
-- Voice recordings from the usage log (the owner's and his wife's) are private: don't upload them to Kaggle,
+- Voice recordings from the usage log (the owner's and the owner's wife's) are private: don't upload them to Kaggle,
   public repos, notebooks or eval sets without asking first. Prefer public corpus clips
   (`sajilck/malayalam-asr-corpus`) when a test only needs audio of a given length.
 
