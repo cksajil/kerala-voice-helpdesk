@@ -918,6 +918,7 @@ def test_dog_dative_is_still_a_pet_question():
     ("കെ സ്മാർട്ട് വഴി ലൈസൻസ് എടുക്കാമോ?", ("trade-01", "ksmart-01")),      # K-SMART is the platform; both
                                                                               # entries say licences are online
     ("വികലാംഗ പെൻഷന് ആരൊക്കെ അർഹരാണ്?", "ch-pen-disab-01"),                  # KB says ഭിന്നശേഷി
+    ("പ്രൊഫഷണൽ ടാക്സ് കെ-സ്മാർട്ട് ആപ്പിൽ അടയ്ക്കാൻ പറ്റുമോ?", "ksmart-02"),   # not property tax
 ])
 def test_12_nov_retrieval_fixes(app, q, entry):
     s = app.invoke({"query": q})
