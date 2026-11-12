@@ -16,7 +16,7 @@ import difflib
 import re
 
 from . import asr_snap
-from .normalise import normalise
+from .normalise import fold, normalise
 
 # service -> [(stem, weight)]; weight 2 = names the service, 1 = generic word
 SERVICES: dict[str, list[tuple[str, int]]] = {
@@ -78,13 +78,13 @@ OTHER_STATES = ["തമിഴ്നാട", "കർണാടക", "ആന്ധ�
 
 
 def other_state(query: str) -> bool:
-    q = fix_asr(query)
-    return any(normalise(s) in q for s in OTHER_STATES)
+    q = fold(fix_asr(query))
+    return any(fold(normalise(s)) in q for s in OTHER_STATES)
 
 
 def out_of_scope(query: str) -> bool:
     q = fix_asr(query)
-    return (any(normalise(s) in q for s in OUT_OF_SCOPE + OTHER_STATES)
+    return (any(fold(normalise(s)) in fold(q) for s in OUT_OF_SCOPE + OTHER_STATES)
             or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
             or bool(_ROUTE_Q.search(q)) or bool(_MEDICAL_Q.search(q)))
 
@@ -185,19 +185,21 @@ OTHER_ANIMAL_MSG = ("പട്ടി, പന്നി എന്നിവ വള�
 
 
 def other_animal(query: str) -> bool:
-    toks = _TOKEN.findall(_detect_text(query))
-    return any(t.startswith(normalise(a)) for a in OTHER_ANIMALS for t in toks)
+    toks = [fold(t) for t in _TOKEN.findall(_detect_text(query))]
+    return any(t.startswith(fold(normalise(a))) for a in OTHER_ANIMALS for t in toks)
 
 
 def _fuzzy_in(stem: str, q: str, toks: list[str]) -> bool:
     """Exact substring, or (long stems only) a near match at a word start, for ASR slips
     the ASR_FIXES list does not cover. Short stems fuzzy-match far too much
-    ("പട്ടി" matched inside "രജിസ്ട്രേഷനായിട്ടുള്ള")."""
-    if stem in _SVC_WORD_START:
+    ("പട്ടി" matched inside "രജിസ്ട്രേഷനായിട്ടുള്ള"). q and toks are folded (normalise.fold)."""
+    n = len(stem)
+    word_start, stem = stem in _SVC_WORD_START, fold(stem)
+    if word_start:
         return any(t.startswith(stem) for t in toks)
     if stem in q:
         return True
-    if len(stem) < 7 or " " in stem:
+    if n < 7 or " " in stem:
         return False
     return any(difflib.SequenceMatcher(None, t[: len(stem)], stem).ratio() >= 0.85 for t in toks)
 
@@ -205,7 +207,8 @@ def _fuzzy_in(stem: str, q: str, toks: list[str]) -> bool:
 def detect_services(query: str) -> list[str]:
     """Most specific services named in the question (all ties), or []."""
     q = _detect_text(query)
-    toks = _TOKEN.findall(q)
+    toks = [fold(t) for t in _TOKEN.findall(q)]
+    q = fold(q)
     scores = {}
     for svc, stems in SERVICES.items():
         w = max((wt for st, wt in stems if _fuzzy_in(normalise(st), q, toks)), default=0)
@@ -227,11 +230,13 @@ CLARIFY_FACETS = {"amount", "time", "validity", "documents", "compulsory"}
 
 def detect_facet(query: str) -> str | None:
     q = _detect_text(query)
-    toks = _TOKEN.findall(q)
+    toks = [fold(t) for t in _TOKEN.findall(q)]
+    q = fold(q)
     for facet, stems in FACETS:
         for s in stems:
             s = normalise(s)
-            if (any(t.startswith(s) for t in toks) if s in _WORD_START else s in q):
+            ws, s = s in _WORD_START, fold(s)
+            if (any(t.startswith(s) for t in toks) if ws else s in q):
                 return facet
     return None
 

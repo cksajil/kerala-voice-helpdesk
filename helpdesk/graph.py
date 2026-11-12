@@ -22,7 +22,7 @@ from typing import Literal, TypedDict
 from langgraph.graph import END, StateGraph
 
 from . import fees, llm, tools
-from .normalise import normalise
+from .normalise import fold, normalise
 from .intent import (other_state, CLARIFY_FACETS, STRICT_FACETS, OTHER_ANIMAL_MSG, detect_facet, detect_services, fix_asr, missing_message,
                      other_animal, out_of_scope)
 from .retriever import BM25_MIN, Hit, Retriever
@@ -127,9 +127,9 @@ def attribution(sources: list[dict]) -> str:
 
 def rule_route(query: str) -> Route | None:
     """weather / news by keyword, service_faq if a service is named, else None."""
-    q = fix_asr(query)
+    q = fold(fix_asr(query))
     for route, stems in RULES:
-        if any(normalise(s) in q for s in stems):
+        if any(fold(normalise(s)) in q for s in stems):
             return route
     return "service_faq" if detect_services(query) else None
 

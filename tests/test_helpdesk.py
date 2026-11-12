@@ -9,7 +9,7 @@ import pytest
 
 from helpdesk import graph as G
 from helpdesk import llm, tools
-from helpdesk.intent import detect_services
+from helpdesk.intent import detect_services, out_of_scope
 from helpdesk.normalise import normalise, tokens
 from helpdesk.retriever import Retriever
 
@@ -957,3 +957,21 @@ def test_weather_tomorrow_reads_second_day(monkeypatch):
     assert "നാളെ" in t and "90" in t and "ഇപ്പോൾ" not in t
     t = tools.weather("കൊല്ലത്ത് ഇപ്പോൾ മഴയുണ്ടോ?")["text"]
     assert "ഇപ്പോൾ" in t and "40" in t
+
+
+@pytest.mark.parametrize("q", [
+    "വോട്ടര് പട്ടികയിൽ പേര് പുതുക്കാൻ എന്തു ചെയ്യണം",      # IndicConformer: ര് without ZWJ at a word end
+    "പാസ്പോര്ട്ട് എടുക്കാന് എന്തു വേണം",
+])
+def test_plain_virama_chillus_still_match_out_of_scope(q):
+    assert out_of_scope(q)
+
+
+def test_plain_virama_chillus_still_match_services_and_rules():
+    assert detect_services("കല്യാണം രജിസ്റ്റര് ചെയ്യാന് എന്തൊക്കെ രേഖകള് വേണം") == ["marriage"]
+    assert G.rule_route("ഇന്നത്തെ പ്രധാന വാര്ത്തകള്") == "news"
+
+
+def test_fold_matches_both_chillu_spellings():
+    from helpdesk.normalise import fold
+    assert fold("വോട്ടർ") == fold("വോട്ടര്") and fold("പേര്") == "പേര്"
