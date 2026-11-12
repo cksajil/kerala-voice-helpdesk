@@ -16,7 +16,7 @@ import difflib
 import re
 
 from . import asr_snap
-from .normalise import normalise
+from .normalise import fold, normalise
 
 # service -> [(stem, weight)]; weight 2 = names the service, 1 = generic word
 SERVICES: dict[str, list[tuple[str, int]]] = {
@@ -24,7 +24,12 @@ SERVICES: dict[str, list[tuple[str, int]]] = {
                     ("birth", 2), ("death", 2)],
     "marriage": [("വിവാഹ", 2), ("കല്യാണ", 2), ("മാര്യേജ", 2), ("marriage", 2)],
     "building_permit": [("പെർമിറ്റ", 2), ("കെട്ടിട നിർമ്മാണ", 2), ("വീട് പണി", 2), ("വീട് വെക്ക", 2),
-                        ("വീട് വയ്ക്ക", 2), ("പ്ലാൻ അംഗീകാര", 2), ("permit", 2)],
+                        ("വീട് വയ്ക്ക", 2), ("പ്ലാൻ അംഗീകാര", 2), ("permit", 2),
+                        ("വീടിന്റെ പ്ലാൻ", 2), ("വീട്ടിന്റെ പ്ലാൻ", 2), ("കെട്ടിടത്തിന്റെ പ്ലാൻ", 2),
+                        ("കെട്ടിട പ്ലാൻ", 2), ("സൈറ്റ് പ്ലാൻ", 2), ("പ്ലാൻ", 1),
+                        # inflected: "വീടിന്റെ പ്ലാനിൽ" has ന, not the chillu
+                        ("വീടിന്റെ പ്ലാന", 2), ("വീട്ടിന്റെ പ്ലാന", 2), ("കെട്ടിടത്തിന്റെ പ്ലാന", 2),
+                        ("കെട്ടിട പ്ലാന", 2), ("സൈറ്റ് പ്ലാന", 2), ("പ്ലാന", 1)],
     "trade_licence": [("ട്രേഡ", 2), ("കട തുടങ്ങ", 2), ("ഫാക്ടറി", 2), ("സംരംഭ", 2), ("ബിസിനസ", 2),
                       ("ലൈസൻസ", 1), ("license", 1), ("licence", 1)],
     "pension": [("പെൻഷ", 2), ("pension", 2)],
@@ -37,9 +42,10 @@ SERVICES: dict[str, list[tuple[str, int]]] = {
                     ("certificate", 1)],
     "grievance": [("പരാതി", 2), ("complaint", 2)],
     "rti": [("വിവരാവകാശ", 2), ("ആർ.ടി.ഐ", 2), ("rti", 2)],
-    "health": [("ഹെൽത്ത് കാർഡ", 2), ("മെഡിക്കൽ സർട്ടി", 2), ("ആരോഗ്യ കേന്ദ്ര", 2), ("പി.എച്ച്.സി", 2)],
-    "general": [("അക്ഷയ", 2), ("കുടുംബശ്രീ", 2), ("കെ സ്മാർട്ട", 2), ("കെ-സ്മാർട്ട", 2), ("ksmart", 2),
-                ("k-smart", 2), ("സർവീസ് ചാർജ", 2), ("ലഭിക്കുന്ന സേവന", 2), ("കിട്ടുന്ന സേവന", 2),
+    "health": [("ഹെൽത്ത് കാർഡ", 2), ("മെഡിക്കൽ സർട്ടി", 2), ("ആരോഗ്യ കേന്ദ്ര", 2), ("പി.എച്ച്.സി", 2),
+               ("വാക്സിൻ", 2), ("പോളിയോ", 2), ("vaccin", 2)],   # not "കുത്തിവ": title matching finds those rows
+    "general": [("അക്ഷയ", 2), ("കുടുംബശ്രീ", 2), ("പ്രൊഫഷണൽ ടാക്സ", 3), ("പ്രൊഫഷൻ ടാക്സ", 3), ("തൊഴിൽ നികുതി", 3), ("professional tax", 3), ("കെ സ്മാർട്ട", 1), ("കെ-സ്മാർട്ട", 1), ("ksmart", 1),
+                ("k-smart", 1), ("സർവീസ് ചാർജ", 2), ("ലഭിക്കുന്ന സേവന", 2), ("കിട്ടുന്ന സേവന", 2),
                 ("സേവനങ്ങൾ എന്ത", 2), ("ഏതൊക്കെ സേവന", 2), ("എന്തൊക്കെ സേവന", 2)],
 }
 
@@ -47,7 +53,12 @@ SERVICES: dict[str, list[tuple[str, int]]] = {
 # scope and never treated as a follow-up: "പാസ്പോർട്ട് ലഭിക്കാൻ..." right after a marriage
 # question must not get marriage documents; "ഡ്രൈവിംഗ് ലൈസൻസ്" is not a trade licence.
 OUT_OF_SCOPE = ["പാസ്പോർട്ട", "passport", "ആധാർ", "aadhaar", "വോട്ടർ", "ഡ്രൈവിംഗ", "driving",
-                "റേഷൻ കാർഡിൽ പേര് ചേർ", "ഗ്യാസ് കണക്ഷ", "കെ.എസ്.ഇ.ബി", "വൈദ്യുതി ബിൽ", "ബസ്", "ട്രെയിൻ",
+                "റേഷൻ കാർഡിൽ പേര് ചേർ", "റേഷന് കാർഡിൽ പേര് ചേർ",
+                # Revenue (village office), Water Authority, Supplyco, banks
+                "ജാതി സർട്ടിഫിക്കറ്റിന", "ജാതി സർട്ടിഫിക്കറ്റ് എടുക്ക", "ജാതി സർട്ടിഫിക്കറ്റ് ലഭി",
+                "ജാതി സർട്ടിഫിക്കറ്റ് കിട്ട", "വരുമാന സർട്ടിഫിക്കറ്റിന",
+                "വെള്ളക്കര", "വാട്ടർ ബിൽ", "വാട്ടർ അതോറിറ്റി", "നെല്ല് സംഭരണ", "കൃഷി വായ്പ", "ബാങ്ക് വായ്പ",
+                "ലോൺ", "ഗ്യാസ് കണക്ഷ", "കെ.എസ്.ഇ.ബി", "വൈദ്യുതി ബിൽ", "ബസ്", "ട്രെയിൻ",
                 "ദൂരം", "ദൂരമ", "തലസ്ഥാന", "സെക്രട്ടറിയറ്റ", "സെക്രട്ടേറിയറ്റ", "പി.എസ്.സി",
                 "മുഖ്യമന്ത്രി", "പ്രധാനമന്ത്രി", "മന്ത്രി", "ഗവർണ", "കേരളത്തിൽ എത്ര", "ഇന്ത്യയിൽ",
                 "ഇന്ത്യയുടെ"]
@@ -67,13 +78,13 @@ OTHER_STATES = ["തമിഴ്നാട", "കർണാടക", "ആന്ധ�
 
 
 def other_state(query: str) -> bool:
-    q = fix_asr(query)
-    return any(normalise(s) in q for s in OTHER_STATES)
+    q = fold(fix_asr(query))
+    return any(fold(normalise(s)) in q for s in OTHER_STATES)
 
 
 def out_of_scope(query: str) -> bool:
     q = fix_asr(query)
-    return (any(normalise(s) in q for s in OUT_OF_SCOPE + OTHER_STATES)
+    return (any(fold(normalise(s)) in fold(q) for s in OUT_OF_SCOPE + OTHER_STATES)
             or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
             or bool(_ROUTE_Q.search(q)) or bool(_MEDICAL_Q.search(q)))
 
@@ -98,7 +109,7 @@ FACETS: list[tuple[str, list[str]]] = [
     # Naming a document makes "…നിർബന്ധമാണോ / വേണോ" a documents question: "സമ്മതപത്രം നിർബന്ധമാണോ"
     # was declined as an unknown "compulsory" fact although the documents entry lists it (eval hd006, hd033).
     ("documents", ["രേഖ", "ഡോക്യുമെന്റ", "document", "സമ്മതപത്ര", "കരാർ", "സാക്ഷ്യപത്ര", "സത്യവാങ്മൂല",
-                   "എഞ്ചിനീയ", "എൻജിനീയ"]),
+                   "എഞ്ചിനീയ", "എൻജിനീയ", "സാക്ഷി", "witness"]),
     ("compulsory", ["നിർബന്ധ", "ആവശ്യമാണോ", "ആവശ്യമാണ്", "വേണോ", "എടുക്കണോ", "എടുക്കണം",
                     "compulsory", "mandatory"]),
     ("eligibility", ["ആർക്ക", "അർഹത", "ബാധക", "അപേക്ഷിക്കാമോ", "അപേക്ഷിക്കാനോ", "eligib"]),
@@ -122,11 +133,15 @@ ASR_FIXES = [
     ("ലൈക്സൻസ", "ലൈസൻസ", None), ("രേഖക്കൾ", "രേഖകൾ", None), (" മെത്ര", " എത്ര", None),
     ("കുറ്റികൾ", "കുട്ടികൾ", None), ("ചനന", "ജനന", None), ("ജനനെ ", "ജനന ", None), ("ജനന് ", "ജനന ", None),
     ("ഇൻഷുറൻസ", "ഇൻഷ്വറൻസ", None), ("കാമെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"), ("കാറിലെടുക്ക", "കാർഡ് എടുക്ക", "തൊഴിൽ"), ("കാളാവസ്ഥ", "കാലാവസ്ഥ", None),
+    ("വികലാംഗ", "ഭിന്നശേഷി", None), ("വികലാങ്ക", "ഭിന്നശേഷി", None),
+    # the charters say "പ്രതിരോധ കുത്തിവയ്പ്", callers say "വാക്സിനേഷൻ"
+    ("വാക്സിനേഷൻ", "പ്രതിരോധ കുത്തിവയ്പ്", None), ("വാക്സിനേഷന", "പ്രതിരോധ കുത്തിവയ്പിന", None),
 ]
 # Rewrites for detection only (not shown to the LLM):
 _DETECT_ONLY = [
     (re.compile(r"വിവാഹം?\s*മോചി"), "മോചി"),         # divorced: not a marriage-registration question
     (re.compile(r"പട്ടികജാതി|പട്ടികവർഗ"), "എസ്സി"),     # Scheduled Caste/Tribe: not "dog" (പട്ടി)
+    (re.compile(r"പട്ടിക(?!്ക)"), "ലിസ്റ്റ്"),            # a list ("വോട്ടർ പട്ടികയിൽ"), not "dog"
     # unmarried: the pension for unmarried women over 50, not marriage registration
     (re.compile(r"അവിവാഹിത\S*|വിവാഹിതരാ\S*ില്ലാത്ത\S*|വിവാഹിതരല്ലാത്ത\S*"), "അവിവ പെൻഷൻ"),  # (no "വിവാഹ" left in it)
 ]
@@ -170,19 +185,21 @@ OTHER_ANIMAL_MSG = ("പട്ടി, പന്നി എന്നിവ വള�
 
 
 def other_animal(query: str) -> bool:
-    toks = _TOKEN.findall(_detect_text(query))
-    return any(t.startswith(normalise(a)) for a in OTHER_ANIMALS for t in toks)
+    toks = [fold(t) for t in _TOKEN.findall(_detect_text(query))]
+    return any(t.startswith(fold(normalise(a))) for a in OTHER_ANIMALS for t in toks)
 
 
 def _fuzzy_in(stem: str, q: str, toks: list[str]) -> bool:
     """Exact substring, or (long stems only) a near match at a word start, for ASR slips
     the ASR_FIXES list does not cover. Short stems fuzzy-match far too much
-    ("പട്ടി" matched inside "രജിസ്ട്രേഷനായിട്ടുള്ള")."""
-    if stem in _SVC_WORD_START:
+    ("പട്ടി" matched inside "രജിസ്ട്രേഷനായിട്ടുള്ള"). q and toks are folded (normalise.fold)."""
+    n = len(stem)
+    word_start, stem = stem in _SVC_WORD_START, fold(stem)
+    if word_start:
         return any(t.startswith(stem) for t in toks)
     if stem in q:
         return True
-    if len(stem) < 7 or " " in stem:
+    if n < 7 or " " in stem:
         return False
     return any(difflib.SequenceMatcher(None, t[: len(stem)], stem).ratio() >= 0.85 for t in toks)
 
@@ -190,7 +207,8 @@ def _fuzzy_in(stem: str, q: str, toks: list[str]) -> bool:
 def detect_services(query: str) -> list[str]:
     """Most specific services named in the question (all ties), or []."""
     q = _detect_text(query)
-    toks = _TOKEN.findall(q)
+    toks = [fold(t) for t in _TOKEN.findall(q)]
+    q = fold(q)
     scores = {}
     for svc, stems in SERVICES.items():
         w = max((wt for st, wt in stems if _fuzzy_in(normalise(st), q, toks)), default=0)
@@ -212,11 +230,13 @@ CLARIFY_FACETS = {"amount", "time", "validity", "documents", "compulsory"}
 
 def detect_facet(query: str) -> str | None:
     q = _detect_text(query)
-    toks = _TOKEN.findall(q)
+    toks = [fold(t) for t in _TOKEN.findall(q)]
+    q = fold(q)
     for facet, stems in FACETS:
         for s in stems:
             s = normalise(s)
-            if (any(t.startswith(s) for t in toks) if s in _WORD_START else s in q):
+            ws, s = s in _WORD_START, fold(s)
+            if (any(t.startswith(s) for t in toks) if ws else s in q):
                 return facet
     return None
 

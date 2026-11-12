@@ -33,6 +33,16 @@ def normalise(text: str, strip_punct: bool = False) -> str:
     return _SPACE.sub(" ", text).strip().lower()
 
 
+_UNCHILLU = {v: k + VIRAMA for k, v in _CHILLU.items()}
+
+
+def fold(text: str) -> str:
+    """Keyword-matching form: atomic chillus as consonant + virama. IndicConformer often writes a chillu
+    as plain ര്/ന്/ള് (no ZWJ), most often at a word end ("വോട്ടര് പട്ടിക"), where it cannot be told apart
+    from a samvruthokaram ("പേര്"), so instead of guessing, both the stem and the question are folded."""
+    return "".join(_UNCHILLU.get(c, c) for c in text)
+
+
 def tokens(text: str) -> list[str]:
     """Words plus character 3-grams, so BM25 still matches inflected forms
     (സർട്ടിഫിക്കറ്റ് / സർട്ടിഫിക്കറ്റിന് / സർട്ടിഫിക്കറ്റിനായി)."""

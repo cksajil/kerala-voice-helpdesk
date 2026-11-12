@@ -22,7 +22,7 @@ from typing import Literal, TypedDict
 from langgraph.graph import END, StateGraph
 
 from . import fees, llm, tools
-from .normalise import normalise
+from .normalise import fold, normalise
 from .intent import (other_state, CLARIFY_FACETS, STRICT_FACETS, OTHER_ANIMAL_MSG, detect_facet, detect_services, fix_asr, missing_message,
                      other_animal, out_of_scope)
 from .retriever import BM25_MIN, Hit, Retriever
@@ -57,7 +57,10 @@ ANSWER_PROMPT = (
 # Gemma sometimes refuses in its own words ("...വിവരങ്ങൾ നൽകിയിട്ടില്ല") instead of writing UNSURE.
 # Those leak the RAG plumbing to the caller and are not counted as refusals, so map them to REFUSAL.
 META_REFUSAL = ["നൽകിയിട്ടില്ല", "വിവരങ്ങളിൽ ഇല്ല", "വിവരങ്ങളിൽ പറയുന്നില്ല", "പരാമർശിച്ചിട്ടില്ല",
-                "വിവരം ലഭ്യമല്ല", "വിവരങ്ങൾ ലഭ്യമല്ല", "not provided", "not mentioned"]
+                "വിവരം ലഭ്യമല്ല", "വിവരങ്ങൾ ലഭ്യമല്ല", "not provided", "not mentioned",
+                "വിവരമില്ല", "വിവരം ഇല്ല", "വിവരങ്ങളില്ല", "പരാമർശമില്ല", "വ്യക്തമാക്കിയിട്ടില്ല"]
+# "വിവരങ്ങളിൽ … എന്നതിനെക്കുറിച്ച് …" opens Gemma's own refusals (12 Nov log); a real answer starts with the fact.
+META_REFUSAL_START = ("വിവരങ്ങളിൽ", "നൽകിയിരിക്കുന്ന വിവരങ്ങളിൽ", "തന്നിരിക്കുന്ന വിവരങ്ങളിൽ")
 _SENT_END = re.compile(r"[.?!।](?=\s|$)")
 
 
@@ -65,7 +68,8 @@ def clean_answer(out: str) -> tuple[str, bool]:
     """Returns (answer, refused). Maps meta-refusals to REFUSAL and drops a sentence
     cut off by the token limit, so TTS never reads half a sentence."""
     out = out.strip()
-    if not out or "UNSURE" in out.upper() or any(m in out for m in META_REFUSAL):
+    if (not out or "UNSURE" in out.upper() or any(m in out for m in META_REFUSAL)
+            or out.startswith(META_REFUSAL_START)):
         return REFUSAL, True
     ends = [m.end() for m in _SENT_END.finditer(out)]
     if ends and ends[-1] < len(out):
@@ -123,9 +127,9 @@ def attribution(sources: list[dict]) -> str:
 
 def rule_route(query: str) -> Route | None:
     """weather / news by keyword, service_faq if a service is named, else None."""
-    q = fix_asr(query)
+    q = fold(fix_asr(query))
     for route, stems in RULES:
-        if any(normalise(s) in q for s in stems):
+        if any(fold(normalise(s)) in q for s in stems):
             return route
     return "service_faq" if detect_services(query) else None
 
@@ -261,7 +265,10 @@ def build_graph(retriever: Retriever | None = None):
                 # And within the service the keywords named: "വിവാഹം കഴിഞ്ഞു രണ്ടു മാസമായി" must not
                 # become the pension row for unmarried women over 50.
                 same = not services or "lsgd_other" in services or h.doc.get("service") in services
-                if cand > top and (top == 0 or cand - top >= 0.8) and not answers and same:
+                # Nor for one that lacks the asked facet when the top hit has it: "സാക്ഷികൾ നിർബന്ധമാണോ"
+                # (documents) must keep the marriage documents entry, not the "is registration compulsory" one.
+                lacks = bool(facet) and facet in hits[0].doc.get("facets", []) and facet not in h.doc.get("facets", [])
+                if cand > top and (top == 0 or cand - top >= 0.8) and not answers and not lacks and same:
                     open_id = h.doc["id"]
         if open_id:
             # Title overlap vouches for this passage; put it first.
