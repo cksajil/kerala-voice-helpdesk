@@ -85,6 +85,9 @@ def find_district(query: str) -> str | None:
     return None
 
 
+_TOMORROW = re.compile(r"നാളെ|നാളത്തെ|tomorrow")
+
+
 def weather(query: str) -> dict:
     place = find_place(query)
     if place:
@@ -101,10 +104,16 @@ def weather(query: str) -> dict:
     r.raise_for_status()
     d = r.json()
     cur, day = d["current"], d["daily"]
-    text = (f"{name_ml}: ഇപ്പോൾ {round(cur['temperature_2m'])} ഡിഗ്രി സെൽഷ്യസ്, "
-            f"{WMO.get(cur['weather_code'], 'കാലാവസ്ഥ ലഭ്യമല്ല')}. "
-            f"ഇന്ന് കൂടിയ താപനില {round(day['temperature_2m_max'][0])}, കുറഞ്ഞത് {round(day['temperature_2m_min'][0])} ഡിഗ്രി. "
-            f"മഴ സാധ്യത {day['precipitation_probability_max'][0]} ശതമാനം.")
+    if _TOMORROW.search(normalise(query)):
+        # "നാളെ മഴ പെയ്യുമോ?" was answered with today's forecast (12 Nov log): read the second day.
+        text = (f"{name_ml}: നാളെ കൂടിയ താപനില {round(day['temperature_2m_max'][1])}, "
+                f"കുറഞ്ഞത് {round(day['temperature_2m_min'][1])} ഡിഗ്രി. "
+                f"മഴ സാധ്യത {day['precipitation_probability_max'][1]} ശതമാനം.")
+    else:
+        text = (f"{name_ml}: ഇപ്പോൾ {round(cur['temperature_2m'])} ഡിഗ്രി സെൽഷ്യസ്, "
+                f"{WMO.get(cur['weather_code'], 'കാലാവസ്ഥ ലഭ്യമല്ല')}. "
+                f"ഇന്ന് കൂടിയ താപനില {round(day['temperature_2m_max'][0])}, കുറഞ്ഞത് {round(day['temperature_2m_min'][0])} ഡിഗ്രി. "
+                f"മഴ സാധ്യത {day['precipitation_probability_max'][0]} ശതമാനം.")
     found = bool(place) or find_district(query) is not None
     if not found:
         m = _UNKNOWN_PLACE.search(normalise(query))

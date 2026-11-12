@@ -9,6 +9,7 @@ import pytest
 
 from helpdesk import graph as G
 from helpdesk import llm, tools
+from helpdesk.intent import detect_services
 from helpdesk.normalise import normalise, tokens
 from helpdesk.retriever import Retriever
 
@@ -890,3 +891,68 @@ def test_other_state_service_is_out_of_scope(app):
     """A Tamil Nadu birth certificate got Kerala's K-SMART steps (hd089)."""
     s = app.invoke({"query": "തമിഴ്നാട്ടിലെ ഒരു പഞ്ചായത്തിൽ നിന്ന് ജനന സർട്ടിഫിക്കറ്റ് എടുക്കാൻ എന്താണ് വഴി?"})
     assert s["route"] == "other" and s.get("refused"), s
+
+
+# --- regressions from the 12 Nov Space log (paraphrased questions) -------------------------------------
+@pytest.mark.parametrize("q", [
+    "വോട്ടർ പട്ടികയിൽ പേര് ചേർക്കാൻ എന്താണ് വഴി?",          # "പട്ടിക" (list) is not "പട്ടി" (dog)
+    "വെള്ളക്കരം എവിടെയാണ് അടയ്ക്കേണ്ടത്?",                  # Water Authority, not the arecanut row
+    "ജാതി സർട്ടിഫിക്കറ്റിന് ആരെയാണ് സമീപിക്കേണ്ടത്?",        # village office
+    "നെല്ല് സംഭരണത്തിന്റെ പണം എപ്പോൾ കിട്ടും?",              # Supplyco
+    "കൃഷി വായ്പ കിട്ടാൻ എന്ത് ചെയ്യണം?",                     # banks
+    "റേഷന് കാർഡിൽ പേര് ചേർക്കാൻ എവിടെ പോകണം?",               # virama form from IndicConformer
+])
+def test_more_departments_are_out_of_scope(app, q):
+    s = app.invoke({"query": q})
+    assert s["route"] == "other" and s["answer"] in (G.SCOPE, G.CLARIFY), (q, s["route"], s.get("sources"))
+
+
+def test_dog_dative_is_still_a_pet_question():
+    assert "pet" in detect_services("പട്ടിക്ക് ലൈസൻസ് എടുക്കണോ?")
+
+
+@pytest.mark.parametrize("q, entry", [
+    ("കല്യാണം രജിസ്റ്റർ ചെയ്യുമ്പോൾ സാക്ഷികൾ വേണോ?", "ch-marr-docs-01"),       # witnesses: documents entry
+    ("വീടിന്റെ പ്ലാനിൽ ആരുടെ ഒപ്പാണ് വേണ്ടത്?", "ch-bp-docs-01"),            # house plan names the permit
+    ("കെ-സ്മാർട്ടിലൂടെ ട്രേഡ് ലൈസൻസിന് അപേക്ഷ കൊടുക്കാമോ?", "trade-01"),
+    ("കെ സ്മാർട്ട് വഴി ലൈസൻസ് എടുക്കാമോ?", ("trade-01", "ksmart-01")),      # K-SMART is the platform; both
+                                                                              # entries say licences are online
+    ("വികലാംഗ പെൻഷന് ആരൊക്കെ അർഹരാണ്?", "ch-pen-disab-01"),                  # KB says ഭിന്നശേഷി
+])
+def test_12_nov_retrieval_fixes(app, q, entry):
+    s = app.invoke({"query": q})
+    ok = entry if isinstance(entry, tuple) else (entry,)
+    assert s.get("sources") and s["sources"][0]["id"] in ok, (q, s["route"], s.get("sources"))
+
+
+def test_marriage_compulsory_question_still_finds_compulsory_entry(app):
+    s = app.invoke({"query": "കല്യാണം രജിസ്റ്റർ ചെയ്യൽ നിർബന്ധമാണോ?"})
+    assert s["sources"][0]["id"] == "ch-marr-compulsory-01"
+
+
+def test_ksmart_alone_is_a_general_question():
+    assert detect_services("കെ-സ്മാർട്ട് ആപ്പ് എവിടെ കിട്ടും?") == ["general"]
+
+
+@pytest.mark.parametrize("out", [
+    "വിവരങ്ങളിൽ കെട്ടിട നികുതി വൈകിയാലുള്ള പിഴയെക്കുറിച്ച് വിവരമില്ല.",
+    "നൽകിയിരിക്കുന്ന വിവരങ്ങളിൽ ഇത് വ്യക്തമാക്കിയിട്ടില്ല.",
+])
+def test_gemma_own_word_refusals_12_nov(out):
+    assert G.clean_answer(out) == (G.REFUSAL, True)
+
+
+def test_weather_tomorrow_reads_second_day(monkeypatch):
+    class R:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"current": {"temperature_2m": 27.4, "weather_code": 3},
+                    "daily": {"temperature_2m_max": [31, 29], "temperature_2m_min": [24, 23],
+                              "precipitation_probability_max": [40, 90], "precipitation_sum": [0, 12]}}
+    monkeypatch.setattr(tools.requests, "get", lambda *a, **k: R())
+    t = tools.weather("നാളെ കൊല്ലത്ത് മഴ പെയ്യുമോ?")["text"]
+    assert "നാളെ" in t and "90" in t and "ഇപ്പോൾ" not in t
+    t = tools.weather("കൊല്ലത്ത് ഇപ്പോൾ മഴയുണ്ടോ?")["text"]
+    assert "ഇപ്പോൾ" in t and "40" in t
