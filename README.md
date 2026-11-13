@@ -58,6 +58,33 @@ python -m helpdesk.cli "ട്രേഡ് ലൈസൻസ് പുതുക്
 No LLM? `HELPDESK_LLM=none` reads out the best passage instead.
 No dense model? `HELPDESK_DENSE=0` uses BM25 only.
 
+## Run locally with Docker
+CPU only; works on an Intel Mac (Docker Desktop, give it 2 CPUs and 6 GB RAM in Settings → Resources).
+```bash
+docker compose up --build -d                  # first build compiles llama-cpp-python (~10 min)
+docker compose logs -f helpdesk               # first start downloads Gemma 4 E2B Q4_0 (2.8 GB) into a volume
+python3 scripts/smoke_test.py                 # waits for /health "ok", asks 5 questions, exit 0 = pass
+```
+Ask it yourself:
+```bash
+curl -s localhost:8000/ask -H 'Content-Type: application/json' \
+  -d '{"question": "ജനന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും?"}' | python3 -m json.tool --no-ensure-ascii
+```
+- `POST /ask` takes `{"question", "context"}` and returns `answer`, `route`, `refused`, `sources`,
+  per-stage `timings` and a `context` to send back with the next question (follow-ups such as
+  "അതിന് എത്ര ദിവസം?" stay on the same service). The service keeps no session state.
+- `GET /health` is `loading` → `warming` → `ok` (or `error`). `/ask` works while warming.
+- Warm-up: one turn, then the answer prompt of every curated passage is prefilled into
+  llama-cpp-python's RAM cache (`HELPDESK_WARMUP=kb`; `all` adds the kb_auto entries, `none` skips).
+  `HELPDESK_CACHE_MB` sizes the cache (default 2048, LRU).
+- Image: `python:3.12.16-slim-bookworm` pinned by digest, every package pinned (`requirements-api.txt`,
+  llama-cpp-python 0.3.36 built for portable AVX2), runs as a non-root user, read-only filesystem
+  in compose, port bound to 127.0.0.1. Already have the GGUF? Mount it and set `GEMMA_GGUF`
+  (commented lines in `docker-compose.yml`).
+- Without Docker: `pip install -r requirements-api.txt llama-cpp-python` then
+  `uvicorn helpdesk.api:app --port 8000`. `HELPDESK_LLM_BACKEND=http` uses a separate
+  llama-server instead; `none` runs without a model.
+
 ## Faster replies on CPU (prompt cache)
 Most reply time on a CPU is prefill (reading system prompt + passages).
 Start the server with a disk cache, then warm it once:
