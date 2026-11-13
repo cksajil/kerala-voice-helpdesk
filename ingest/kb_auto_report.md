@@ -2,37 +2,34 @@
 
 Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini output over OCR of the citizen charters). Curated entries (`data/kb.jsonl`, 50) are unchanged.
 
-- auto entries: **137**, verify=true: **63** (46%)
-- from official government domains only: 137
-- duplicate_of_auto 6, duplicate_of_curated 28, kept 137, one_charter 244, possible_duplicates 24
+- auto entries: **130**, verify=true: **60** (46%)
+- from official government domains only: 130
+- duplicate_of_auto 4, duplicate_of_curated 35, kept 130, one_charter 241, possible_duplicates 20
 
 | service | entries | verify=true |
 |---|---|---|
-| lsgd_other | 38 | 17 |
+| lsgd_other | 37 | 16 |
 | health | 27 | 7 |
-| certificate | 21 | 11 |
-| trade_licence | 14 | 10 |
+| certificate | 20 | 11 |
+| trade_licence | 13 | 10 |
 | general | 9 | 3 |
 | pet | 7 | 3 |
-| building_permit | 5 | 3 |
-| birth_death | 5 | 4 |
 | property_tax | 4 | 1 |
+| building_permit | 4 | 3 |
 | marriage | 3 | 3 |
-| pension | 2 | 1 |
+| birth_death | 3 | 2 |
 | unemployment | 1 | 0 |
 | grievance | 1 | 0 |
+| pension | 1 | 1 |
 
 ## Entries
 
 | id | service | charters | verify | title |
 |---|---|---|---|---|
 | auto-g5776c5d28a | marriage | 8 | yes | സാധുക്കളായ വിധവകളുടെ പെൺമക്കളുടെ വിവാഹത്തിനുള്ള ധനസഹായം |
-| auto-ga6581711a3 | building_permit | 8 | yes | കെട്ടിട നിർമ്മാണ പെർമിറ്റും പുതുക്കലും |
 | auto-gf3c2e97e65 | lsgd_other | 8 | yes | ഇൻഷുറൻസ് സേവനങ്ങൾ |
-| auto-g4aaee92266 | birth_death | 7 | yes | വിദേശത്തു നടന്ന ജനനങ്ങളുടെ രജിസ്ട്രേഷൻ |
 | auto-g9073ebee18 | unemployment | 7 | no | തൊഴിൽ കാർഡ് |
 | auto-ge08d6d43bf | certificate | 7 | yes | വയസ്സ് തെളിയിക്കുന്ന സർട്ടിഫിക്കറ്റ് |
-| auto-g094a422ab9 | pension | 6 | no | അഗതി പെൻഷൻ (വിധവ / വിവാഹമോചിതർ) |
 | auto-g3d0a18ef31 | property_tax | 6 | yes | ഒഴിഞ്ഞു കിടക്കുന്ന കെട്ടിടങ്ങൾക്ക് നികുതി ഇളവ് ചെയ്യൽ |
 | auto-g7031eac968 | property_tax | 6 | no | കെട്ടിട ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് / കൈമാറ്റം |
 | auto-g625f9aed68 | grievance | 5 | no | പൊതു പരാതികൾ |
@@ -40,7 +37,6 @@ Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini outpu
 | auto-gf42bbd96ff | lsgd_other | 5 | yes | ട്യൂട്ടോറിയൽ പാരാമെഡിക്കൽ സ്ഥാപനങ്ങളുടെ രജിസ്ട്രേഷൻ |
 | auto-g09016a4caa | trade_licence | 4 | no | ഫാക്ടറികൾ ആരംഭിക്കുന്നതിനുള്ള അനുമതി |
 | auto-g224c695cf2 | pet | 4 | yes | പക്ഷി മൃഗാദികളുടെ ചികിത്സ |
-| auto-g23c351ce62 | trade_licence | 4 | no | വ്യവസായ വ്യാപാര സ്ഥാപനങ്ങളുടെ ലൈസൻസ് |
 | auto-g2b066a30fd | lsgd_other | 4 | no | റോഡ് മുറിച്ച് പൈപ്പ് ഇടുന്നതിനുള്ള അനുമതി |
 | auto-g34bb9c356a | trade_licence | 4 | yes | ലൈവ് സ്റ്റോക്ക് ഫാം ലൈസൻസ് |
 | auto-g37328a8eb9 | lsgd_other | 4 | no | കൃത്രിമ ബീജസങ്കലനം |
@@ -56,6 +52,7 @@ Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini outpu
 | auto-g1fa77d5416 | health | 3 | yes | സാന്ത്വന പരിചരണവും ഭവന സന്ദർശനവും |
 | auto-g219886c2f5 | property_tax | 3 | no | കെട്ടിട നികുതി രജിസ്റ്ററിൽ താമസക്കാരന്റെ പേര് ചേർക്കൽ |
 | auto-g26b602d08d | health | 3 | yes | ഒ.പി. ചികിത്സയും ഔഷധവും |
+| auto-g2c40b7743a | trade_licence | 3 | yes | വ്യാപാര സ്ഥാപന ലൈസൻസ് |
 | auto-g38d6c5ce16 | certificate | 3 | no | വിടുതൽ സർട്ടിഫിക്കറ്റ് |
 | auto-g48ed1f4887 | certificate | 3 | no | കുടുംബബന്ധം സർട്ടിഫിക്കറ്റ് |
 | auto-g5f4a00ceb3 | lsgd_other | 3 | yes | ലൈവ് സ്റ്റോക്ക് ഫാം അനുമതി |
@@ -69,7 +66,6 @@ Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini outpu
 | auto-gb27ac91abd | health | 3 | no | കിടത്തി ചികിത്സാ വിഭാഗം |
 | auto-gb327cbddae | pet | 3 | no | മൃഗങ്ങൾക്കുള്ള ലൈസൻസ് / പ്രതിരോധം |
 | auto-gd4070f63e5 | health | 3 | no | ജനറൽ ഒ.പി / വൃദ്ധരോഗീ പരിചരണം |
-| auto-gd96ff857ec | certificate | 3 | no | പുനർ വിവാഹം കഴിച്ചിട്ടില്ലാത്ത സർട്ടിഫിക്കറ്റ് |
 | auto-gdfa0b82ce0 | certificate | 3 | yes | ബി.പി.എൽ. സർട്ടിഫിക്കറ്റ് |
 | auto-gdfaf55ae4e | certificate | 3 | yes | ചികിത്സാ സംബന്ധമായ സർട്ടിഫിക്കറ്റ് |
 | auto-ge785332755 | marriage | 3 | yes | വിവാഹ ധനസഹായം |
@@ -90,7 +86,6 @@ Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini outpu
 | auto-g17cfd3ae6e | general | 2 | no | ജെ.എൽ.ജി (ജോയിന്റ് ലയബിലിറ്റി ഗ്രൂപ്പ്) രജിസ്ട്രേഷൻ |
 | auto-g193b257202 | marriage | 2 | yes | വിവാഹ രജിസ്റ്റർ തിരുത്തൽ |
 | auto-g19efdd359a | lsgd_other | 2 | yes | കുടിൽ നിർമ്മാണം |
-| auto-g1a7fbd586e | trade_licence | 2 | yes | സ്വകാര്യ നഴ്സറി ലൈസൻസ് |
 | auto-g1b465cc34c | general | 2 | yes | വീട് മെയിന്റനൻസ് കിണർ മൂല്യനിർണ്ണയം |
 | auto-g1fe637ab9e | health | 2 | no | അംഗൻവാടി സേവനങ്ങളും ആരോഗ്യ പരിശോധനയും |
 | auto-g22eb708d1d | pet | 2 | no | ഓമനമൃഗങ്ങളുടെ ചികിത്സാ ഫീസ് |
@@ -129,6 +124,7 @@ Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini outpu
 | auto-g840e5e4785 | birth_death | 2 | yes | ജനന മരണ രജിസ്ട്രേഷനിലെ തിരുത്തലുകൾ |
 | auto-g85630f40e0 | health | 2 | yes | കന്നുകാലികളുടെ കൃത്രിമ ബീജസങ്കലനം |
 | auto-g86f99a0b3f | lsgd_other | 2 | yes | കോഴിവസന്ത പ്രതിരോധ കുത്തിവയ്പ് |
+| auto-g8ad81ace65 | building_permit | 2 | yes | കെട്ടിട നിർമ്മാണ പെർമിറ്റ് കാലാവധി നീട്ടൽ |
 | auto-g8cbd11c941 | lsgd_other | 2 | no | കൃഷിയുമായി ബന്ധപ്പെട്ട മറ്റ് ആനുകൂല്യങ്ങൾ |
 | auto-g8ddacc11b9 | trade_licence | 2 | yes | മരാധിഷ്ഠിത വ്യവസായങ്ങൾക്കുള്ള ലൈസൻസ് |
 | auto-g8ece90666f | certificate | 2 | no | പേരിലോ വീട്ടുപേരിലോ മാറ്റം വന്നതിനുള്ള തിരിച്ചറിയൽ സർട്ടിഫിക്കറ്റ് |
@@ -138,11 +134,9 @@ Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini outpu
 | auto-g99160ed47b | lsgd_other | 2 | no | കാർഷിക ആവശ്യത്തിനുള്ള വൈദ്യുതി കണക്ഷൻ |
 | auto-g9993298f6d | health | 2 | no | പോഷകാഹാര വിതരണം |
 | auto-g9a6cfdf881 | trade_licence | 2 | yes | ഫാക്ടറികൾക്കും വ്യവസായ സ്ഥാപനങ്ങൾക്കുമുള്ള ലൈസൻസ് |
-| auto-ga041c6989f | birth_death | 2 | yes | ജനന/മരണ രജിസ്ട്രേഷന് ജില്ലാ രജിസ്ട്രാറുടെ അനുവാദം വാങ്ങൽ |
 | auto-ga559146f19 | lsgd_other | 2 | yes | രേഖകൾ സാക്ഷ്യപ്പെടുത്തൽ |
 | auto-ga873b74c39 | trade_licence | 2 | yes | വ്യാപാര വ്യവസായ ഡി ആന്റ് ഒ ലൈസൻസ് |
 | auto-gad5e6ee6c6 | lsgd_other | 2 | yes | ഭവന നിർമ്മാണ പദ്ധതി ആനുകൂല്യ വിതരണം |
-| auto-gaf05ba30b9 | lsgd_other | 2 | yes | കെട്ടിട ഉടമസ്ഥാവകാശം കൈമാറ്റം ചെയ്യൽ |
 | auto-gaffd1df1b3 | building_permit | 2 | yes | ഒക്യുപൻസി സർട്ടിഫിക്കറ്റ് |
 | auto-gb4932d71c3 | pet | 2 | yes | മൃഗങ്ങൾക്കും പക്ഷികൾക്കുമുള്ള ചികിത്സ |
 | auto-gb7fd985508 | health | 2 | no | മാതൃ-ശിശു ആരോഗ്യ പരിപാലനം |
@@ -153,7 +147,6 @@ Built by `python -m ingest.kb_auto` from `data/canon.jsonl` (cached Gemini outpu
 | auto-gcd043a9729 | lsgd_other | 2 | yes | അനുപൂരക പോഷകാഹാര വിതരണം |
 | auto-gcf9e102ac9 | lsgd_other | 2 | yes | കിണർ നിർമ്മാണ അനുമതി |
 | auto-gd17e49d73f | trade_licence | 2 | yes | വളം നിർമ്മാണ ലൈസൻസ് |
-| auto-ge1b5ab0cf5 | building_permit | 2 | no | കെട്ടിടനിർമ്മാണ അനുമതിക്കുള്ള ശുപാർശ |
 | auto-ge5ae5141b0 | certificate | 2 | yes | സ്റ്റേജ് സർട്ടിഫിക്കറ്റ് |
 | auto-ge680ce8169 | general | 2 | no | ഉറവിട മാലിന്യ സംസ്കരണ സംവിധാനങ്ങൾ |
 | auto-geba0c50816 | health | 2 | no | ഡോക്ടറുടെ സേവനം ഒ.പി. |
@@ -170,20 +163,16 @@ Kept entries whose title half-matches a curated entry (0.5 <= coverage < DUP_SIM
 
 | id | title | closest curated | coverage |
 |---|---|---|---|
-| auto-g094a422ab9 | അഗതി പെൻഷൻ (വിധവ / വിവാഹമോചിതർ) | ch-pen-widow-01 | 0.70 |
 | auto-g48ed1f4887 | കുടുംബബന്ധം സർട്ടിഫിക്കറ്റ് | access-01 | 0.70 |
 | auto-g62826c38ac | രേഖകൾ സാക്ഷ്യപ്പെടുത്തൽ | ch-cert-pres-02 | 0.70 |
+| auto-g8ad81ace65 | കെട്ടിട നിർമ്മാണ പെർമിറ്റ് കാലാവധി നീട്ടൽ | ch-bp-docs-01 | 0.70 |
 | auto-ga559146f19 | രേഖകൾ സാക്ഷ്യപ്പെടുത്തൽ | ch-cert-pres-02 | 0.70 |
-| auto-ga6581711a3 | കെട്ടിട നിർമ്മാണ പെർമിറ്റും പുതുക്കലും | ch-bp-docs-01 | 0.68 |
 | auto-g7031eac968 | കെട്ടിട ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് / കൈമാറ്റം | ch-bt-own-01 | 0.67 |
 | auto-g1645082140 | ജനന-മരണ രജിസ്ട്രേഷൻ നോൺ അവൈലബിലിറ്റി സർട്ടിഫിക്കറ്റ് | cr-fee-02 | 0.67 |
 | auto-g840e5e4785 | ജനന മരണ രജിസ്ട്രേഷനിലെ തിരുത്തലുകൾ | cr-cert-01 | 0.67 |
 | auto-gcf9e102ac9 | കിണർ നിർമ്മാണ അനുമതി | building-01 | 0.67 |
 | auto-gaf96725235 | വിമുക്തഭടന്മാർക്കുള്ള കെട്ടിട നികുതി ഒഴിവാക്കൽ | ch-bt-appeal-01 | 0.62 |
 | auto-g5ed5360620 | കിണർ നിർമ്മാണ പെർമിറ്റ് | ch-bp-docs-01 | 0.60 |
-| auto-gaf05ba30b9 | കെട്ടിട ഉടമസ്ഥാവകാശം കൈമാറ്റം ചെയ്യൽ | ch-bt-own-01 | 0.60 |
-| auto-g4aaee92266 | വിദേശത്തു നടന്ന ജനനങ്ങളുടെ രജിസ്ട്രേഷൻ | ch-bd-abroad-01 | 0.53 |
-| auto-ge1b5ab0cf5 | കെട്ടിടനിർമ്മാണ അനുമതിക്കുള്ള ശുപാർശ | building-01 | 0.53 |
 | auto-g3d0a18ef31 | ഒഴിഞ്ഞു കിടക്കുന്ന കെട്ടിടങ്ങൾക്ക് നികുതി ഇളവ് ചെയ്യൽ | ch-bt-appeal-01 | 0.52 |
 | auto-g09016a4caa | ഫാക്ടറികൾ ആരംഭിക്കുന്നതിനുള്ള അനുമതി | building-01 | 0.50 |
 | auto-g219886c2f5 | കെട്ടിട നികുതി രജിസ്റ്ററിൽ താമസക്കാരന്റെ പേര് ചേർക്കൽ | ptax-01 | 0.50 |
@@ -201,35 +190,40 @@ Kept entries whose title half-matches a curated entry (0.5 <= coverage < DUP_SIM
 |---|---|---|
 | auto-gac684a4c64 | മരണ രജിസ്ട്രേഷനും സർട്ടിഫിക്കറ്റും | duplicate of curated cr-fee-01 |
 | auto-gc61693299e | ജനന മരണ സർട്ടിഫിക്കറ്റ് | duplicate of curated cr-cert-01 |
+| auto-g4aaee92266 | വിദേശത്തു നടന്ന ജനനങ്ങളുടെ രജിസ്ട്രേഷൻ | duplicate of curated ch-bd-abroad-01 |
 | auto-g7a61f6077c | ജനന രജിസ്റ്ററിൽ കുട്ടിയുടെ പേര് ചേർക്കൽ | duplicate of curated cr-fee-02 |
 | auto-g178eddb240 | ദത്തെടുക്കുന്ന കുട്ടികളുടെ ജനന രജിസ്ട്രേഷൻ | duplicate of curated ch-bd-adopt-01 |
 | auto-g13cc2aa21f | ജനന/മരണം വൈകി രജിസ്റ്റർ ചെയ്യൽ | duplicate of curated cr-fee-01 |
-| auto-g3959f4406c | ജനന മരണ വൈകിയുള്ള രജിസ്ട്രേഷൻ | duplicate of curated cr-fee-01 |
+| auto-g3959f4406c | ജനന മരണ വൈകിയുള്ള രജിസ്ട്രേഷൻ | duplicate of curated ch-bd-late-01 |
 | auto-gfec7624200 | ജനനം/മരണം രജിസ്റ്റർ ചെയ്തിട്ടില്ലെന്ന സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-bd-late-01 |
 | auto-gc806d98af4 | ജനന രജിസ്റ്ററിൽ പേര് ചേർക്കൽ | duplicate of curated cr-fee-02 |
 | auto-ge68894ca97 | കെട്ടിട നിർമ്മാണ പെർമിറ്റ് സേവനങ്ങൾ | duplicate of curated ch-bp-docs-01 |
 | auto-g486a79f175 | കെട്ടിട നിർമ്മാണ അനുമതി | duplicate of curated building-01 |
+| auto-ga6581711a3 | കെട്ടിട നിർമ്മാണ പെർമിറ്റും പുതുക്കലും | duplicate of curated building-01 |
 | auto-ga5d95c177b | താമസ സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-bt-res-01 |
 | auto-gdee42aaa0c | സ്വഭാവ സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-cert-pres-02 |
 | auto-g9945266af5 | കെട്ടിട ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-bt-own-01 |
 | auto-g78d23a9af2 | വിവാഹ സർട്ടിഫിക്കറ്റ് | duplicate of curated cr-cert-01 |
 | auto-g97a01bf2a2 | റേഷൻ കാർഡിൽ പേരില്ലാത്ത സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-cert-pres-01 |
 | auto-g192dc9b7e7 | കുടുംബശ്രീ രജിസ്ട്രേഷൻ | duplicate of curated access-01 |
+| auto-ge1b5ab0cf5 | കെട്ടിടനിർമ്മാണ അനുമതിക്കുള്ള ശുപാർശ | duplicate of curated building-01 |
 | auto-g76fc7be8e8 | മെഡിക്കൽ സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-phc-01 |
 | auto-ge44bc1169b | ഹെൽത്ത് കാർഡും ഫിറ്റ്‌നസ് സർട്ടിഫിക്കറ്റും | duplicate of curated ch-phc-01 |
+| auto-gaf05ba30b9 | കെട്ടിട ഉടമസ്ഥാവകാശം കൈമാറ്റം ചെയ്യൽ | duplicate of curated ch-bt-transfer-01 |
+| auto-ga041c6989f | ജനന/മരണ രജിസ്ട്രേഷന് ജില്ലാ രജിസ്ട്രാറുടെ അനുവാദം വാങ്ങൽ | duplicate of curated ch-bd-late-01 |
 | auto-gc9656b3c1d | വികലാംഗ പെൻഷൻ | duplicate of curated ch-pen-disab-01 |
+| auto-gd96ff857ec | പുനർ വിവാഹം കഴിച്ചിട്ടില്ലാത്ത സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-pen-unmarried-01 |
 | auto-g94b3c7a766 | അവിവാഹിത സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-pen-unmarried-01 |
+| auto-g094a422ab9 | അഗതി പെൻഷൻ (വിധവ / വിവാഹമോചിതർ) | duplicate of curated ch-pen-widow-01 |
 | auto-ged71a63f8f | ഇന്ദിരാഗാന്ധി ദേശീയ വാർദ്ധക്യകാല പെൻഷൻ | duplicate of curated ch-pen-old-01 |
 | auto-ga6479df354 | അവിവാഹിതരായ സ്ത്രീകൾക്കുള്ള പെൻഷൻ | duplicate of curated ch-pen-unmarried-01 |
 | auto-gd36ef32da6 | ഭിന്നശേഷി പെൻഷൻ | duplicate of curated ch-pen-disab-01 |
 | auto-g5ddc51581e | അവിവാഹിത പെൻഷൻ | duplicate of curated ch-pen-amount-01 |
-| auto-gd3a1514c7a | പട്ടി, പന്നി എന്നിവ വളർത്തുന്നതിനുള്ള ലൈസൻസ് | duplicate of curated ch-pet-01 |
 | auto-g1731f9b177 | ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് | duplicate of curated ch-bt-own-01 |
 | auto-g007e6e0e5e | കെട്ടിട നികുതി ഒഴിവാക്കൽ | duplicate of curated ch-bt-appeal-01 |
+| auto-g23c351ce62 | വ്യവസായ വ്യാപാര സ്ഥാപനങ്ങളുടെ ലൈസൻസ് | duplicate of curated trade-02 |
 | auto-gcb52ac21d3 | തൊഴിൽരഹിത വേതനം | duplicate of curated ch-unemp-01 |
-| auto-g2c40b7743a | വ്യാപാര സ്ഥാപന ലൈസൻസ് | near-duplicate of auto-g23c351ce62 |
 | auto-g42d138cba7 | ട്യൂട്ടോറിയൽ സ്ഥാപനങ്ങളുടെ രജിസ്ട്രേഷൻ | near-duplicate of auto-gf42bbd96ff |
-| auto-g8ad81ace65 | കെട്ടിട നിർമ്മാണ പെർമിറ്റ് കാലാവധി നീട്ടൽ | near-duplicate of auto-ga6581711a3 |
 | auto-g96ba374284 | തൊഴിൽ കാർഡ് രജിസ്ട്രേഷൻ | near-duplicate of auto-g9073ebee18 |
 | auto-ga0e41f579f | മൃഗങ്ങൾക്കുള്ള പ്രതിരോധ കുത്തിവെയ്പ് | near-duplicate of auto-gad17761b98 |
 | auto-ge221a677d8 | വിവാഹ രജിസ്ട്രേഷനിലെ തിരുത്തലുകൾ | near-duplicate of auto-g193b257202 |

@@ -4,146 +4,146 @@
   "page": "https://cdn.web.lsgkerala.gov.in/G050504/public-files/2026-06/%E0%B4%AA%E0%B5%8C%E0%B4%B0%E0%B4%BE%E0%B4%B5%E0%B4%95%E0%B4%BE%E0%B4%B6%20%E0%B4%B0%E0%B5%87%E0%B4%96_0.pdf",
   "sha256": "4d6b4849918d214c552112273dfb5c8af62bcd9da6149b093f1a3064b133c6cc",
   "bytes": 856079,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "kuravilangad-gp-2026": {
   "url": "https://cdn.web.lsgkerala.gov.in/G050405/public-files/2026-08/%E0%B4%AA%E0%B5%97%E0%B4%B0%E0%B4%BE%E0%B4%B5%E0%B4%95%E0%B4%BE%E0%B4%B6%E0%B4%B0%E0%B5%87%E0%B4%96%20%E0%B4%95%E0%B5%81%E0%B4%B1%E0%B4%B5%E0%B4%BF%E0%B4%B2%E0%B4%99%E0%B5%8D%E0%B4%99%E0%B4%BE%E0%B4%9F%E0%B5%8D%20GP_compressed.pdf",
   "page": "https://cdn.web.lsgkerala.gov.in/G050405/public-files/2026-08/%E0%B4%AA%E0%B5%97%E0%B4%B0%E0%B4%BE%E0%B4%B5%E0%B4%95%E0%B4%BE%E0%B4%B6%E0%B4%B0%E0%B5%87%E0%B4%96%20%E0%B4%95%E0%B5%81%E0%B4%B1%E0%B4%B5%E0%B4%BF%E0%B4%B2%E0%B4%99%E0%B5%8D%E0%B4%99%E0%B4%BE%E0%B4%9F%E0%B5%8D%20GP_compressed.pdf",
   "sha256": "6d2bbeb9837dec629525429706e5b5e92abf2f42c8dbb6ebdb2526508f624c55",
   "bytes": 804696,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "ongallur-gp-2026": {
   "url": "https://cdn.web.lsgkerala.gov.in/G090204/public-files/2026-07/Pouravakasha%20rekha%202026%20Ongallur_compressed.pdf",
   "page": "https://cdn.web.lsgkerala.gov.in/G090204/public-files/2026-07/Pouravakasha%20rekha%202026%20Ongallur_compressed.pdf",
   "sha256": "00efe2f86a106c02d16abee31af933a06bfc9944d7dac7fd1d7bf918234178a5",
   "bytes": 926924,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "elikulam-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G050702/public-files/2026-05/Layout%20%283%29_compressed.pdf",
   "page": "https://elikulampanchayat.lsgkerala.gov.in/en/node/37",
   "sha256": "5cb9bd312ee0f8c3f8d8ae137f3a756d6b29bc2d23f672ad5416a643def98d1e",
   "bytes": 1552219,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "nooranad-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G041101/public-files/2026-05/pouravaksha%20rekha.pdf",
   "page": "https://nooranadpanchayat.lsgkerala.gov.in/en/node/42",
   "sha256": "10aac0f0ea8e5222037f8ec7233bb728d8dae9de1326f60996d475ff7424d261",
   "bytes": 617067,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "kannamangalam-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G101006/public-files/2026-05/%E0%B4%AA%E0%B5%97%E0%B4%B0%E0%B4%BE%E0%B4%B5%E0%B4%95%E0%B4%BE%E0%B4%B6%20%E0%B4%B0%E0%B5%87%E0%B4%96%202024.pdf",
   "page": "https://kannamangalampanchayat.lsgkerala.gov.in/en/node/52",
   "sha256": "8d651a1908e1b4940347f01a2d00d6cba1eba98d32f2cf78b0185a0069121e3e",
   "bytes": 170560,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "kaipamangalam-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G081402/public-files/2026-05/Pouravakasha%20Rekha%202025_0.pdf",
   "page": "https://kaipamangalampanchayat.lsgkerala.gov.in/en/node/46",
   "sha256": "4ed78da8eb9c124c1ecc6f5c9e80eb16f0e121ee481d93d5f634bc9febd9b336",
   "bytes": 253390,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "ranni-perunad-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G030504/public-files/2026-05/Ranni%20Perunad%20GP-Pouravakasa%20rekha%202025.pdf",
   "page": "https://ranniperunadupanchayat.lsgkerala.gov.in/en/node/51",
   "sha256": "834cbf7e3ec4f482d5702e718d988543c152a2c61e7089201fe8438617d70a87",
   "bytes": 1243919,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "thalayolaparambu-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G050205/public-files/2026-09/Pouravakasha%20rekha.pdf",
   "page": "https://thalayolaparambupanchayat.lsgkerala.gov.in/en/page/citizen-charter",
   "sha256": "c04882a1a2f74ac4ef71e5ec138d8a52e4dd44d781541823c93f662b003cb5a8",
   "bytes": 1370755,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "kanjikuzhy-idukki-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G060501/public-files/2026-05/pauravakasha%20rekha%20-%20renewal%20%202026_0.pdf",
   "page": "https://idukkikanjikuzhypanchayat.lsgkerala.gov.in/en/node/44",
   "sha256": "c74299ce63c0d2fab5f1b622aef4b4eb6292475a30ea819e3531dd17589d339d",
   "bytes": 384598,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "ayarkunnam-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G050801/public-files/2026-05/POWRAVAKASHA%20REKHA.pdf",
   "page": "https://ayarkunnampanchayat.lsgkerala.gov.in/en/node/57",
   "sha256": "b09fd5fccb862c1ffaef24b5e2d5c7fa9d6d77b6cdb7f9d42d4904f4536b3635",
   "bytes": 1444057,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "poothrikka-gp": {
   "url": "https://poothrikkapanchayat.lsgkerala.gov.in/en/node/43",
   "page": "https://poothrikkapanchayat.lsgkerala.gov.in/en/node/43",
-  "sha256": "2dfb07f50de28d84c522124901255659a741b9cddeecd791836ca6079d6b34fa",
+  "sha256": "3a9af6193e1db2eb2f5b7102b49363c1a08e761b09ff1e0daedff457c674c60a",
   "bytes": 94645,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "pandanad-gp": {
   "url": "https://pandanadpanchayat.lsgkerala.gov.in/en/node/45",
   "page": "https://pandanadpanchayat.lsgkerala.gov.in/en/node/45",
   "sha256": "b3e374b72bd96c01b0cd25ddd65f44b3e40d2193ff0e1512bf7141255b3123fb",
   "bytes": 44126,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "niramaruthur-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G101207/public-files/2026-09/pauravakasharekha2023.pdf",
   "page": "https://niramaruthurpanchayat.lsgkerala.gov.in/en/node/52",
   "sha256": "d738855f5643cc42d63f3d702890ca9cd64cf8b884de3673289455fa17e64297",
   "bytes": 1635866,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "koppam-gp": {
   "url": "https://koppampanchayat.lsgkerala.gov.in/en/node/56",
   "page": "https://koppampanchayat.lsgkerala.gov.in/en/node/56",
-  "sha256": "7244353c50b4e2158e71d9e04309fa96ea6bc3d988dc503f905c1da3e20b1f67",
+  "sha256": "6727d149763fed7349b7ab1c8cf30acfd3d8db06a80623515e66e4babe4c7850",
   "bytes": 128558,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "pulincunnoo-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G040705/public-files/2026-05/CITIZEN%20CHARTER%202026.pdf",
   "page": "https://pulincunnoopanchayat.lsgkerala.gov.in/en/node/56",
   "sha256": "f44d4e2d7ecae53024c669a9bec6e8946aedbc70891a2fccd1fbf2b5ac9bb88d",
   "bytes": 1867833,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "kanhirapuzha-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G090505/public-files/2026-05/CitizenCharter_PanchayatDept%20Edited_0.pdf",
   "page": "https://kanhirapuzhapanchayat.lsgkerala.gov.in/en/node/45",
   "sha256": "54d9225872a64ff6b2f7fbd43a1bfdf58c976c895fed0648b782892ef7f2e84e",
   "bytes": 304912,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "eruthenpathy-gp": {
   "url": "https://eruthenpathypanchayat.lsgkerala.gov.in/en/node/35",
   "page": "https://eruthenpathypanchayat.lsgkerala.gov.in/en/node/35",
   "sha256": "53aacfce2a3c5267cfbdcfa3c2a825af138be42dae93596dea3f0a31e54175ae",
   "bytes": 71999,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "chadayamangalam-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G021103/public-files/2026-07/%E0%B4%AA%E0%B5%8C%E0%B4%B0%E0%B4%BE%E0%B4%B5%E0%B4%95%E0%B4%BE%E0%B4%B6%20%E0%B4%B0%E0%B5%87%E0%B4%96.pdf",
   "page": "https://chadayamangalampanchayat.lsgkerala.gov.in/en/node/94",
   "sha256": "2d3ccbd012a107ced7521f5420fb7b326c2e944dbf388f7d0158a97c0cdd8a5a",
   "bytes": 1469798,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "rayamangalam-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G070404/public-files/2026-05/pouravakasha%20rekha%20%282%29.pdf",
   "page": "https://rayamangalampanchayat.lsgkerala.gov.in/en/node/47",
   "sha256": "bd148ba64372375207008260122a387a149962273fe64f25c7190679c86312e7",
   "bytes": 645042,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  },
  "vijayapuram-gp": {
   "url": "https://cdn.web.lsgkerala.gov.in/G050804/public-files/2026-05/powravakasa%20rekha.pdf",
   "page": "https://vijayapurampanchayat.lsgkerala.gov.in/en/page/citizen-charter-2026",
   "sha256": "0f1b665e5fd9ec620dfd78d51be425e25674a183ee0884d19cae8a2cb49d247c",
   "bytes": 892049,
-  "fetched": "2026-11-09"
+  "fetched": "2026-11-13"
  }
 }

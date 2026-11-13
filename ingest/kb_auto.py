@@ -150,12 +150,25 @@ def best_match(entry: dict, curated: list[dict]) -> tuple[float, str | None]:
     return best
 
 
+_OTHER_SCRIPT = re.compile(r"[\u0900-\u0CFF\u0D80-\u0DFF]")
+
+
 def duplicate_of(entry: dict, curated: list[dict]) -> str | None:
-    """Dropped when a curated entry already answers this service: best_match >= DUP_SIM, or a half
-    match (>= 0.5, same service) whose every distinctive title word occurs in the curated entry."""
+    """Dropped when a curated entry already answers this service:
+    - best_match >= DUP_SIM, or
+    - at least half of the model's Malayalam synonyms for the service (two or more) are fully covered
+      by curated titles/questions ("അഗതി പെൻഷൻ": വിധവാ പെൻഷൻ, വിവാഹമോചിത പെൻഷൻ). Half, not one: a
+      synonym can be broader than the service (ex-servicemen's exemption lists "കെട്ടിട നികുതി ഇളവ്"), or
+    - a half match (>= 0.5, same service) whose every distinctive title word occurs in the curated entry."""
     cov, cid = best_match(entry, curated)
     if cov >= DUP_SIM:
         return cid
+    syns = [x for x in entry.get("synonyms", []) if _ML.search(x) and not _OTHER_SCRIPT.search(x)]
+    if len(syns) >= 2:
+        hits = [best_match({**entry, "title": x}, curated) for x in syns]
+        full = [h for h in hits if h[0] >= 0.8]
+        if len(full) * 2 >= len(syns):
+            return Counter(h[1] for h in full).most_common(1)[0][0]
     for c in curated:
         if c["service"] != entry["service"]:
             continue
@@ -248,7 +261,7 @@ def build(canon: list[dict], curated: list[dict], rows: dict, cache: dict, manif
             "kind": "kb_auto", "lsgis": lsgis, "agreed_by": lsgis, "members": c.get("members", []),
             "origin": "ingest.kb_auto from ingest.canon (Gemini, cached) over OCR of citizen charters",
         }
-        dup = duplicate_of(entry, curated)
+        dup = duplicate_of({**entry, "synonyms": [str(x) for x in raw.get("synonyms_ml") or []]}, curated)
         if dup:
             stats["duplicate_of_curated"] += 1
             dropped.append((entry["id"], entry["title"], f"duplicate of curated {dup}"))

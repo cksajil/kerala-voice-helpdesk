@@ -1,4 +1,3 @@
-# Website changes (2026-11-09)
+# Website changes (2026-11-13)
 
-- NEW https://lsgkerala.gov.in/en/e-governance — e-Governance
-- NEW http://lsgkerala.gov.in/en/e-governance — e-Governance
+No changes.
