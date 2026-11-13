@@ -44,27 +44,31 @@ base = {"GEMMA_GGUF": gguf, "N_THREADS": "2", "OMP_NUM_THREADS": "2", "MKL_NUM_T
         "HELPDESK_CANON": "1", "HELPDESK_CTX_K": "1", "TOKENIZERS_PARALLELISM": "false"}
 
 
-# llama-server: latest llama.cpp release for Ubuntu x64 (CPU). Asset names changed over time
-# (llama-bXXXX-bin-ubuntu-x64.zip, later .tar.gz): pick by pattern and log the candidates.
-import requests, re as _re
-rel = requests.get("https://api.github.com/repos/ggml-org/llama.cpp/releases/latest", timeout=30).json()
-names = [a["name"] for a in rel.get("assets", [])]
-(OUT / "llama_release_assets.txt").write_text(rel.get("tag_name", "") + "\n" + "\n".join(names))
-cands = [a for a in rel["assets"] if _re.search(r"ubuntu", a["name"]) and _re.search(r"x64|x86_64|amd64", a["name"])
-         and not _re.search(r"vulkan|cuda|rocm|hip|sycl|openvino|musa|kompute|arm|aarch64|s390", a["name"], _re.I)
-         and _re.search(r"\.(zip|tar\.gz|tgz)$", a["name"])]
-asset = sorted(cands, key=lambda a: len(a["name"]))[0]
-zpath = Path("/kaggle/working") / asset["name"]
-zpath.write_bytes(requests.get(asset["browser_download_url"], timeout=600).content)
-dest = Path("/kaggle/working/llamacpp"); dest.mkdir(exist_ok=True)
-if asset["name"].endswith(".zip"):
-    zipfile.ZipFile(zpath).extractall(dest)
-else:
-    tarfile.open(zpath).extractall(dest)
-binary = next(p for p in dest.rglob("llama-server") if p.is_file())
-binary.chmod(0o755)
-(OUT / "llama_server_release.txt").write_text(rel.get("tag_name", "") + " " + asset["name"])
-libdirs = sorted({str(p.parent) for p in dest.rglob("*.so*")} | {str(binary.parent)})
+# llama-server built from the llama.cpp source vendored in the same llama-cpp-python release, with the
+# same native CPU flags, so both back ends run the same llama.cpp code. (Release binaries were the
+# first plan; the repo's "latest" release no longer carries them.)
+import llama_cpp as _lc
+ver = _lc.__version__
+sh(f"{sys.executable} -m pip download -q --no-binary :all: --no-deps llama-cpp-python=={ver} -d /kaggle/working/sdist", timeout=1800)
+sdist = next(Path("/kaggle/working/sdist").glob("llama_cpp_python-*.tar.gz"))
+tarfile.open(sdist).extractall("/kaggle/working/sdist")
+src = next(Path("/kaggle/working/sdist").glob("llama_cpp_python-*/vendor/llama.cpp"))
+code, _ = sh(f"cmake -S {src} -B /kaggle/working/lcbuild -DGGML_NATIVE=ON -DLLAMA_BUILD_SERVER=ON -DLLAMA_CURL=OFF "
+             f"-DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build /kaggle/working/lcbuild --target llama-server -j 4",
+             timeout=3600)
+note = f"built from llama-cpp-python {ver} vendor/llama.cpp"
+if code != 0 or not any(p.is_file() for p in Path("/kaggle/working/lcbuild").rglob("llama-server")):
+    # The sdist may leave out the server sources: fall back to llama.cpp master, and say so.
+    shutil.rmtree("/kaggle/working/lcbuild", ignore_errors=True)
+    sh("git clone -q --depth 1 https://github.com/ggml-org/llama.cpp /kaggle/working/llamacpp_src", timeout=1800)
+    code, _ = sh("cmake -S /kaggle/working/llamacpp_src -B /kaggle/working/lcbuild -DGGML_NATIVE=ON -DLLAMA_CURL=OFF "
+                 "-DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build /kaggle/working/lcbuild "
+                 "--target llama-server -j 4", timeout=3600)
+    _, head = sh("git -C /kaggle/working/llamacpp_src log -1 --format='%h %cs'")
+    note = f"built from llama.cpp master {head.strip()} (NOT the version vendored in llama-cpp-python {ver})"
+binary = next(p for p in Path("/kaggle/working/lcbuild").rglob("llama-server") if p.is_file())
+(OUT / "llama_server_release.txt").write_text(note)
+libdirs = [str(binary.parent)]
 code, out = sh(f"{sys.executable} -m eval.bench_llama --server-bin {binary} --gguf {gguf} --threads 2",
                env={**base, "LD_LIBRARY_PATH": ":".join(libdirs)}, timeout=3 * 3600)
 (OUT / "bench_log.txt").write_text(out[-30000:])
