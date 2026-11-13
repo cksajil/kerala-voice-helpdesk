@@ -29,7 +29,7 @@ Kaggle CPU with **2 threads**, BM25, curated + charter knowledge base (`HELPDESK
 |---|---|---|
 | Routing | 38/46 | 44/46 |
 | Right passage first (hit@1) / in top 3 (hit@3), service questions | 19/24 / 23/24 | 20/24 / 23/24 |
-| Service answers correct (automatic; hand check agrees on the total) | 16/24 | 16/24 |
+| Service answers correct: automatic / by hand (Claude's labels) | 16/24 / 16/24 | 16/24 / 17/24 |
 | Fees exactly right | 5/8 | 5/8 |
 | News | 3/5 | 5/5 |
 | Weather (routing and district right) | 1/5 | 5/5 (answer needs Open-Meteo up: 0/5 in one re-run when it was down) |
