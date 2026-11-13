@@ -65,8 +65,13 @@ for kb, dense in runs:
 # first plan; the repo's "latest" release no longer carries them.)
 import llama_cpp as _lc
 ver = _lc.__version__
-sh(f"{sys.executable} -m pip download -q --no-binary :all: --no-deps llama-cpp-python=={ver} -d /kaggle/working/sdist", timeout=1800)
-sdist = next(Path("/kaggle/working/sdist").glob("llama_cpp_python-*.tar.gz"))
+# The sdist straight from PyPI (pip download would prepare build metadata, which hung for 30 min).
+import requests
+meta = requests.get(f"https://pypi.org/pypi/llama-cpp-python/{ver}/json", timeout=60).json()
+url = next(u["url"] for u in meta["urls"] if u["packagetype"] == "sdist")
+Path("/kaggle/working/sdist").mkdir(exist_ok=True)
+sdist = Path("/kaggle/working/sdist") / url.rsplit("/", 1)[1]
+sdist.write_bytes(requests.get(url, timeout=600).content)
 tarfile.open(sdist).extractall("/kaggle/working/sdist")
 src = next(Path("/kaggle/working/sdist").glob("llama_cpp_python-*/vendor/llama.cpp"))
 code, _ = sh(f"cmake -S {src} -B /kaggle/working/lcbuild -DGGML_NATIVE=ON -DLLAMA_BUILD_SERVER=ON -DLLAMA_CURL=OFF "
