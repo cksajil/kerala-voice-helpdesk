@@ -37,16 +37,23 @@ _ROBOTS: dict[str, RobotFileParser | None] = {}
 
 
 def allowed(url: str) -> bool:
-    """robots.txt says this user agent may fetch url (an unreachable robots.txt allows)."""
+    """robots.txt says this user agent may fetch url. RFC 9309: a robots.txt that does not exist
+    (4xx) allows everything; one that cannot be read (5xx, timeout, network error) disallows
+    everything, so a site that is down or blocking us is not crawled by accident."""
     parts = urlsplit(url)
     root = f"{parts.scheme}://{parts.netloc}"
     if root not in _ROBOTS:
         rp = RobotFileParser()
         try:
             r = requests.get(root + "/robots.txt", headers=UA, timeout=20)
-            rp.parse(r.text.splitlines() if r.status_code == 200 else [])
+            if 200 <= r.status_code < 300:
+                rp.parse(r.text.splitlines())
+            elif 400 <= r.status_code < 500:
+                rp.parse([])
+            else:
+                rp.disallow_all = True
         except requests.RequestException:
-            rp.parse([])
+            rp.disallow_all = True
         _ROBOTS[root] = rp
     return _ROBOTS[root].can_fetch(UA["User-Agent"], url)
 

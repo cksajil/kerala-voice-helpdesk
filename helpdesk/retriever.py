@@ -25,6 +25,16 @@ DOCS_PATH = Path(__file__).resolve().parent.parent / "data" / "docs.jsonl"
 # 1.5 was enough with 2 charters; with 22, a service has dozens of charter rows and one of them
 # outranked the curated "₹120 a month" entry for "തൊഴിലില്ലായ്മ വേതനം എത്ര".
 TIER1_BOOST = float(os.getenv("HELPDESK_TIER1_BOOST", "2.0"))
+# Entries built from the charters (ingest.kb_auto, HELPDESK_KB_AUTO=1) are Tier 1 in schema but not
+# hand-checked: at the curated boost they outranked curated entries in the conversation tests
+# (widow pension amount, property tax rate). Chosen on the synth dev split and the conversation tests.
+AUTO_BOOST = float(os.getenv("HELPDESK_AUTO_BOOST", "1.0"))
+
+
+def tier_boost(d: dict) -> float:
+    if d.get("kind") == "kb_auto":
+        return AUTO_BOOST
+    return TIER1_BOOST if d.get("tier", 1) == 1 else 1.0
 # Charter prose (scheme descriptions, notes) is long and mentions many services in passing: a
 # pension paragraph that says "വിവാഹം" outranked every marriage entry for "വിവാഹം കഴിഞ്ഞു രണ്ടു
 # മാസമായി". It still answers when nothing better matches.
@@ -61,6 +71,9 @@ def load_kb(path: Path = KB_PATH) -> list[dict]:
 
 
 CANON_PATH = Path(__file__).resolve().parent.parent / "data" / "canon.jsonl"
+# Tier-1-schema entries built from the charters by ingest/kb_auto.py. Off until the held-out eval
+# (eval/heldout_v1.jsonl) shows they help: HELPDESK_KB_AUTO=1.
+KB_AUTO_PATH = Path(__file__).resolve().parent.parent / "data" / "kb_auto.jsonl"
 
 
 def load_all() -> list[dict]:
@@ -81,6 +94,16 @@ def load_all() -> list[dict]:
                 c["vocab"] = " ".join(rows[m]["title"] + " " + rows[m]["text"]
                                       for m in c.get("members", []) if m in rows)
             tier2 = canon + [d for d in tier2 if d["id"] not in replaced]
+        if os.getenv("HELPDESK_KB_AUTO", "0") == "1" and KB_AUTO_PATH.exists():
+            # A promoted service replaces its canonical passage and its charter rows; the rows'
+            # words stay as follow-up vocabulary, as for canon.
+            auto = [{**d, "tier": 1} for d in load_kb(KB_AUTO_PATH)]
+            gone = {m for a in auto for m in a.get("members", [])} | {"canon-" + a["id"].removeprefix("auto-") for a in auto}
+            rows = {d["id"]: d for d in load_kb(DOCS_PATH)}
+            for a in auto:
+                a["vocab"] = " ".join(rows[m]["title"] + " " + rows[m]["text"] for m in a.get("members", []) if m in rows)
+            docs += auto
+            tier2 = [d for d in tier2 if d["id"] not in gone]
         docs += tier2
     return docs
 
@@ -221,7 +244,7 @@ class Retriever:
             pool = list(range(len(self.docs)))
         scores = self.bm25.get_scores(tokens(query))
         bm = {i: scores[i] * (1 + FACET_BOOST if facet and facet in self.docs[i].get("facets", []) else 1)
-              * (TIER1_BOOST if self.docs[i].get("tier", 1) == 1 else 1)
+              * tier_boost(self.docs[i])
               * (PROSE_WEIGHT if self.docs[i].get("kind") == "prose" else 1)
               * (CANON_WEIGHT if self.docs[i].get("kind") == "canon" else 1) for i in pool}
         order_bm = sorted(pool, key=lambda i: -bm[i])
@@ -288,7 +311,7 @@ class Retriever:
             # Then: how much of the title the question covers (a 3-word service title over a
             # 15-word OCR line that shares one word), rows over prose, BM25.
             key = (round(score, 2), round(self._coverage(qw, i), 2), d.get("kind") != "prose",
-                   scores[i] * (TIER1_BOOST if d.get("tier", 1) == 1 else 1), matched)
+                   scores[i] * tier_boost(d), matched)
             if matched and key > best_key:
                 best, best_key = i, key
         if best is None or (best_key[4] < 2 and best_key[3] < BM25_MIN):

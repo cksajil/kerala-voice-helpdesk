@@ -111,6 +111,9 @@ def answer_message(ctx: str, query: str) -> str:
 def attribution(sources: list[dict]) -> str:
     """Spoken source for Tier-2 answers: one panchayat's charter may differ from yours."""
     top = sources[0] if sources else {}
+    if top.get("kind") == "kb_auto":                 # built from charters (ingest.kb_auto), not hand-checked
+        return (" (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+                if top.get("verify") else " (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം.)")
     if top.get("tier") != 2:
         return ""
     if top.get("site"):
@@ -258,7 +261,8 @@ def build_graph(retriever: Retriever | None = None):
                 # A curated entry that answers the asked amount/time stays: "തൊഴിലില്ലായ്മ വേതനം
                 # എത്ര" is the Tier-1 ₹120 entry, not a charter row about distributing it.
                 answers = (facet in STRICT_FACETS and facet in hits[0].doc.get("facets", [])
-                           and (facet not in h.doc.get("facets", []) or hits[0].doc.get("tier", 1) == 1))
+                           and (facet not in h.doc.get("facets", [])
+                                or (hits[0].doc.get("tier", 1) == 1 and hits[0].doc.get("kind") != "kb_auto")))
                 # At least one more distinctive word, matched well (>= 0.8): "വിധവ പെൻഷൻ" beats a
                 # "ഭിന്നശേഷി പെൻഷൻ" entry BM25 put first; "സർവീസുകൾ" (a 0.6 stem match) does not move
                 # an Akshaya question to the service-charge entry.

@@ -29,19 +29,25 @@ from pathlib import Path
 SYNTH = Path(__file__).with_name("synth_questions.jsonl")
 
 
-def evaluate(qs: list[dict], canon: bool, show: int = 0) -> dict:
+def _same_as_canon(i: str) -> str:
+    """An ingest.kb_auto entry is its canonical service promoted: auto-<g> answers what canon-<g> did."""
+    return "canon-" + i[5:] if i and i.startswith("auto-") else i
+
+
+def evaluate(qs: list[dict], canon: bool, show: int = 0, kb_auto: bool = False) -> dict:
     os.environ["HELPDESK_LLM"] = "none"
     os.environ["HELPDESK_CANON"] = "1" if canon else "0"
+    os.environ["HELPDESK_KB_AUTO"] = "1" if kb_auto else "0"
     from helpdesk.graph import build_graph
     from helpdesk.retriever import Retriever
     from ingest.canon import title_similarity
     retr = Retriever(dense=os.getenv("HELPDESK_DENSE", "0") == "1")
     graph = build_graph(retr)
-    meta = {d["id"]: (d.get("service", ""), d.get("title", "")) for d in retr.docs}
+    meta = {_same_as_canon(d["id"]): (d.get("service", ""), d.get("title", "")) for d in retr.docs}
     by_kind, misses, why, per_q = defaultdict(lambda: [0, 0, 0]), [], Counter(), []
     for q in qs:
         s = graph.invoke({"query": q["q"]})
-        ids = [x.get("id") for x in s.get("sources") or []]
+        ids = [_same_as_canon(x.get("id")) for x in s.get("sources") or []]
         if q["kind"] == "out_of_scope":
             ok = s["route"] == "other"
             reason = "" if ok else f"answered ({s['route']})"
@@ -73,13 +79,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", default="test", choices=["test", "dev", "all"])
     ap.add_argument("--show", type=int, default=0)
+    ap.add_argument("--kb-auto", action="store_true",
+                    help="compare canonical services (the Space) with canonical services + ingest.kb_auto entries")
     args = ap.parse_args()
     qs = [json.loads(l) for l in SYNTH.open(encoding="utf-8") if l.strip()]
     qs = [q for q in qs if args.split == "all" or q["split"] == args.split]
     print(f"{len(qs)} questions ({args.split}): {dict(Counter(q['kind'] for q in qs))}")
     report = {}
-    for name, canon in (("baseline (charter rows)", False), ("canonical services", True)):
-        r = evaluate(qs, canon, args.show)
+    runs = ((("canonical services", True, False), ("canon + kb_auto", True, True)) if args.kb_auto else
+            (("baseline (charter rows)", False, False), ("canonical services", True, False)))
+    for name, canon, auto in runs:
+        r = evaluate(qs, canon, args.show, kb_auto=auto)
         report[name] = r
         t = r["total"]
         kinds = "  ".join(f"{k} {v[0]}|{v[2]}/{v[1]}" for k, v in sorted(r["by_kind"].items()))
