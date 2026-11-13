@@ -76,7 +76,10 @@ def _load_towns() -> dict:
             if line.strip():
                 d = json.loads(line)
                 stems = d["stems"] or [_town_stem(d["ml"])]
-                out[d["key"]] = (d["ml"], stems + [d["en"].lower()], d["district"], d["lat"], d["lon"])
+                lat, lon = d["lat"], d["lon"]
+                if lat is None:                  # not geocoded: the district centre, said in the reply
+                    _, _, lat, lon = DISTRICTS[d["district"]]
+                out[d["key"]] = (d["ml"], stems + [d["en"].lower()], d["district"], lat, lon)
     return out
 
 
@@ -119,6 +122,8 @@ def weather(query: str) -> dict:
     if place:
         name, key, lat, lon = place
         name_ml = f"{name} ({DISTRICTS[key][0]} ജില്ല)"
+        if (lat, lon) == DISTRICTS[key][2:]:          # town without coordinates: say whose weather it is
+            name_ml = f"{DISTRICTS[key][0]} ജില്ലാ കേന്ദ്രം ({name} അല്ല)"
     else:
         key = find_district(query) or DEFAULT_DISTRICT
         name_ml, _, lat, lon = DISTRICTS[key]

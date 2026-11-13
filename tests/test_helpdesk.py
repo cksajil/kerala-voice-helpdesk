@@ -975,3 +975,21 @@ def test_plain_virama_chillus_still_match_services_and_rules():
 def test_fold_matches_both_chillu_spellings():
     from helpdesk.normalise import fold
     assert fold("വോട്ടർ") == fold("വോട്ടര്") and fold("പേര്") == "പേര്"
+
+
+# --- weather places (data/places.jsonl from ingest/places.py) ----------------
+def test_town_stems_and_district_centre_fallback(tmp_path, monkeypatch):
+    from helpdesk import tools
+    assert tools._town_stem("പുനലൂർ") == "പുനലൂ" and tools._town_stem("തളിപ്പറമ്പ്") == "തളിപ്പറമ്പ"
+    assert tools._town_stem("വൈക്കം") == "വൈക്ക" and tools._town_stem("ചാലക്കുടി") == "ചാലക്കുടി"
+    for key, (name, stems, district, lat, lon) in tools.PLACES.items():
+        assert district in tools.DISTRICTS and lat and lon and all(len(s) >= 3 for s in stems), key
+
+
+def test_weak_weather_words_yield_to_a_named_service():
+    from helpdesk.graph import rule_route
+    assert rule_route("മഴവെള്ള സംഭരണി ഇല്ലാതെ കെട്ടിട പെർമിറ്റ് കിട്ടുമോ") == "service_faq"
+    assert rule_route("കോഴിക്കോട് ഇന്ന് മഴയുണ്ടോ") == "weather"
+    assert rule_route("ഇവിടെ നല്ല ചൂടാണോ") == "weather"
+    assert rule_route("നാളത്തെ കാലാവസ്ത") == "weather"
+    assert rule_route("ന്യൂസ് കേൾക്കണം") == "news"
