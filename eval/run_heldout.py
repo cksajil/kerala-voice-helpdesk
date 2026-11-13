@@ -51,7 +51,7 @@ def score(item: dict, r: dict) -> dict:
         out["verdict"] = "correct" if refused else "wrong"
     elif cat in ("weather", "news"):
         out["route_ok"] = r["route"] == cat
-        good = out["route_ok"]
+        good = out["route_ok"] and not refused             # "can't get that now" is not an answer
         if item.get("district") and cat == "weather":
             good = good and r.get("district") == item["district"]
         if item.get("day") == "tomorrow":
@@ -76,6 +76,13 @@ def score(item: dict, r: dict) -> dict:
         else:                                                   # kb_gap: by hand
             out["verdict"] = "declined" if refused else "answered (check by hand)"
     return out
+
+
+def weather_district(question: str) -> str:
+    """The district the weather tool uses for this question (same lookup as tools.weather)."""
+    from helpdesk import tools
+    place = tools.find_place(question)                     # (name, district, lat, lon)
+    return place[1] if place else tools.find_district(question) or tools.DEFAULT_DISTRICT
 
 
 def pct(xs, q):
@@ -160,14 +167,12 @@ def run(items: list[dict], args) -> list[dict]:
         timings["total"] = round(time.perf_counter() - t0, 3)
         srcs = [x.get("id") for x in state.get("sources") or [] if x.get("id")]
         top3 = [h.doc["id"] for h in retr.search(it["question"], k=3)] if it["category"] in ("in_scope", "kb_gap") else []
-        place = tools.find_place(it["question"]) if state.get("route") == "weather" else None
         r = {"id": it["id"], "category": it["category"], "style": it["style"], "question": it["question"],
              "expected_route": it["route"], "route": state.get("route"), "route_by": state.get("route_by"),
              "tool": state.get("tool"), "refused": bool(state.get("refused")),
              "top1": srcs[:1], "top3": top3,
              "top1_title": (state.get("sources") or [{}])[0].get("title", "") if srcs else "",
-             "district": (place[2] if place else tools.find_district(it["question"]) or tools.DEFAULT_DISTRICT)
-             if state.get("route") == "weather" else "",
+             "district": weather_district(it["question"]) if state.get("route") == "weather" else "",
              "expect_kb": json.dumps(it["expect_kb"], ensure_ascii=False), "expect_fee": it.get("expect_fee") or "",
              "answer": state.get("answer", ""), "timings": json.dumps(timings)}
         r.update(score(it, r))
@@ -213,6 +218,10 @@ def main():
         for r in rows:
             r["refused"] = r["refused"] == "True"
             r["top1"], r["top3"] = json.loads(r["top1"]), json.loads(r["top3"])
+            # Older CSVs stored a place's latitude here (index bug); only those rows are looked up again,
+            # and against the PLACES list of that run's code (a latitude only came from a hand-written place).
+            if r["route"] == "weather" and r["district"].replace(".", "").isdigit():
+                r["district"] = weather_district(r["question"])
             r.update(score(by_id[r["id"]], r))
         write(rows, [by_id[r["id"]] for r in rows], Path(args.rescore).stem.removeprefix("heldout_") + "_rescored", {})
         return

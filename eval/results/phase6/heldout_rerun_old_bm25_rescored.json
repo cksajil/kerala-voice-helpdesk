@@ -1,0 +1,61 @@
+{
+ "tag": "rerun_old_bm25_rescored",
+ "n": 46,
+ "answer_in_scope": "16/24",
+ "answer_kb_gap": "0/5",
+ "answer_news": "5/5",
+ "answer_out_of_scope": "6/7",
+ "answer_weather": "0/5",
+ "fee_ok": "5/8",
+ "hit1": "20/24",
+ "hit3": "23/24",
+ "route_ok": "44/46",
+ "refusal_precision": "6/8",
+ "refusal_recall": "6/7",
+ "kb_gap": {
+  "declined": 1,
+  "answered": 4
+ },
+ "latency_s": {
+  "answer": {
+   "p50": 13.02,
+   "p90": 19.46,
+   "n": 37
+  },
+  "calc": {
+   "p50": 0.0,
+   "p90": 0.0,
+   "n": 33
+  },
+  "news": {
+   "p50": 0.09,
+   "p90": 0.66,
+   "n": 5
+  },
+  "other": {
+   "p50": 0.0,
+   "p90": 0.0,
+   "n": 3
+  },
+  "retrieve": {
+   "p50": 0.31,
+   "p90": 0.41,
+   "n": 27
+  },
+  "router": {
+   "p50": 0.02,
+   "p90": 0.23,
+   "n": 46
+  },
+  "total": {
+   "p50": 10.59,
+   "p90": 19.36,
+   "n": 46
+  },
+  "weather": {
+   "p50": 6.08,
+   "p90": 6.09,
+   "n": 5
+  }
+ }
+}

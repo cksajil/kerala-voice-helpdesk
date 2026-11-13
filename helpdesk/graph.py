@@ -15,6 +15,7 @@ templates; the LLM only writes service answers, only from one passage.
 """
 from __future__ import annotations
 
+import logging
 import os
 import re
 from typing import Literal, TypedDict
@@ -27,6 +28,7 @@ from .intent import (other_state, CLARIFY_FACETS, STRICT_FACETS, OTHER_ANIMAL_MS
                      other_animal, out_of_scope)
 from .retriever import BM25_MIN, Hit, Retriever
 
+log = logging.getLogger(__name__)
 Route = Literal["weather", "news", "service_faq", "other"]
 CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
 ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "100"))   # ~0.34 s per token on a 2-core CPU
@@ -209,7 +211,8 @@ def build_graph(retriever: Retriever | None = None):
         try:
             w = tools.weather(s["query"])
             return {"context": w["text"], "sources": [{"title": w["source"]}]}
-        except Exception:
+        except Exception as e:          # the caller hears TOOL_FAIL; the log keeps why (no query text)
+            log.warning("weather tool failed: %s: %s", type(e).__name__, e)
             return {"context": ""}
 
     def news(s: State) -> State:
@@ -217,7 +220,8 @@ def build_graph(retriever: Retriever | None = None):
             n = tools.news(s["query"])
             return {"context": n["text"],
                     "sources": [{"title": i["title"], "url": i["link"]} for i in n["items"]]}
-        except Exception:
+        except Exception as e:
+            log.warning("news tool failed: %s: %s", type(e).__name__, e)
             return {"context": ""}
 
     by_id = {d["id"]: d for d in retriever.docs}
