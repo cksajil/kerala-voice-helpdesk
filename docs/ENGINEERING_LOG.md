@@ -78,3 +78,71 @@ Entries are appended after each phase, newest last. Copy them into
 - Gemini's summaries are number-checked but other wording is not; verify=false means sources and
   fee/time agree, not that a person read the entry.
 - Not yet measured on the held-out set (Phase 3).
+
+## 13 Nov 2026 — Phase 3: held-out evaluation (blind run) and routing fix
+
+**Set-up.** `eval/run_heldout.py`, the whole LangGraph graph, on **heldout_v1 (n=46, held out, first
+and only blind run)**. Kaggle CPU (Intel Xeon 2.2 GHz, 4 vCPU, of which **2 threads** are used:
+llama.cpp prefill and decode, torch). Gemma 4 E2B Q4_0 (ggml-org GGUF) in-process via
+llama-cpp-python 0.3.36 (built with GGML_NATIVE), greedy, 100 answer tokens, HELPDESK_CANON=1,
+CTX_K=1, AUTO_BOOST 1.5. Weather and news call Open-Meteo and RSS live. Code revision db0d29f.
+Outputs: `eval/results/phase3/` (one CSV per run with every answer, JSON summaries, hand labels).
+
+**Numbers (automatic scorer)**
+
+| | old KB, BM25 | expanded KB, BM25 | old KB, BM25+dense | expanded KB, BM25+dense |
+|---|---|---|---|---|
+| routing | 38/46 | 37/46 | 38/46 | 37/46 |
+| hit@1 / hit@3 (in-scope, n=24) | 19 / 23 | 19 / 23 | 18 / 24 | 18 / 24 |
+| answers correct, in-scope (n=24) | 16 | 16 | 15 | 15 |
+| fee correct (n=8) | 5 | 5 | 5 | 5 |
+| weather (n=5) / news (n=5) correct | 1 / 3 | 1 / 3 | 1 / 3 | 0 / 3 |
+| out-of-scope declined (n=7) | 6 | 5 | 6 | 5 |
+| refusal precision / recall | 6/8 / 6/7 | 5/7 / 5/7 | 6/9 / 6/7 | 5/9 / 5/7 |
+| KB-gap (n=5) declined / answered | 1 / 4 | 1 / 4 | 1 / 4 | 1 / 4 |
+
+Latency per stage, p50 / p90 seconds (old KB, BM25; the others are within 0.5 s except retrieval):
+router 0.03 / 0.19, retrieve 0.24 / 0.39 (dense: 0.57 / 0.78), answer (LLM) 12.2 / 18.5,
+weather 0.10 / 0.11, news 0.48 / 0.75, whole turn 10.0 / 18.5 (n=46; fee and decline turns are
+instant, so the whole-turn p50 is below the LLM stage's). Dense index build: 2,776 passages,
+44 min with 4 threads (cached as .npy afterwards).
+
+**Hand labels (Claude's, not the owner's; `hand_labels.csv`).** In-scope: h04 is right (the scorer's
+must-not "120" caught the general fee mentioned beside the SC/ST fee), h19 is wrong (key word present,
+garbled claim from a charter row), h12 partial. Net in-scope correct stays **16/24 (BM25)**. KB gaps:
+3 acceptable (job card, well permit from charter text with attribution; Haritha Karma Sena: asked which
+service), 2 misleading (death registration got late-registration documents; occupancy certificate got
+residence-certificate documents).
+
+**Findings**
+- Expanded KB vs old: no in-scope difference — all 24 in-scope items point at curated entries, so this
+  set cannot show the kb_auto gain seen on the synth dev split (tuned-on). One regression: an
+  out-of-scope question ("പ്രഥമൻ", a dessert) matched an auto entry about first aid ("പ്രഥമ ശുശ്രൂഷ")
+  and was answered. Recommendation: keep HELPDESK_KB_AUTO off until a held-out set with charter-only
+  services exists; owner to decide.
+- Dense vs BM25: +1 hit@3, −1 answer (a false refusal from the untuned cosine gate), +0.3 s retrieval,
+  44 min index build. Keep BM25 only.
+- Failures by cause (BM25): routing 8 (weather words not matched in inflected or ASR form 3, town not
+  in the list 1, "ഡിഗ്രി" (college degree) sent to weather 1, news synonyms 2, an off-topic question
+  sent to services by the open title match 1); wrong passage 3; right passage but wrong reading 2
+  (vehicle birth, building-permit fee band); strict-facet decline 1.
+- LLM stage is 95% of a service turn. p90 18.5 s on 2 threads.
+
+**Routing fix (after the blind run — later heldout_v1 numbers count as seen-failure numbers)**
+- Weather and news stems now match inflected forms (ചൂടാണോ, തണുപ്പുണ്ടോ, ASR കാലാവസ്ത, ന്യൂസ്,
+  തലക്കെട്ടുകൾ). Words with an everyday second sense (മഴ, ചൂട്, ഡിഗ്രി, സംഭവ) give way to a named
+  service (മഴവെള്ള സംഭരണി is a permit rule; "തെറ്റ് സംഭവിച്ചു" went to news before).
+- Weather places: 68 Kerala municipalities/towns (`data/places_src.csv`), geocoded with the
+  Open-Meteo geocoding API on Kaggle (`ingest/places.py`, URL and date kept per row, accepted only
+  inside Kerala within 60 km of the district centre). A town that is not found uses its district
+  centre and the reply says so.
+- New **tuned-on** routing dev set `eval/route_dev.jsonl` (43 questions, written for this, no item
+  within 0.5 trigram similarity of heldout_v1): rule route 28/43 → 43/43; whole graph 42/43 (the miss,
+  "sing a song" sent to services by the open title match, is unchanged by the fix); weather
+  district 14/27 → 26/27 with the first geocoding pass.
+
+**Open issues**
+- The open title match answers some off-topic questions (dessert → first aid, "sing a song").
+- Building-permit fee bands are left to the LLM; a calculator like the marriage/registration ones
+  would make them exact.
+- The cosine gate for dense retrieval was never tuned (dense stays off).
