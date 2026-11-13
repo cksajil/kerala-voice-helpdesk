@@ -98,7 +98,8 @@ class Service:
                 path = hf_hub_download(GGUF_REPO, GGUF_FILE)
             # n_threads_batch (prefill) defaults to every core: pin it as on the Space.
             llama = Llama(model_path=path, n_ctx=N_CTX, n_threads=THREADS, n_threads_batch=THREADS, verbose=False)
-            llama.set_cache(LlamaRAMCache(capacity_bytes=CACHE_MB << 20))
+            if CACHE_MB > 0:                         # 0: no cache (only the last prompt's prefix is reused)
+                llama.set_cache(LlamaRAMCache(capacity_bytes=CACHE_MB << 20))
             llm.use_llama_cpp(llama)
             self.model = Path(path).name
         elif BACKEND == "http":
