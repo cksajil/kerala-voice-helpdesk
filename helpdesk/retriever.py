@@ -27,8 +27,9 @@ DOCS_PATH = Path(__file__).resolve().parent.parent / "data" / "docs.jsonl"
 TIER1_BOOST = float(os.getenv("HELPDESK_TIER1_BOOST", "2.0"))
 # Entries built from the charters (ingest.kb_auto, HELPDESK_KB_AUTO=1) are Tier 1 in schema but not
 # hand-checked: at the curated boost they outranked curated entries in the conversation tests
-# (widow pension amount, property tax rate). Chosen on the synth dev split and the conversation tests.
-AUTO_BOOST = float(os.getenv("HELPDESK_AUTO_BOOST", "1.0"))
+# (widow pension amount, property tax rate). 1.5 = the highest boost with every suite passing
+# (13 Nov sweep on Kaggle: synth dev strict 245 -> 267 of 1,109; 1.75 breaks a 12 Nov test).
+AUTO_BOOST = float(os.getenv("HELPDESK_AUTO_BOOST", "1.5"))
 
 
 def tier_boost(d: dict) -> float:
