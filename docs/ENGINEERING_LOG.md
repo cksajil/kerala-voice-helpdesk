@@ -122,10 +122,11 @@ residence-certificate documents).
   services exists; owner to decide.
 - Dense vs BM25: +1 hit@3, −1 answer (a false refusal from the untuned cosine gate), +0.3 s retrieval,
   44 min index build. Keep BM25 only.
-- Failures by cause (BM25): routing 8 (weather words not matched in inflected or ASR form 3, town not
-  in the list 1, "ഡിഗ്രി" (college degree) sent to weather 1, news synonyms 2, an off-topic question
-  sent to services by the open title match 1); wrong passage 3; right passage but wrong reading 2
-  (vehicle birth, building-permit fee band); strict-facet decline 1.
+- Failures by cause (old KB, BM25): routing 8 (weather words not matched in inflected or ASR form 3,
+  "ഡിഗ്രി" (college degree) sent to weather 1, news synonyms 2, an electricity-bill question sent to
+  property tax by the open title match 1, a KB-gap question answered "which service?" 1); weather for
+  a town not in the list given for the default district 1; in-scope wrong passage 3; right passage,
+  wrong reading 2 (birth in a vehicle, building-permit fee band); strict-facet decline 1.
 - LLM stage is 95% of a service turn. p90 18.5 s on 2 threads.
 
 **Routing fix (after the blind run — later heldout_v1 numbers count as seen-failure numbers)**
@@ -142,7 +143,8 @@ residence-certificate documents).
   district 14/27 → 26/27 with the first geocoding pass.
 
 **Open issues**
-- The open title match answers some off-topic questions (dessert → first aid, "sing a song").
+- The open title match answers some off-topic questions (electricity bill → property tax; with kb_auto,
+  dessert → first aid; on the dev set, "sing a song").
 - Building-permit fee bands are left to the LLM; a calculator like the marriage/registration ones
   would make them exact.
 - The cosine gate for dense retrieval was never tuned (dense stays off).
