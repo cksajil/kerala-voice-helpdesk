@@ -60,18 +60,29 @@ for kb, dense in runs:
         shutil.copy(f, OUT)
     (OUT / f"log_{tag}.txt").write_text(out[-60000:])
 
-# llama-server: latest llama.cpp release for Ubuntu x64
-import requests
+# llama-server: latest llama.cpp release for Ubuntu x64 (CPU). Asset names changed over time
+# (llama-bXXXX-bin-ubuntu-x64.zip, later .tar.gz): pick by pattern and log the candidates.
+import requests, re as _re
 rel = requests.get("https://api.github.com/repos/ggml-org/llama.cpp/releases/latest", timeout=30).json()
-asset = next(a for a in rel["assets"] if a["name"].endswith("bin-ubuntu-x64.zip"))
-zpath = Path("/kaggle/working/llama.zip")
+names = [a["name"] for a in rel.get("assets", [])]
+(OUT / "llama_release_assets.txt").write_text(rel.get("tag_name", "") + "\n" + "\n".join(names))
+cands = [a for a in rel["assets"] if _re.search(r"ubuntu", a["name"]) and _re.search(r"x64|x86_64|amd64", a["name"])
+         and not _re.search(r"vulkan|cuda|rocm|hip|sycl|openvino|musa|kompute|arm|aarch64|s390", a["name"], _re.I)
+         and _re.search(r"\.(zip|tar\.gz|tgz)$", a["name"])]
+asset = sorted(cands, key=lambda a: len(a["name"]))[0]
+zpath = Path("/kaggle/working") / asset["name"]
 zpath.write_bytes(requests.get(asset["browser_download_url"], timeout=600).content)
-zipfile.ZipFile(zpath).extractall("/kaggle/working/llamacpp")
-binary = next(Path("/kaggle/working/llamacpp").rglob("llama-server"))
+dest = Path("/kaggle/working/llamacpp"); dest.mkdir(exist_ok=True)
+if asset["name"].endswith(".zip"):
+    zipfile.ZipFile(zpath).extractall(dest)
+else:
+    tarfile.open(zpath).extractall(dest)
+binary = next(p for p in dest.rglob("llama-server") if p.is_file())
 binary.chmod(0o755)
 (OUT / "llama_server_release.txt").write_text(rel.get("tag_name", "") + " " + asset["name"])
+libdirs = sorted({str(p.parent) for p in dest.rglob("*.so*")} | {str(binary.parent)})
 code, out = sh(f"{sys.executable} -m eval.bench_llama --server-bin {binary} --gguf {gguf} --threads 2",
-               env={**base, "LD_LIBRARY_PATH": str(binary.parent)}, timeout=3 * 3600)
+               env={**base, "LD_LIBRARY_PATH": ":".join(libdirs)}, timeout=3 * 3600)
 (OUT / "bench_log.txt").write_text(out[-30000:])
 for f in glob.glob(str(REPO / "eval/results/bench_llama*.json")):
     shutil.copy(f, OUT)
