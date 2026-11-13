@@ -516,7 +516,9 @@ def test_unknown_place_is_said_not_silently_defaulted(monkeypatch):
                     "daily": {"temperature_2m_max": [29], "temperature_2m_min": [24],
                               "precipitation_probability_max": [80], "precipitation_sum": [3]}}
     monkeypatch.setattr(tools.requests, "get", lambda *a, **k: R())
-    assert tools.weather("പാലായിലെ കാലാവസ്ഥ എന്താണ്?")["text"].startswith("ആ സ്ഥലം")
+    assert tools.weather("കുമ്പളങ്ങിയിലെ കാലാവസ്ഥ എന്താണ്?")["text"].startswith("ആ സ്ഥലം")   # a village, not listed
+    assert tools.weather("പാലായിലെ കാലാവസ്ഥ എന്താണ്?")["text"].startswith("പാലാ (കോട്ടയം ജില്ല)")   # data/places.jsonl
+    assert tools.weather("കട്ടപ്പനയിലെ കാലാവസ്ഥ")["text"].startswith("ഇടുക്കി ജില്ലാ കേന്ദ്രം (കട്ടപ്പന അല്ല)")  # not geocoded
     assert tools.weather("ഇപ്പോഴത്തെ കാലാവസ്ഥ എന്താണ്?")["text"].startswith("തിരുവനന്തപുരം")
     assert tools.weather("വാഗമണിലെ കാലാവസ്ഥ")["text"].startswith("വാഗമൺ (ഇടുക്കി ജില്ല)")
 

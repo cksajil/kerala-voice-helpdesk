@@ -140,7 +140,7 @@ residence-certificate documents).
 - New **tuned-on** routing dev set `eval/route_dev.jsonl` (43 questions, written for this, no item
   within 0.5 trigram similarity of heldout_v1): rule route 28/43 → 43/43; whole graph 42/43 (the miss,
   "sing a song" sent to services by the open title match, is unchanged by the fix); weather
-  district 14/27 → 26/27 with the first geocoding pass.
+  district 14/27 → 27/27 (68 towns: 63 geocoded, 5 on the district centre).
 
 **Open issues**
 - The open title match answers some off-topic questions (electricity bill → property tax; with kb_auto,
