@@ -1,0 +1,13 @@
+.git
+**/__pycache__
+.pytest_cache
+.venv
+notebooks
+ingest/raw
+ingest/work
+eval
+tests
+docs
+data/emb-*.npy
+data/kb.csv
+*.gguf
