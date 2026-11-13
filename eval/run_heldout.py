@@ -126,7 +126,8 @@ def setup_llm(mode: str, threads: int):
     from huggingface_hub import hf_hub_download
     from llama_cpp import Llama
     path = os.getenv("GEMMA_GGUF") or hf_hub_download("ggml-org/gemma-4-E2B-it-GGUF", "gemma-4-E2B-it-Q4_0.gguf")
-    llama = Llama(model_path=path, n_ctx=2048, n_threads=threads, verbose=False)
+    # n_threads_batch (prefill) defaults to every core in llama-cpp-python: pin both to the Space's 2.
+    llama = Llama(model_path=path, n_ctx=2048, n_threads=threads, n_threads_batch=threads, verbose=False)
     llm.use_llama_cpp(llama)
     return {"model": Path(path).name, "threads": threads}
 
