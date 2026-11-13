@@ -14,7 +14,7 @@ the tuning. Startup log first: `helpdesk: HELPDESK_CANON=1, ... passages` and th
 | 5 | കട്ടപ്പനയിൽ നാളെ തണുപ്പുണ്ടാകുമോ? | Tomorrow's weather, said to be for the ഇടുക്കി district centre (Kattappana has no coordinates). |
 | 6 | ഇന്നത്തെ പ്രധാന ന്യൂസ് പറയൂ | News headlines (ന്യൂസ് was not recognised before 13 Nov). |
 | 7 | മഴവെള്ള സംഭരണി ഇല്ലെങ്കിൽ വീടിന് പെർമിറ്റ് കിട്ടുമോ? | Building-permit answer or an honest "not sure" — not a weather report. |
-| 8 | ഡിഗ്രി സർട്ടിഫിക്കറ്റ് കളഞ്ഞുപോയാൽ പഞ്ചായത്തിൽ നിന്ന് എന്തെങ്കിലും ചെയ്യാമോ? | Not a weather report; a decline or "which service?" is fine (not a panchayat service). |
+| 8 | ഡിഗ്രി സർട്ടിഫിക്കറ്റ് കളഞ്ഞുപോയാൽ പഞ്ചായത്തിൽ നിന്ന് എന്തെങ്കിലും ചെയ്യാമോ? | Not a weather report. A decline is right (not a panchayat service); a list of unrelated certificates is a fail (offline dry run on 13 Nov retrieved one, so watch this). |
 | 9 | ഹരിതകർമ്മസേനയുടെ പരാതി എവിടെ കൊടുക്കണം? | Grievance (K-SMART public grievance) or a decline — no invented phone numbers. |
 | 10 | ബിരിയാണി ഉണ്ടാക്കുന്നത് എങ്ങനെ? | Scope message (panchayat services, weather, news); no recipe. |
 
