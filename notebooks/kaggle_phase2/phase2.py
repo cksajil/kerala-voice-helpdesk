@@ -33,9 +33,14 @@ def sh(cmd, env=None, check=False, timeout=None, log=True):
 
 
 # ---- repo from the dataset
-tgz = glob.glob("/kaggle/input/**/repo.tar.gz", recursive=True)[0]
-shutil.rmtree(REPO, ignore_errors=True); REPO.mkdir()
-tarfile.open(tgz).extractall(REPO)
+# Kaggle may keep repo.tar.gz or unpack it on upload: accept either.
+shutil.rmtree(REPO, ignore_errors=True)
+tgz = glob.glob("/kaggle/input/**/repo.tar.gz", recursive=True)
+if tgz:
+    REPO.mkdir(); tarfile.open(tgz[0]).extractall(REPO)
+else:
+    src = Path(sorted(glob.glob("/kaggle/input/**/helpdesk/graph.py", recursive=True), key=len)[0]).parents[1]
+    shutil.copytree(src, REPO)
 print(open(REPO / "REVISION").read() if (REPO / "REVISION").exists() else "no REVISION file")
 sh(f"{sys.executable} -m pip install -q -r requirements-ingest.txt", check=True)
 os.environ.update(HELPDESK_DENSE="0", HELPDESK_LLM="none")
