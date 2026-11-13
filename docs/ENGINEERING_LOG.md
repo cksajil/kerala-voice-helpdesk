@@ -186,3 +186,32 @@ no Docker daemon, so the image itself was not built there; revision c622fd8)
   Gemma declined it with the model loaded: the passage it got did not state a time.
 - Warm-up covers curated passages only; with HELPDESK_KB_AUTO=1, `HELPDESK_WARMUP=all` adds the 130
   auto entries (≈10 more minutes at start-up).
+
+## 13 Nov 2026 — Phase 3 addendum: llama-server vs llama-cpp-python
+
+**Set-up.** `eval/bench_llama.py`, Kaggle CPU, 2 threads, n_ctx 2048, greedy, 100-token cap. 29 real
+answer prompts (answer prompt + top-1 BM25 passage + question for the held-out service and KB-gap
+questions; prompt p50 356 tokens), rendered once with the GGUF's chat template so both back ends get
+the same text. llama-cpp-python 0.3.36 in-process vs llama-server built from **the same llama.cpp
+source** (the copy vendored in the 0.3.36 sdist, build b1-0c1e570), both GGML_NATIVE. Run one after the
+other. Cold = no prefix reuse; warm = reuse of the previous request's prefix (shared system prompt).
+Results: `eval/results/phase3/bench/`.
+
+| per request, n=29 | llama-cpp-python | llama-server (HTTP) |
+|---|---|---|
+| cold wall p50 / p90 | 23.2 / 27.3 s | 22.8 / 26.3 s |
+| cold overhead (wall − llama.cpp compute) p50 | 0.05 s | 0.02 s |
+| warm wall p50 / p90 (mean) | 14.6 / 19.5 s (14.7) | 17.9 / 24.3 s (14.8) |
+| model load | 8.1 s | 6.0 s |
+| `create_chat_completion` (template per call), cold p50 | 23.0 s | — |
+
+- The wrapper costs ~0.05 s per request against 15–23 s of compute: there is no speed reason to move to
+  llama-server. Python minus server, cold: p50 +0.20 s, mean +0.57 s, which is within the run-to-run
+  spread of compute time. Warm means are equal (14.7 vs 14.8 s); the server's higher warm p50 comes from
+  how much prefix each request happened to share with the one before.
+- Greedy outputs were identical for 19/29 prompts. The rest differ in wording (one changes a fact: "free
+  for a year, then 5 rupees" vs "5 rupees after a year"), most likely from the back ends' different
+  default batch sizes changing float summation order. Neither back end is more correct on this sample.
+- Rendering the chat template per call (the Space's call path) costs nothing measurable (23.0 vs 23.2 s).
+- The first plan (the latest llama.cpp release binary) failed: the repo's "latest" release no longer
+  carries binaries. Building from the vendored source is the fairer comparison anyway.
