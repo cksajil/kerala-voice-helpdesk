@@ -148,3 +148,41 @@ residence-certificate documents).
 - Building-permit fee bands are left to the LLM; a calculator like the marriage/registration ones
   would make them exact.
 - The cosine gate for dense retrieval was never tuned (dense stays off).
+
+## 13 Nov 2026 — Phase 4: FastAPI service and Docker
+
+**What changed**
+- `helpdesk/api.py`: `POST /ask` (question + optional `context` → answer, route, refused, sources,
+  per-stage timings, and the `context` for the next turn; no server-side sessions), `GET /health`
+  (loading → warming → ok / error, warm-up progress, settings). Gemma loads in-process with a
+  llama-cpp-python RAM prompt cache (`HELPDESK_CACHE_MB`, default 2048); at start-up one turn runs,
+  then every curated passage's answer prompt is prefilled (one token each) in a background thread,
+  so `/ask` answers while warming. One turn at a time on the model (lock). Back ends: inproc
+  (default), http (llama-server), none.
+- `Dockerfile`: two stages; `python:3.12.16-slim-bookworm` pinned by digest; llama-cpp-python 0.3.36
+  compiled once into a wheel with portable flags (AVX2/FMA, no native tuning, no BLAS, no GPU); all
+  other packages pinned in `requirements-api.txt`; non-root user (uid 10001); healthcheck on
+  status "ok". The GGUF (2.8 GB) downloads on first start into a volume.
+- `docker-compose.yml`: 2 CPUs, 6 GB, read-only root filesystem, tmpfs /tmp, no-new-privileges,
+  port bound to 127.0.0.1. README section "Run locally with Docker".
+- `scripts/smoke_test.py` (standard library only): waits for "ok", then 5 checks — service answer
+  with a source, fee worked out in code, follow-up through the returned context, off-topic
+  declined, empty question rejected (422).
+- `tests/test_api.py`: 4 tests without a model (health, answer, context follow-up, validation,
+  warm-up prefills each curated passage once).
+
+**Numbers** (Kaggle CPU, 2 threads, the image's pins and environment run with uvicorn — Kaggle has
+no Docker daemon, so the image itself was not built there; revision c622fd8)
+- Smoke test: 5/5 pass, warm and cold servers. Start to "ok": 298 s with warm-up (model load + one
+  turn ≈ 40 s, 50 passages prefilled in 239 s); 30 s without warm-up.
+- Warm vs cold, n=20 curated titles asked as questions, same 20 passages retrieved in both runs:
+  LLM stage p50 / p90 **5.2 / 8.9 s warm** vs **8.7 / 12.3 s cold** (cold = no cache; only the
+  previous prompt's prefix is reused). These are title questions, so a best case for the cache.
+
+**Open issues**
+- The Docker image itself has not been built anywhere yet (no Docker in this container or on Kaggle):
+  the owner should run `docker compose up --build -d` then `python3 scripts/smoke_test.py`.
+- The smoke test's follow-up ("എത്ര ദിവസം എടുക്കും?" after marriage documents) routes correctly but
+  Gemma declined it with the model loaded: the passage it got did not state a time.
+- Warm-up covers curated passages only; with HELPDESK_KB_AUTO=1, `HELPDESK_WARMUP=all` adds the 130
+  auto entries (≈10 more minutes at start-up).
