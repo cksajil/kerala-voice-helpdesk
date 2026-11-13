@@ -100,11 +100,12 @@ def main():
     for j, metric in ((0, "strict"), (1, "same service")):
         gained = [i for i in range(len(qs)) if can[i][j] and not base[i][j]]
         lost = [i for i in range(len(qs)) if base[i][j] and not can[i][j]]
-        print(f"{metric:13} canon fixes {len(gained)}, breaks {len(lost)}; exact McNemar p = {mcnemar(len(gained), len(lost)):.3g}")
+        new = "kb_auto" if args.kb_auto else "canon"
+        print(f"{metric:13} {new} fixes {len(gained)}, breaks {len(lost)}; exact McNemar p = {mcnemar(len(gained), len(lost)):.3g}")
         report[f"flips_{metric.replace(' ', '_')}"] = {"gained": len(gained), "lost": len(lost)}
         if j == 1:
             for i in lost[:args.show or 10]:
-                print("   broken by canon:", qs[i]["kind"], qs[i]["q"], base[i][2], "->", can[i][2])
+                print(f"   broken by {new}:", qs[i]["kind"], qs[i]["q"], base[i][2], "->", can[i][2])
     Path(__file__).with_name("synth_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1))
 
 

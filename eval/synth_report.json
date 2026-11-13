@@ -1,72 +1,72 @@
 {
- "baseline (charter rows)": {
-  "total": [
-   159,
-   554,
-   198
-  ],
-  "by_kind": {
-   "canon": [
-    84,
-    438,
-    120
-   ],
-   "tier1": [
-    65,
-    96,
-    68
-   ],
-   "out_of_scope": [
-    10,
-    20,
-    10
-   ]
-  },
-  "why": {
-   "wrong passage": 319,
-   "same service, other passage": 39,
-   "routed other": 21,
-   "declined (missing_facet)": 6,
-   "answered (service_faq)": 10
-  }
- },
  "canonical services": {
   "total": [
-   176,
-   554,
-   234
+   249,
+   1120,
+   391
   ],
   "by_kind": {
    "canon": [
-    98,
-    438,
-    151
+    152,
+    976,
+    288
    ],
    "tier1": [
-    64,
-    96,
-    69
+    75,
+    104,
+    81
    ],
    "out_of_scope": [
-    14,
-    20,
-    14
+    22,
+    40,
+    22
    ]
   },
   "why": {
-   "wrong passage": 280,
-   "same service, other passage": 58,
-   "routed other": 28,
-   "declined (missing_facet)": 6,
-   "answered (service_faq)": 6
+   "same service, other passage": 142,
+   "wrong passage": 637,
+   "routed other": 56,
+   "declined (missing_facet)": 18,
+   "answered (service_faq)": 18
+  }
+ },
+ "canon + kb_auto": {
+  "total": [
+   248,
+   1120,
+   387
+  ],
+  "by_kind": {
+   "canon": [
+    151,
+    976,
+    284
+   ],
+   "tier1": [
+    75,
+    104,
+    81
+   ],
+   "out_of_scope": [
+    22,
+    40,
+    22
+   ]
+  },
+  "why": {
+   "same service, other passage": 139,
+   "wrong passage": 641,
+   "routed other": 56,
+   "declined (missing_facet)": 18,
+   "answered (service_faq)": 18
   }
  },
  "flips_strict": {
-  "gained": 47,
-  "lost": 30
+  "gained": 2,
+  "lost": 3
  },
  "flips_same_service": {
-  "gained": 59,
-  "lost": 23
+  "gained": 2,
+  "lost": 6
  }
 }
