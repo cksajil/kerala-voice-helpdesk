@@ -1,0 +1,43 @@
+{"id": "r01", "route": "weather", "question": "കോട്ടയത്ത് ഇന്ന് മഴ പെയ്യാൻ സാധ്യതയുണ്ടോ", "district": "kottayam"}
+{"id": "r02", "route": "weather", "question": "തൃശ്ശൂരിൽ വല്ലാത്ത ചൂടുണ്ടോ ഇപ്പോൾ", "district": "thrissur"}
+{"id": "r03", "route": "weather", "question": "വയനാട്ടിൽ രാത്രി തണുപ്പുണ്ടാകുമോ", "district": "wayanad"}
+{"id": "r04", "route": "weather", "question": "കണ്ണൂരിലെ ഇന്നത്തെ താപനില എത്രയാണ്", "district": "kannur"}
+{"id": "r05", "route": "weather", "question": "നാളത്തെ കാലാവസ്ഥ കോഴിക്കോട്", "district": "kozhikode"}
+{"id": "r06", "route": "weather", "question": "കൊല്ലത്ത് ഇടിമിന്നലിന് സാധ്യതയുണ്ടോ", "district": "kollam"}
+{"id": "r07", "route": "weather", "question": "മലപ്പുറത്ത് വെയിലുണ്ടോ ഇന്ന്", "district": "malappuram"}
+{"id": "r08", "route": "weather", "question": "ഇന്ന് പുറത്ത് പോകുമ്പോ കുട വേണോ, മഴക്കോളുണ്ടോ", "district": "thiruvananthapuram"}
+{"id": "r09", "route": "weather", "question": "ഇടുക്കിയിൽ എത്ര ഡിഗ്രി ചൂടുണ്ട്", "district": "idukki"}
+{"id": "r10", "route": "weather", "question": "what is the weather in kochi today", "district": "ernakulam"}
+{"id": "r11", "route": "weather", "question": "പത്തനംതിട്ടയിലെ കാലാവസ്ത എങ്ങനെ", "district": "pathanamthitta"}
+{"id": "r12", "route": "weather", "question": "കാസർഗോഡ് ഇന്ന് മഴ ഉണ്ടാവോ", "district": "kasaragod"}
+{"id": "r13", "route": "weather", "question": "തൊടുപുഴയിൽ ഇന്ന് മഴയുണ്ടോ", "district": "idukki"}
+{"id": "r14", "route": "weather", "question": "ആലുവയിൽ നല്ല ചൂടാണോ", "district": "ernakulam"}
+{"id": "r15", "route": "weather", "question": "തിരുവല്ലയിലെ കാലാവസ്ഥ പറയൂ", "district": "pathanamthitta"}
+{"id": "r16", "route": "weather", "question": "വടകരയിൽ നാളെ മഴ പെയ്യുമോ", "district": "kozhikode"}
+{"id": "r17", "route": "weather", "question": "പയ്യന്നൂരിൽ ഇപ്പോ മഴയാണോ", "district": "kannur"}
+{"id": "r18", "route": "weather", "question": "കൊടുങ്ങല്ലൂരിൽ ഇന്ന് ചൂട് എത്ര", "district": "thrissur"}
+{"id": "r19", "route": "weather", "question": "മാനന്തവാടിയിൽ തണുപ്പ് കൂടുതലാണോ", "district": "wayanad"}
+{"id": "r20", "route": "weather", "question": "നിലമ്പൂരിൽ മഴ ഉണ്ടോ", "district": "malappuram"}
+{"id": "r21", "route": "weather", "question": "ചങ്ങനാശ്ശേരിയിലെ താപനില", "district": "kottayam"}
+{"id": "r22", "route": "weather", "question": "കായംകുളത്ത് ഇന്ന് മഴ", "district": "alappuzha"}
+{"id": "r23", "route": "weather", "question": "ഒറ്റപ്പാലത്ത് വല്ലാത്ത ചൂട്", "district": "palakkad"}
+{"id": "r24", "route": "weather", "question": "നെയ്യാറ്റിൻകരയിൽ നാളെ മഴയുണ്ടോ", "district": "thiruvananthapuram"}
+{"id": "r25", "route": "weather", "question": "കാഞ്ഞങ്ങാട് ഇന്ന് കാലാവസ്ഥ", "district": "kasaragod"}
+{"id": "r26", "route": "weather", "question": "പുനലൂരിൽ ചൂടെത്ര", "district": "kollam"}
+{"id": "r27", "route": "weather", "question": "വാഗമണ്ണിൽ ഇപ്പോൾ തണുപ്പുണ്ടോ", "district": "idukki"}
+{"id": "r28", "route": "news", "question": "ഇന്നത്തെ പ്രധാന ന്യൂസ് എന്താ"}
+{"id": "r29", "route": "news", "question": "തലക്കെട്ടുകൾ ഒന്ന് വായിക്കൂ"}
+{"id": "r30", "route": "news", "question": "തൃശ്ശൂരിലെ പുതിയ വാർത്തകൾ"}
+{"id": "r31", "route": "news", "question": "latest kerala news please"}
+{"id": "r32", "route": "news", "question": "ഇന്ന് എന്തൊക്കെ സംഭവങ്ങളാണ് നടന്നത്"}
+{"id": "r33", "route": "news", "question": "വാര്ത്ത കേൾക്കണം"}
+{"id": "r34", "route": "service_faq", "question": "മഴവെള്ള സംഭരണി ഇല്ലാതെ വീടിന് പെർമിറ്റ് കിട്ടുമോ"}
+{"id": "r35", "route": "service_faq", "question": "ഡിഗ്രി പാസായ മകളുടെ വിവാഹ രജിസ്ട്രേഷന് എന്ത് രേഖ വേണം"}
+{"id": "r36", "route": "service_faq", "question": "ജനന സർട്ടിഫിക്കറ്റിൽ പേരിൽ തെറ്റ് സംഭവിച്ചു, എങ്ങനെ തിരുത്താം"}
+{"id": "r37", "route": "service_faq", "question": "മഴക്കാലത്ത് വീട് തകർന്നു, കെട്ടിട നികുതി ഇളവ് കിട്ടുമോ"}
+{"id": "r38", "route": "service_faq", "question": "വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം"}
+{"id": "r39", "route": "service_faq", "question": "ട്രേഡ് ലൈസൻസ് പുതുക്കാൻ എത്ര രൂപ"}
+{"id": "r40", "route": "service_faq", "question": "വാർദ്ധക്യ പെൻഷന് അപേക്ഷിക്കാൻ പ്രായം എത്ര"}
+{"id": "r41", "route": "service_faq", "question": "പട്ടിയുടെ ലൈസൻസ് എങ്ങനെ എടുക്കാം"}
+{"id": "r42", "route": "other", "question": "ഒരു പാട്ട് പാടാമോ"}
+{"id": "r43", "route": "other", "question": "മീൻ കറി വെക്കാൻ പഠിപ്പിക്കാമോ"}

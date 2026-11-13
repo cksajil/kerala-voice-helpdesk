@@ -8,8 +8,10 @@ needs their commercial plan.
 from __future__ import annotations
 
 import html
+import json
 import re
 import time
+from pathlib import Path
 
 import feedparser
 import requests
@@ -57,6 +59,30 @@ PLACES = {
     "thalassery": ("തലശ്ശേരി", ["തലശ്ശേരി", "തലശേരി", "thalassery"], "kannur", 11.749, 75.493),
     "bathery": ("സുൽത്താൻ ബത്തേരി", ["ബത്തേരി", "bathery"], "wayanad", 11.665, 76.263),
 }
+
+
+def _town_stem(name: str) -> str:
+    """Match form of a town name: drop a final chillu, virama or anusvara, which change when the
+    word is inflected (പുനലൂർ -> പുനലൂരിൽ, തളിപ്പറമ്പ് -> തളിപ്പറമ്പിൽ, വൈക്കം -> വൈക്കത്ത്)."""
+    return re.sub(r"(?:[ൺൻർൽൾൿ]|[ംര]?്|ം)$", "", name)
+
+
+def _load_towns() -> dict:
+    """Municipalities and towns from data/places.jsonl (ingest/places.py: geocoded, with source URL)."""
+    path = Path(__file__).resolve().parent.parent / "data" / "places.jsonl"
+    out = {}
+    if path.exists():
+        for line in path.open(encoding="utf-8"):
+            if line.strip():
+                d = json.loads(line)
+                stems = d["stems"] or [_town_stem(d["ml"])]
+                out[d["key"]] = (d["ml"], stems + [d["en"].lower()], d["district"], d["lat"], d["lon"])
+    return out
+
+
+for _k, _v in _load_towns().items():
+    PLACES.setdefault(_k, _v)          # the hand-written places above win
+
 # A "<place>ിലെ" word we could not resolve: say so instead of quietly answering for the default.
 _UNKNOWN_PLACE = re.compile(r"(?<![ഀ-ൿ])([ഀ-ൿ]{3,})(?:ിലെ|ത്തിലെ|യിലെ)(?![ഀ-ൿ])")
 _NOT_PLACES = ("കേരള", "ജില്ല", "നാട്", "സ്ഥല", "പ്രദേശ", "ഇവിടെ", "അവിടെ", "നഗര")

@@ -41,10 +41,18 @@ FOLLOW_UP_MAX_WORDS = 8
 ACK = re.compile(r"^(ഇല്ല|അതെ|ശരി|ശരിയാണ്|ഓക്കെ|ഓക്കേ|ok|okay|നന്ദി|താങ്ക്സ്|thanks|thank you|വേണ്ട|മതി)$")
 ACK_REPLY = "ശരി. മറ്റെന്തെങ്കിലും അറിയണമെങ്കിൽ ചോദിക്കൂ."
 
-# Stems, not full words: Malayalam inflects heavily (മഴ / മഴയുണ്ടോ, വാർത്ത / വാർത്തകൾ).
+# Stems, not full words, matched inside words after fold(normalise()), so inflected forms match: "ചൂട" covers
+# ചൂടാണോ / ചൂടുണ്ടോ, "തണുപ്പ" covers തണുപ്പുണ്ടോ, "കാലാവസ്" covers ASR's കാലാവസ്ത.
 RULES: list[tuple[Route, list[str]]] = [
-    ("weather", ["കാലാവസ്ഥ", "മഴ", "ചൂട്", "താപനില", "ഡിഗ്രി", "weather", "rain", "temperature"]),
-    ("news", ["വാർത്ത", "news", "headline", "സംഭവ"]),
+    ("weather", ["കാലാവസ്", "താപനില", "സെൽഷ്യസ", "ഇടിമിന്ന", "weather", "temperature", "forecast"]),
+    ("news", ["വാർത്ത", "ന്യൂസ", "തലക്കെട്ട", "news", "headline"]),
+]
+# Weather words with an everyday second sense: a named service wins over them ("ഡിഗ്രി സർട്ടിഫിക്കറ്റ്
+# നഷ്ടപ്പെട്ടു" is a college degree, "മഴവെള്ള സംഭരണി" is a building-permit rule).
+# "സംഭവ" (event) is also the verb "happened" (തെറ്റ് സംഭവിച്ചു).
+WEAK_RULES: list[tuple[Route, list[str]]] = [
+    ("weather", ["മഴ", "ചൂട", "തണുപ്പ", "വെയില", "ഡിഗ്രി", "rain"]),
+    ("news", ["സംഭവ"]),
 ]
 ANSWER_PROMPT = (
     "നീ കേരളത്തിലെ തദ്ദേശ സ്ഥാപന സേവനങ്ങളെക്കുറിച്ചുള്ള ഒരു വോയ്സ് ഹെൽപ്ഡെസ്ക് ആണ്. "
@@ -134,7 +142,12 @@ def rule_route(query: str) -> Route | None:
     for route, stems in RULES:
         if any(fold(normalise(s)) in q for s in stems):
             return route
-    return "service_faq" if detect_services(query) else None
+    if detect_services(query):
+        return "service_faq"
+    for route, stems in WEAK_RULES:
+        if any(fold(normalise(s)) in q for s in stems):
+            return route
+    return None
 
 
 def build_graph(retriever: Retriever | None = None):
