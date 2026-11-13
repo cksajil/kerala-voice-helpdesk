@@ -25,6 +25,10 @@ jobs:
       - run: python -m ingest.extract
       - run: python -m ingest.build_docs
       - run: python -m ingest.check_kb || true      # flags are for review, not a failure
+      # Canonical services from the cached Gemini answers only (no key in CI: new groups wait for a
+      # Kaggle canon run), then the Tier-1-schema entries built from them.
+      - run: python -m ingest.canon --outputs-only
+      - run: python -m ingest.kb_auto
       - run: python -m pytest -q
       - uses: peter-evans/create-pull-request@v7
         with:
@@ -34,6 +38,8 @@ jobs:
           body-path: ingest/changes.md
           add-paths: |
             data/docs.jsonl
+            data/canon.jsonl
+            data/kb_auto.jsonl
             ingest/pages/
             ingest/raw/manifest.json
             ingest/raw/web_manifest.json

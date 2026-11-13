@@ -8,6 +8,8 @@ ingest/sources.csv  ->  fetch  ->  ingest/raw/<slug>.pdf
                     ->  extract (OCR)  ->  ingest/pages/<slug>.jsonl
                     ->  build_docs  ->  data/docs.jsonl  + ingest/report.md
                     ->  check_kb  ->  ingest/kb_check.md   (Tier 1 vs. the pages it cites)
+                    ->  canon (Gemini, cached)  ->  data/canon.jsonl
+                    ->  kb_auto  ->  data/kb_auto.jsonl + ingest/kb_auto_report.md
 ```
 
 Tesseract with Malayalam data is the only system tool (pages are rendered with pypdfium2).
@@ -112,3 +114,17 @@ Resumable: answers are cached in `ingest/canon_cache.jsonl`; when the daily quot
 next day with the previous output as Input.
 Known gap: some charters lay a service out as label/value lines (`അപേക്ഷ നല്കേണ്ടത്: …`) instead of
 columns; those services are not extracted yet.
+
+## Tier-1-schema entries from the charters (`ingest/kb_auto.py`)
+`python -m ingest.kb_auto` (no network, no LLM) promotes canonical services that appear in at least two
+panchayats' charters to entries with the schema of `data/kb.jsonl`: title, text, indexed questions,
+facets, `source` (charter URL + PDF page), `checked` (fetch date from `ingest/raw/manifest.json`) and
+`verify`. A fee or time is stated as a fact only when two or more charters give the same value;
+otherwise each panchayat's value is listed with "check with your panchayat". `verify` is false only when
+every source is on an official government domain and every stated fee/time is agreed. Entries that a
+curated entry already covers are dropped (asymmetric title-word coverage; see the report's "possible
+duplicates" table for the ones to check by hand). The help desk loads them with `HELPDESK_KB_AUTO=1`
+at `HELPDESK_AUTO_BOOST`; the curated entries are never changed.
+
+robots.txt (RFC 9309): a missing robots.txt (4xx) allows; one that cannot be read (5xx, network error)
+disallows the whole site.
