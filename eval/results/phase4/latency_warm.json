@@ -1,0 +1,182 @@
+[
+ {
+  "id": "cr-fee-01",
+  "route": "service_faq",
+  "src": [
+   "cr-fee-01"
+  ],
+  "answer": 4.675,
+  "total": 4.848
+ },
+ {
+  "id": "cr-fee-02",
+  "route": "service_faq",
+  "src": [
+   "cr-fee-02"
+  ],
+  "answer": 7.335,
+  "total": 7.659
+ },
+ {
+  "id": "svc-charge-01",
+  "route": "service_faq",
+  "src": [
+   "svc-charge-01"
+  ],
+  "answer": 6.233,
+  "total": 6.481
+ },
+ {
+  "id": "svc-charge-02",
+  "route": "service_faq",
+  "src": [
+   "svc-charge-02"
+  ],
+  "answer": 6.594,
+  "total": 6.853
+ },
+ {
+  "id": "trade-01",
+  "route": "service_faq",
+  "src": [
+   "trade-01"
+  ],
+  "answer": 4.7,
+  "total": 4.859
+ },
+ {
+  "id": "trade-02",
+  "route": "service_faq",
+  "src": [
+   "trade-02"
+  ],
+  "answer": 9.562,
+  "total": 9.692
+ },
+ {
+  "id": "trade-03-svc",
+  "route": "service_faq",
+  "src": [
+   "trade-03-svc"
+  ],
+  "answer": 4.403,
+  "total": 4.623
+ },
+ {
+  "id": "trade-03-mfg",
+  "route": "service_faq",
+  "src": [
+   "trade-03-mfg"
+  ],
+  "answer": 4.132,
+  "total": 4.36
+ },
+ {
+  "id": "trade-04",
+  "route": "service_faq",
+  "src": [
+   "trade-04"
+  ],
+  "answer": 4.162,
+  "total": 4.341
+ },
+ {
+  "id": "ksmart-01",
+  "route": "service_faq",
+  "src": [
+   "ksmart-01"
+  ],
+  "answer": 9.073,
+  "total": 9.211
+ },
+ {
+  "id": "ksmart-02",
+  "route": "service_faq",
+  "src": [
+   "ksmart-02"
+  ],
+  "answer": 4.879,
+  "total": 5.002
+ },
+ {
+  "id": "cr-cert-01",
+  "route": "service_faq",
+  "src": [
+   "cr-cert-01"
+  ],
+  "answer": 5.042,
+  "total": 5.252
+ },
+ {
+  "id": "access-01",
+  "route": "service_faq",
+  "src": [
+   "access-01"
+  ],
+  "answer": 5.414,
+  "total": 5.663
+ },
+ {
+  "id": "marriage-01",
+  "route": "service_faq",
+  "src": [
+   "marriage-01"
+  ],
+  "answer": 2.572,
+  "total": 2.76
+ },
+ {
+  "id": "building-01",
+  "route": "service_faq",
+  "src": [
+   "building-01"
+  ],
+  "answer": 6.273,
+  "total": 6.535
+ },
+ {
+  "id": "ptax-01",
+  "route": "service_faq",
+  "src": [
+   "ptax-01"
+  ],
+  "answer": 3.836,
+  "total": 4.034
+ },
+ {
+  "id": "grievance-01",
+  "route": "service_faq",
+  "src": [
+   "grievance-01"
+  ],
+  "answer": 4.584,
+  "total": 4.758
+ },
+ {
+  "id": "ch-cert-pres-01",
+  "route": "service_faq",
+  "src": [
+   "ch-cert-pres-01"
+  ],
+  "answer": 5.208,
+  "total": 5.402
+ },
+ {
+  "id": "ch-cert-pres-02",
+  "route": "service_faq",
+  "src": [
+   "ch-cert-pres-02"
+  ],
+  "answer": 7.29,
+  "total": 7.559
+ },
+ {
+  "id": "ch-bd-report-01",
+  "route": "service_faq",
+  "src": [
+   "ch-bd-report-01"
+  ],
+  "answer": 8.852,
+  "total": 9.018
+ }
+]

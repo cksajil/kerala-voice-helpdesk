@@ -39,7 +39,7 @@ sh(f"CMAKE_ARGS='{cmake}' {sys.executable} -m pip install -q llama-cpp-python=={
 sh(f"{sys.executable} -m pip freeze > /kaggle/working/out/freeze.txt; lscpu | head -20 > /kaggle/working/out/cpu.txt")
 
 env = {k: v for k, v in re.findall(r"^\s+(\w+)=(\S+?)(?: \\)?$", docker.split("ENV ", 1)[1].split("EXPOSE")[0], re.M)}
-env["HF_HOME"] = "/kaggle/working/hf"
+env["HF_HOME"] = "/kaggle/temp/hf"          # not under /kaggle/working: kept out of the outputs
 print("image env:", env, flush=True)
 srv_log = open(OUT / "uvicorn.log", "w")
 t0 = time.time()

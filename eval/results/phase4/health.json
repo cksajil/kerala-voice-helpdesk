@@ -1,0 +1,20 @@
+{
+ "status": "ok",
+ "backend": "inproc",
+ "model": "gemma-4-E2B-it-Q4_0.gguf",
+ "warmup": {
+  "done": 50,
+  "total": 50,
+  "seconds": 238.8
+ },
+ "uptime_s": 297,
+ "settings": {
+  "HELPDESK_CANON": "1",
+  "HELPDESK_CTX_K": "1",
+  "HELPDESK_KB_AUTO": null,
+  "HELPDESK_DENSE": "0",
+  "HELPDESK_AUTO_BOOST": null
+ },
+ "passages": 2776,
+ "start_to_ok_s": 298
+}
