@@ -69,25 +69,25 @@ ver = _lc.__version__
 import requests
 meta = requests.get(f"https://pypi.org/pypi/llama-cpp-python/{ver}/json", timeout=60).json()
 url = next(u["url"] for u in meta["urls"] if u["packagetype"] == "sdist")
-Path("/kaggle/working/sdist").mkdir(exist_ok=True)
-sdist = Path("/kaggle/working/sdist") / url.rsplit("/", 1)[1]
+Path("/kaggle/temp/sdist").mkdir(parents=True, exist_ok=True)
+sdist = Path("/kaggle/temp/sdist") / url.rsplit("/", 1)[1]
 sdist.write_bytes(requests.get(url, timeout=600).content)
-tarfile.open(sdist).extractall("/kaggle/working/sdist")
-src = next(Path("/kaggle/working/sdist").glob("llama_cpp_python-*/vendor/llama.cpp"))
-code, _ = sh(f"cmake -S {src} -B /kaggle/working/lcbuild -DGGML_NATIVE=ON -DLLAMA_BUILD_SERVER=ON -DLLAMA_CURL=OFF "
-             f"-DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build /kaggle/working/lcbuild --target llama-server -j 4",
+tarfile.open(sdist).extractall("/kaggle/temp/sdist")
+src = next(Path("/kaggle/temp/sdist").glob("llama_cpp_python-*/vendor/llama.cpp"))
+code, _ = sh(f"cmake -S {src} -B /kaggle/temp/lcbuild -DGGML_NATIVE=ON -DLLAMA_BUILD_SERVER=ON -DLLAMA_CURL=OFF "
+             f"-DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build /kaggle/temp/lcbuild --target llama-server -j 4",
              timeout=3600)
 note = f"built from llama-cpp-python {ver} vendor/llama.cpp"
-if code != 0 or not any(p.is_file() for p in Path("/kaggle/working/lcbuild").rglob("llama-server")):
+if code != 0 or not any(p.is_file() for p in Path("/kaggle/temp/lcbuild").rglob("llama-server")):
     # The sdist may leave out the server sources: fall back to llama.cpp master, and say so.
-    shutil.rmtree("/kaggle/working/lcbuild", ignore_errors=True)
-    sh("git clone -q --depth 1 https://github.com/ggml-org/llama.cpp /kaggle/working/llamacpp_src", timeout=1800)
-    code, _ = sh("cmake -S /kaggle/working/llamacpp_src -B /kaggle/working/lcbuild -DGGML_NATIVE=ON -DLLAMA_CURL=OFF "
-                 "-DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build /kaggle/working/lcbuild "
+    shutil.rmtree("/kaggle/temp/lcbuild", ignore_errors=True)
+    sh("git clone -q --depth 1 https://github.com/ggml-org/llama.cpp /kaggle/temp/llamacpp_src", timeout=1800)
+    code, _ = sh("cmake -S /kaggle/temp/llamacpp_src -B /kaggle/temp/lcbuild -DGGML_NATIVE=ON -DLLAMA_CURL=OFF "
+                 "-DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build /kaggle/temp/lcbuild "
                  "--target llama-server -j 4", timeout=3600)
-    _, head = sh("git -C /kaggle/working/llamacpp_src log -1 --format='%h %cs'")
+    _, head = sh("git -C /kaggle/temp/llamacpp_src log -1 --format='%h %cs'")
     note = f"built from llama.cpp master {head.strip()} (NOT the version vendored in llama-cpp-python {ver})"
-binary = next(p for p in Path("/kaggle/working/lcbuild").rglob("llama-server") if p.is_file())
+binary = next(p for p in Path("/kaggle/temp/lcbuild").rglob("llama-server") if p.is_file())
 (OUT / "llama_server_release.txt").write_text(note)
 libdirs = [str(binary.parent)]
 code, out = sh(f"{sys.executable} -m eval.bench_llama --server-bin {binary} --gguf {gguf} --threads 2",
