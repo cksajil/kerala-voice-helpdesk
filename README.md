@@ -8,7 +8,7 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 | Stage | What runs |
 |---|---|
 | Speech to text | Malayalam ASR on CPU (see [malayalam-asr-eval](https://github.com/cksajil/malayalam-asr-eval) for how the models compare) |
-| **Reply (this repo)** | LangGraph agent: explicit routing, BM25 + BGE-M3 retrieval over a knowledge base built from panchayat citizen charters, Gemma 4 E2B through llama.cpp |
+| **Reply (this repo)** | LangGraph agent: explicit routing, BM25 retrieval (BGE-M3 dense optional, off) over a knowledge base built from panchayat citizen charters, Gemma 4 E2B through llama.cpp |
 | Text to speech | [sajilck/mms-tts-malayalam-sajil](https://huggingface.co/sajilck/mms-tts-malayalam-sajil) (VITS) |
 
 **Highlights**
@@ -17,6 +17,50 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 - `ingest/` turns citizen-charter PDFs into ~600 cited passages (Malayalam OCR with Tesseract) and checks hand-written entries against the pages they cite.
 - An eval suite (routing, retrieval hit@3, refusals, a 100-question answer eval and multi-turn conversations) and fixes driven by real conversation logs, recorded below.
 - A whole spoken turn takes 1.7–6.2 s on the Space's shared CPU.
+
+## Results (13 Nov 2026)
+
+**Held-out set** `eval/heldout_v1.jsonl`: 46 Malayalam questions written for evaluation only and frozen
+by hash (24 service questions, 5 the knowledge base cannot answer, 5 weather, 5 news, 7 off-topic;
+plain, colloquial and ASR-style wording). Whole graph, Gemma 4 E2B Q4_0 through llama-cpp-python,
+Kaggle CPU with **2 threads**, BM25, curated + charter knowledge base (`HELPDESK_KB_AUTO` off).
+
+| | Blind run (first and only look) | Re-run after fixes (**not blind**: fixes were made after seeing the blind failures) |
+|---|---|---|
+| Routing | 38/46 | 44/46 |
+| Right passage first (hit@1) / in top 3 (hit@3), service questions | 19/24 / 23/24 | 20/24 / 23/24 |
+| Service answers correct (automatic; hand check agrees on the total) | 16/24 | 16/24 |
+| Fees exactly right | 5/8 | 5/8 |
+| News | 3/5 | 5/5 |
+| Weather (routing and district right) | 1/5 | 5/5 (answer needs Open-Meteo up: 0/5 in one re-run when it was down) |
+| Off-topic questions declined | 6/7 | 6/7 |
+| Refusal precision / recall | 6/8 / 6/7 | 6/8 / 6/7 |
+| Whole turn p50 / p90 | 10.0 s / 18.5 s | 10.6 s / 19.4 s |
+
+- Knowledge-base gaps (n=5): by hand (Claude's labels), 3 handled acceptably, 2 misleading answers.
+- Expanded knowledge base (+130 charter entries): no gain on this set (all 24 service questions point at
+  curated entries) and one off-topic question answered; its gain (+22 exact hits, 1,109 questions) is on
+  the tuned-on synthetic dev split only. Dense BGE-M3: +1 hit@3, −1 answer, +0.3 s; off.
+- Prompt cache warmed at start-up (FastAPI service): LLM time p50 5.2 s warm vs 8.7 s cold (n=20).
+- Details, per-question CSVs and hand labels: `eval/results/phase3/`, `eval/results/phase6/`,
+  `docs/ENGINEERING_LOG.md`.
+
+### What's left / known limitations
+- **n is small.** 24 service questions: one question is 4 points. Treat differences of one or two as noise.
+- **Wrong passage, confident answer.** The open title match sometimes answers an off-topic question
+  from a loosely matching passage (an electricity-bill question got property tax).
+- **Fee bands for building permits** are read by the LLM, which got one wrong (500 instead of 150);
+  birth/death, marriage and trade-licence fees are computed in code.
+- **Charter-only services** (130 auto entries) are built from 2–6 panchayats' charters; 46% are marked
+  "may vary" because charters disagree. Fees differ by panchayat; the reply says so.
+- **Live tools.** Weather and news depend on Open-Meteo and RSS feeds; when they fail the reply says
+  "try later". 5 of 68 towns have no coordinates and use their district centre (the reply says so).
+- **Latency.** A service answer takes 5–19 s on 2 CPU threads; prefill dominates.
+- **Not yet done:** the Docker image has not been built on a real Docker host (the same pins ran with
+  uvicorn on Kaggle); the 13 charter groups regrouped on 13 Nov need a Gemini run; 20 possible
+  duplicate auto entries need a hand check; LangSmith tracing (optional) is not set up.
+
+---
 
 The rest of this README is the development log, newest sections last.
 
