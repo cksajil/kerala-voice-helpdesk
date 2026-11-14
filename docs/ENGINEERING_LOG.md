@@ -215,3 +215,33 @@ Results: `eval/results/phase3/bench/`.
 - Rendering the chat template per call (the Space's call path) costs nothing measurable (23.0 vs 23.2 s).
 - The first plan (the latest llama.cpp release binary) failed: the repo's "latest" release no longer
   carries binaries. Building from the vendored source is the fairer comparison anyway.
+
+## 14 Nov 2026 — Phase 6: Space update and held-out re-run
+
+**Space update** (owner's decision: HELPDESK_KB_AUTO stays off). Space commit 66c47d9 (previous
+27d2ca2, for rollback): `helpdesk/graph.py`, `retriever.py`, `tools.py` from this branch;
+`data/docs.jsonl` and `canon.jsonl` from the 13 Nov charter rebuild; `data/places.jsonl` (68 towns);
+`data/kb_auto.jsonl` (loaded only if HELPDESK_KB_AUTO=1). Space variables unchanged (HELPDESK_CANON=1);
+transformers stays at 4.46.3 in the Space's requirements. `app.py` and the ASR/TTS stack untouched.
+Live check: `docs/SPACE_CHECKLIST.md` (10 new questions; the owner asks them by voice).
+
+**Held-out v1 re-run (not blind: the fixes followed the blind run's failures).** Kaggle CPU, 2 threads,
+BM25, revision 7456b0b; `eval/results/phase6/`. Rescored after the scorer fixes below.
+
+| | blind, old KB | re-run, old KB | re-run, expanded KB |
+|---|---|---|---|
+| routing | 38/46 | 44/46 | 43/46 |
+| hit@1 / hit@3 | 19 / 23 of 24 | 20 / 23 | 20 / 23 |
+| service answers, automatic / by hand (Claude) | 16 / 16 of 24 | 16 / 17 | 16 / — |
+| news | 3/5 | 5/5 | 5/5 |
+| weather | 1/5 | 0/5 (Open-Meteo failed all 5 calls; route and district right) | 5/5 |
+| off-topic declined | 6/7 | 6/7 | 5/7 |
+| whole turn p50 / p90 | 10.0 / 18.5 s | 10.6 / 19.4 s | 10.6 / 18.6 s |
+
+**Scorer fixes** (`eval/run_heldout.py`): the weather district was read from the wrong tuple field
+(a latitude for hand-written places); a "can't get that now" reply no longer counts as a correct
+weather/news answer. All saved runs rescored (`*_rescored.*`); the blind numbers did not change.
+Tool failures are now logged by the graph (exception type only, no question text).
+
+**Kaggle use, 13 Nov:** 13 runs on 7 private CPU notebooks, ≈6 h 25 min; ≈3 h of it avoidable (three
+failed benchmark attempts, two 44-min dense index builds for a configuration that stays off).
