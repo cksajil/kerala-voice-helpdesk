@@ -53,10 +53,14 @@ SERVICES: dict[str, list[tuple[str, int]]] = {
 # scope and never treated as a follow-up: "പാസ്പോർട്ട് ലഭിക്കാൻ..." right after a marriage
 # question must not get marriage documents; "ഡ്രൈവിംഗ് ലൈസൻസ്" is not a trade licence.
 OUT_OF_SCOPE = ["പാസ്പോർട്ട", "passport", "ആധാർ", "aadhaar", "വോട്ടർ", "ഡ്രൈവിംഗ", "driving",
-                "റേഷൻ കാർഡിൽ പേര് ചേർ", "റേഷന് കാർഡിൽ പേര് ചേർ",
-                # Revenue (village office), Water Authority, Supplyco, banks
+                # Revenue (village office): getting the certificate itself, not needing it as a document
+                # ("വരുമാന സർട്ടിഫിക്കറ്റ് വെക്കണോ" for a pension stays in scope)
                 "ജാതി സർട്ടിഫിക്കറ്റിന", "ജാതി സർട്ടിഫിക്കറ്റ് എടുക്ക", "ജാതി സർട്ടിഫിക്കറ്റ് ലഭി",
-                "ജാതി സർട്ടിഫിക്കറ്റ് കിട്ട", "വരുമാന സർട്ടിഫിക്കറ്റിന",
+                "ജാതി സർട്ടിഫിക്കറ്റ് കിട്ട", "വരുമാന സർട്ടിഫിക്കറ്റിന", "വരുമാന സർട്ടിഫിക്കറ്റ് എടുക്ക",
+                "വരുമാന സർട്ടിഫിക്കറ്റ് ലഭി", "വരുമാന സർട്ടിഫിക്കറ്റ് കിട്ട",
+                # KSEB bills (connections are not listed: the panchayat ownership certificate is for one)
+                "കറന്റ് ബില്ല", "കറന്റ് ബിൽ", "കറണ്ട് ബില്ല", "കറണ്ട് ബിൽ",
+                # Water Authority, Supplyco, banks
                 "വെള്ളക്കര", "വാട്ടർ ബിൽ", "വാട്ടർ അതോറിറ്റി", "നെല്ല് സംഭരണ", "കൃഷി വായ്പ", "ബാങ്ക് വായ്പ",
                 "ലോൺ", "ഗ്യാസ് കണക്ഷ", "കെ.എസ്.ഇ.ബി", "വൈദ്യുതി ബിൽ", "ബസ്", "ട്രെയിൻ",
                 "ദൂരം", "ദൂരമ", "തലസ്ഥാന", "സെക്രട്ടറിയറ്റ", "സെക്രട്ടേറിയറ്റ", "പി.എസ്.സി",
@@ -82,9 +86,21 @@ def other_state(query: str) -> bool:
     return any(fold(normalise(s)) in q for s in OTHER_STATES)
 
 
+# Ration cards belong to Civil Supplies: a new card, or adding, correcting or removing a name on it.
+# Not a mention of the card: it is a common document for panchayat services ("അവിവാഹിത പെൻഷന്
+# റേഷൻ കാർഡ് വേണമോ"), and "…പേരില്ലെന്ന സർട്ടിഫിക്കറ്റ്" is the panchayat's own certificate.
+_RATION_CHANGE = re.compile(r"(?:പുതിയ\s+റേഷ(?:ൻ|ന്)\s*കാർഡ|റേഷ(?:ൻ|ന്)\s*കാർഡിൽ\s+(?:\S+\s+){0,3}?പേര്\s+"
+                            r"(?:ചേർ|തിരുത്ത|മാറ്റ|നീക്ക|കുറയ്ക്ക|ഒഴിവാക്ക))")
+
+
+def ration_card_change(query: str) -> bool:
+    q = normalise(fix_asr(query))
+    return bool(_RATION_CHANGE.search(q)) and "സർട്ടിഫിക്ക" not in q
+
+
 def out_of_scope(query: str) -> bool:
     q = fix_asr(query)
-    return (any(fold(normalise(s)) in fold(q) for s in OUT_OF_SCOPE + OTHER_STATES)
+    return (any(fold(normalise(s)) in fold(q) for s in OUT_OF_SCOPE + OTHER_STATES) or ration_card_change(q)
             or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
             or bool(_ROUTE_Q.search(q)) or bool(_MEDICAL_Q.search(q)))
 

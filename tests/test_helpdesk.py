@@ -995,3 +995,26 @@ def test_weak_weather_words_yield_to_a_named_service():
     assert rule_route("ഇവിടെ നല്ല ചൂടാണോ") == "weather"
     assert rule_route("നാളത്തെ കാലാവസ്ത") == "weather"
     assert rule_route("ന്യൂസ് കേൾക്കണം") == "news"
+
+
+# --- 14 Nov live check: ration-card changes declined, ration card as a document kept ---------
+def test_ration_card_change_declined_but_document_mentions_kept():
+    from helpdesk.intent import out_of_scope
+    assert out_of_scope("റേഷന് കാർഡിൽ പേര് തിരുത്താൻ എന്ത് ചെയ്യണം")
+    assert out_of_scope("പുതിയ റേഷൻ കാർഡ് എങ്ങനെ എടുക്കാം")
+    assert not out_of_scope("റേഷൻ കാർഡിൽ പേരില്ലെന്ന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും")      # panchayat certificate
+    assert not out_of_scope("അവിവാഹിത പെൻഷൻ ലഭിക്കാൻ റേഷൻ കാർഡ് വേണമോ?")                 # a document
+    assert not out_of_scope("പെൻഷൻ കിട്ടാൻ വരുമാന സർട്ടിഫിക്കറ്റ് വെക്കണോ?")
+    assert not out_of_scope("വൈദ്യുതി കണക്ഷന് ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് വേണോ")
+
+
+def test_follow_up_asking_another_fact_leaves_the_previous_passage():
+    from helpdesk.graph import build_graph
+    from helpdesk.retriever import Retriever
+    g = build_graph(Retriever(dense=False))
+    q1 = "വിവാഹം രജിസ്റ്റർ ചെയ്യാൻ നിർബന്ധമാണോ"
+    s1 = g.invoke({"query": q1})
+    s2 = g.invoke({"query": "അതിന് എന്തൊക്കെ രേഖകൾ വേണം", "previous": q1, "previous_route": s1["route"],
+                   "previous_services": s1.get("services") or [], "previous_tool": s1.get("tool") or "",
+                   "previous_topic": s1.get("topic") or ""})
+    assert s2["route_by"] == "follow-up" and s2["sources"][0]["id"] == "ch-marr-docs-01"

@@ -201,6 +201,11 @@ def build_graph(retriever: Retriever | None = None):
             # it ("അതിന് എത്ര ദിവസം?" after the advertisement row went to a factory licence row).
             h = retriever.open_match(s.get("previous") or "")
             pin = h.doc["id"] if h is not None and h.doc.get("service") in prev else None
+            # Not when the follow-up asks for something that passage is tagged as not covering: after
+            # "is marriage registration compulsory?", "അതിന് എന്തൊക്കെ രേഖകൾ" needs the documents entry
+            # (14 Nov live check). Untagged charter rows keep the pin, as above.
+            if pin and facet and h.doc.get("facets") and facet not in h.doc["facets"]:
+                pin = None
             return {"route": "service_faq", "route_by": "follow-up", "services": prev, "facet": facet,
                     **({"open_id": pin} if pin else {})}
         # No service: answering from the knowledge base would only find a lookalike passage
@@ -259,10 +264,11 @@ def build_graph(retriever: Retriever | None = None):
             # (10 Nov, canon on). The title of the passage that started the thread carries it.
             query = s["previous_topic"] + " " + query
         hits = retriever.search(query, k=3, services=services, facet=facet)
-        if follow and facet in STRICT_FACETS and hits and facet not in hits[0].doc.get("facets", []):
+        if follow and facet in CLARIFY_FACETS and hits and facet not in hits[0].doc.get("facets", []):
             # The topic words pull the topic's own passage to the top; when it does not answer the
-            # asked amount/time/validity, the best-ranked passage that does goes first
-            # ("തുകയെത്രയാണ്?" in a widow-pension thread: the pension-amount entry, not eligibility).
+            # asked amount/time/validity/documents, the best-ranked passage that does goes first
+            # ("തുകയെത്രയാണ്?" in a widow-pension thread: the pension-amount entry, not eligibility;
+            # documents after "is registration compulsory?": the documents entry, 14 Nov live check).
             j = next((j for j, h in enumerate(hits) if facet in h.doc.get("facets", [])), None)
             if j is not None:
                 hits = [hits[j]] + hits[:j] + hits[j + 1:]
