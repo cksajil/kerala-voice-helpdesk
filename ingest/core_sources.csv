@@ -1,0 +1,24 @@
+service_no,service,url,kind,note
+1;2;4,"birth/death registration: on time, vehicle, home death, corrections","https://panchayatwiki.lsgkerala.gov.in/KERALA_REGISTRATION_OF_BIRTHS_AND_DEATHS_RULES,_1999",rules,Kerala Registration of Births and Deaths Rules 1999 (LSGD Panchayat Wiki)
+1;2;4,birth/death registration,https://sanchitha.lsgkerala.gov.in/sites/default/files/KeralaRegistration_%20Births_Deaths%20Rules_1999.pdf,rules,same rules as PDF (LSGD Sanchitha)
+1;2,birth/death registration fees,https://cr.lsgkerala.gov.in/BirthRegnFee.php,fees,civil registration fee schedule (LSGD)
+2,death registration,https://panchayatwiki.lsgkerala.gov.in/Panchayat:Repo18/vol2-page0403,rules,registration rules page
+1,birth registration,"https://panchayatwiki.lsgkerala.gov.in/REGISTRATION_OF_BIRTHS_AND_DEATHS_ACT,_1969",act,central Act as published by LSGD
+7;8;9;10;18,"building rules: permit, rainwater, occupancy, number, well",https://demo.lsgkerala.gov.in/sanketham/Content/Rules/KBR2019.pdf,rules,Kerala Panchayat Building Rules 2019 (check it is the current consolidated text)
+7;8;9;10,building rules (municipality),https://buildingpermit.lsgkerala.gov.in/Content/Rules/2019_kmbr.pdf,rules,Kerala Municipality Building Rules 2019
+8,rainwater storage,https://panchayatwiki.lsgkerala.gov.in/Panchayat:Repo18/Law_Manual_Page0813,rules,law manual page on rainwater storage
+18,well permit,https://sanchitha.lsgkerala.gov.in/node/2521,rules,rule 103: no new well without a permit
+18,well permit,https://panchayatwiki.lsgkerala.gov.in/Panchayat:Repo18/Law_Manual_Page0809,rules,law manual: wells
+18,well permit,https://panchayatwiki.lsgkerala.gov.in/Panchayat:Repo18/Law_Manual_Page0823,rules,law manual: wells
+11,"building tax: exemption, demolished",https://panchayatwiki.lsgkerala.gov.in/Panchayat:Repo18/Law_Manual_Page0254,rules,law manual: building tax
+11,"building tax: exemption, demolished",https://panchayatwiki.lsgkerala.gov.in/Panchayat:Repo18/Law_Manual_Page0270,rules,law manual: building tax
+19;20,"welfare pensions: eligibility, documents, mustering",https://keezhallurpanchayat.lsgkerala.gov.in/en/node/93,panchayat_page,official panchayat page
+19;20,welfare pensions,https://karukachalpanchayat.lsgkerala.gov.in/en/node/74,panchayat_page,official panchayat page
+19;20,welfare pensions,https://elikulampanchayat.lsgkerala.gov.in/en/node/67,panchayat_page,official panchayat page
+22,MGNREGS job card,https://pulincunnoopanchayat.lsgkerala.gov.in/en/node/89,panchayat_page,official panchayat page
+22,MGNREGS job card,https://kanicharpanchayat.lsgkerala.gov.in/en/node/99,panchayat_page,official panchayat page
+24,complaints to the panchayat,https://kangazhapanchayat.lsgkerala.gov.in/en/node/75,panchayat_page,grievance redressal
+24,complaints to the panchayat,https://peralasserypanchayat.lsgkerala.gov.in/en/page/grievance-redressal-mechanisms,panchayat_page,grievance redressal
+27,LIFE Mission housing,https://lifemission.lsgkerala.gov.in/,scheme_site,official LIFE Mission site
+30,panchayat office basics,https://kumarapurampanchayat.lsgkerala.gov.in/en/node/39,panchayat_page,citizen charter with office hours
+13,ownership certificate for KSEB,https://kseb.in/index.php/sbuarticledetail/eyJpdiI6IjZ5SVZFaG16QXYzWllUZDJJUDkwbUE9PSIsInZhbHVlIjoicWtyczhzcmdyMDNhSUtZTDRkWFJiUT09IiwibWFjIjoiZmVkNDY3ZDRjOTFhOGNjYzlkNjI0Y2RmNGM0ZmY2MTIzZmQzYzZkM2FkYWI3NzUzNDQ4YmMzOWIzM2E2MDI4MCIsInRhZyI6IiJ9/eyJpdiI6Ik5aMHRjQU5aWis4VExPYzVqYXFvaXc9PSIsInZhbHVlIjoiY2lzM1hMNlczNS9lLzROUytkVWJGdz09IiwibWFjIjoiZmVkNDY3ZDRjOTFhOGNjYzlkNjI0Y2RmNGM0ZmY2MTIzZmQzYzZkM2FkYWI3NzUzNDQ4YmMzOWIzM2E2MDI4MCIsInRhZyI6IiJ9,kseb_page,KSEB: documents required for a new connection
