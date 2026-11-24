@@ -50,7 +50,8 @@ def fetch_sources(src: Path) -> list[dict]:
                 rec["status"] = resp.status_code
                 if resp.ok:
                     body = resp.content
-                    ext = "pdf" if body[:4] == b"%PDF" else ("wiki" if r["kind"] == "wiki_raw" else "html")
+                    ext = ("pdf" if body[:4] == b"%PDF" else "wiki" if r["kind"] == "wiki_raw"
+                           else "json" if r["kind"] == "wiki_parse" else "html")
                     sha = hashlib.sha256(body).hexdigest()
                     (OUT / f"{sha[:12]}.{ext}").write_bytes(body)
                     rec.update(file=f"{sha[:12]}.{ext}", sha256=sha, bytes=len(body),
