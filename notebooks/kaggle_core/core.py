@@ -13,7 +13,7 @@ if tgz:
 else:
     shutil.rmtree(REPO); shutil.copytree(Path(sorted(glob.glob("/kaggle/input/**/helpdesk/graph.py", recursive=True), key=len)[0]).parents[1], REPO)
 shutil.copy(REPO / "REVISION", OUT)
-p = subprocess.run(f"{sys.executable} -m ingest.core_fetch", shell=True, cwd=REPO, capture_output=True, text=True, timeout=3 * 3600)
+p = subprocess.run(f"{sys.executable} -m ingest.core_fetch --sources core_sources_2.csv", shell=True, cwd=REPO, capture_output=True, text=True, timeout=3 * 3600)
 (OUT / "log.txt").write_text(p.stdout[-50000:] + p.stderr[-20000:])
 print(p.stdout[-5000:], p.stderr[-3000:])
 shutil.copytree(REPO / "ingest/raw/core", OUT / "core", dirs_exist_ok=True)

@@ -2,8 +2,8 @@
 Panchayat Wiki (panchayatwiki.lsgkerala.gov.in). Runs on Kaggle: the work container cannot reach
 lsgkerala.gov.in.
 
-    python -m ingest.core_fetch                 # sources + wiki survey
-    python -m ingest.core_fetch --wiki-pages 0  # sources only
+    python -m ingest.core_fetch --sources core_sources_2.csv     # fetch a register
+    python -m ingest.core_fetch --wiki-pages 50000               # also list the wiki's page titles
 
 Rules: robots.txt is checked for every URL (ingest.fetch.allowed, RFC 9309); one request every
 DELAY seconds per run; every file keeps its URL, fetch date, HTTP status and SHA-256 in the manifest.
@@ -36,8 +36,8 @@ def get(url: str, **kw):
     return requests.get(url, headers=UA, timeout=60, **kw)
 
 
-def fetch_sources() -> list[dict]:
-    rows = list(csv.DictReader((ROOT / "core_sources.csv").open(encoding="utf-8")))
+def fetch_sources(src: Path) -> list[dict]:
+    rows = list(csv.DictReader(src.open(encoding="utf-8")))
     today = dt.date.today().isoformat()
     manifest = []
     for r in rows:
@@ -50,7 +50,7 @@ def fetch_sources() -> list[dict]:
                 rec["status"] = resp.status_code
                 if resp.ok:
                     body = resp.content
-                    ext = "pdf" if body[:4] == b"%PDF" else "html"
+                    ext = "pdf" if body[:4] == b"%PDF" else ("wiki" if r["kind"] == "wiki_raw" else "html")
                     sha = hashlib.sha256(body).hexdigest()
                     (OUT / f"{sha[:12]}.{ext}").write_bytes(body)
                     rec.update(file=f"{sha[:12]}.{ext}", sha256=sha, bytes=len(body),
@@ -98,11 +98,12 @@ def survey_wiki(max_pages: int) -> dict:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--wiki-pages", type=int, default=50000, help="cap on titles listed (0 = skip the survey)")
+    ap.add_argument("--sources", default="core_sources.csv", help="register in ingest/ to fetch")
+    ap.add_argument("--wiki-pages", type=int, default=0, help="list up to N wiki titles (0 = no survey; done 14 Nov)")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
-    manifest = fetch_sources()
-    (OUT / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
+    manifest = fetch_sources(ROOT / args.sources)
+    (OUT / f"manifest_{Path(args.sources).stem}.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
     if args.wiki_pages:
         s = survey_wiki(args.wiki_pages)
         (OUT / "wiki_titles.json").write_text(json.dumps(s, ensure_ascii=False, indent=1), encoding="utf-8")
