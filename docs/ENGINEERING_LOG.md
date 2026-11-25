@@ -398,3 +398,12 @@ like the existing facets is the next idea to test.
 
 Also found: `test_12_nov_retrieval_fixes` passes only with HELPDESK_CANON=1, which the full suite gets
 from importing helpdesk.api first. It already failed this way on main, so it predates this change.
+
+## 2026-11-25 (late night): LangSmith verified locally
+
+- Owner's Intel Mac: key check (`Client().list_projects`) and a `helpdesk.cli` run with `HELPDESK_LLM=none`;
+  the trace appears in project kerala-helpdesk-dev (root run `LangGraph`). The Space stays untraced (owner's
+  decision: public questions only in the private Hugging Face usage log).
+- `pip install -r requirements-api.txt` fails on the Mac's Python 3.11 (numpy 2.5.3); the README now uses
+  the unpinned packages for local tracing. Added `docker-compose.tracing.yml` (key from the shell, no secret
+  in the file) for Gemma traces through the local Docker API.
