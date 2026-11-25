@@ -288,3 +288,22 @@ longer records `bad_input` calls (bots calling the endpoint; 721605b); 143 such 
 `turns_cd03ebe6.jsonl` at the owner's request (history kept).
 
 **Open.** Live check of the new entries; building rules after v1; gaps above; held-out v2 from real users.
+
+### 25 Nov — Live checks after the update (owner, by voice, 25 turns)
+
+- Checklist (`docs/SPACE_CHECKLIST.md`): 9/10. Fixed since 14 Nov: the marriage documents follow-up, and the
+  rainwater question (was "permit in 30 days", now the cautious entry). Failure: a misheard town
+  ("കട്ടുപനിയിൽ") silently got Thiruvananthapuram's weather. Fix: an unknown "<place>ിൽ" place is now
+  said, as "<place>ിലെ" already was (everyday "in the …" and time words excluded; Space f0fd6b7).
+- New entries: 5/7 right (certificate correction, job card, marriage compulsory + documents + follow-up,
+  ration-card decline, well permit). Wrong: a 1200 cc car question got the house-size rule — the right
+  entry, but four conditions in one passage; split into vehicle / house / land-and-income entries (KB 65;
+  titles phrased as people ask, which also keeps a garbled Elikulam charter row from winning the title
+  match). Partial: "demolished building, still pay tax?" got a Kanhirapuzha charter row (show the building
+  number, pay tax up to that year) instead of the rule-based entry. A guard that keeps curated entries over
+  same-service charter rows was tried and rejected: 66 of 1,824 questions changed, many for the worse.
+- Gemma sometimes drops the cautious "rules changed in 2025" sentence (well permit), within the 1–2
+  sentence answer limit.
+- Usage log: `engine`/`mode` were the page's stale values ("whisper", "direct"); now the ASR and reply
+  engine that actually ran (Space baae505). Older rows keep the old values.
+- Turn times 0.7–10.9 s end to end; the slowest are LLM answers (up to 8.6 s).
