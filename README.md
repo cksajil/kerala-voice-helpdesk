@@ -77,8 +77,9 @@ a four-condition entry). These are spot checks, not a score: the questions were 
 - **Live tools.** Weather and news depend on Open-Meteo and RSS feeds; when they fail the reply says
   "try later". 5 of 68 towns use their district centre (the reply says so); an unknown place is said.
 - **Latency.** A service answer takes up to ~11 s on the Space's CPU; prefill dominates.
-- **Not yet done:** the Docker image has not been built on a real Docker host (the same pins ran with
-  uvicorn on Kaggle); LangSmith tracing (optional) is not set up; the 13 charter groups regrouped on
+- **Docker:** built and smoke-tested on an Intel MacBook Air (Docker Desktop, 4 CPUs, 4.1 GB,
+  `HELPDESK_CACHE_MB=512`, 25 Nov 2026): 5/5 checks pass, warm-up 924 s, 2.8 GB RSS, answers 8–16 s.
+- **Not yet done:** LangSmith tracing (optional) is not set up; the 13 charter groups regrouped on
   13 Nov need a Gemini run.
 
 ---

@@ -307,3 +307,23 @@ longer records `bad_input` calls (bots calling the endpoint; 721605b); 143 such 
 - Usage log: `engine`/`mode` were the page's stale values ("whisper", "direct"); now the ASR and reply
   engine that actually ran (Space baae505). Older rows keep the old values.
 - Turn times 0.7–10.9 s end to end; the slowest are LLM answers (up to 8.6 s).
+
+## 2026-11-25 (evening): Docker image built and tested on the Mac
+
+What changed (branch `claude/tender-cannon-awgv85`, after PR #6 was merged):
+- `requirements-api.txt`: pinned llama-cpp-python's own dependencies (diskcache 5.6.3, jinja2 3.1.6,
+  markupsafe 3.0.4). The Dockerfile builds it with `--no-deps`, so the first build failed at the offline install.
+- `helpdesk/prompt_cache.py`: llama-cpp-python 0.3.36's `LlamaRAMCache` counts only the llama.cpp state
+  of each entry, not the copy of the prompt's logits it also keeps (up to 512 x 262k float32 for Gemma).
+  With Docker Desktop at 4.1 GB the container was killed during warm-up at passage 9–13, whatever
+  `HELPDESK_CACHE_MB` was. The new cache keeps only the last logits row (the rest is never read:
+  `load_state` sets `_requires_eval`, the last token is evaluated again) and counts every array.
+- `docker-compose.yml` passes `HELPDESK_CACHE_MB`; `/health` shows cache entries/MB and RSS.
+
+Numbers (Intel MacBook Air, Docker Desktop 4 CPUs / 4.1 GB, `N_THREADS=2`, `HELPDESK_CACHE_MB=512`, n=5 smoke checks):
+- Build: about 15 min the first time (llama-cpp-python compile 830 s), about 1 min after a code change.
+- Warm-up 924 s for 65 curated passages; cache 66 entries, 449 MB; RSS 2,832 MB.
+- `scripts/smoke_test.py`: 5/5 pass. Answer turns 8.3 s (service) and 15.6 s (follow-up, router 4.8 s);
+  fee in code 0.03 s; off-topic decline 0.26 s.
+
+Open issues: the follow-up's router took 4.8 s (not looked at yet); 2 GB cache not tried on a 6 GB Docker.
