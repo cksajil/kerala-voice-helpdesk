@@ -1,0 +1,12 @@
+# Local development only: trace your own questions through the Docker API to LangSmith.
+#   export LANGSMITH_API_KEY="$(tr -d '[:space:]' < ~/langsmith_key.txt)"   # the key stays in your shell
+#   HELPDESK_CACHE_MB=512 docker compose -f docker-compose.yml -f docker-compose.tracing.yml up -d
+# Every question and answer goes to LangSmith, so never use this on a public host (see README "Tracing").
+services:
+  helpdesk:
+    environment:
+      HELPDESK_TRACING: "1"
+      LANGSMITH_TRACING: "true"
+      LANGSMITH_PROJECT: "${LANGSMITH_PROJECT:-kerala-helpdesk-dev}"
+      LANGSMITH_API_KEY: "${LANGSMITH_API_KEY:?set LANGSMITH_API_KEY in your shell first}"
+      LANGSMITH_ENDPOINT: "${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}"

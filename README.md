@@ -175,13 +175,28 @@ Traces hold the questions and answers, and user logs never go to an external API
 your own runs: `helpdesk.cli`, eval scripts and the notebooks on your computer. The API
 (`helpdesk/api.py`, the Docker image) switches tracing off at start-up whatever the environment says
 (`helpdesk/tracing.py`; `/health` shows `"tracing": false`), and the Space has no LangSmith key.
+Questions from Space users are kept only in the private Hugging Face usage log.
+
+Tested on an Intel Mac, 25 Nov 2026. Create an API key in smith.langchain.com (Settings, API Keys), keep it
+in a file outside the repo (`chmod 600`), and never paste it into a terminal you share or into chat.
 ```bash
-export LANGSMITH_TRACING=true LANGSMITH_API_KEY=<your key> LANGSMITH_PROJECT=kerala-helpdesk-dev
-python3 -m helpdesk.cli "ജനന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും?"
+python3 -m venv .venv-dev && source .venv-dev/bin/activate
+pip install langgraph rank_bm25 feedparser requests numpy   # unpinned: requirements-api.txt pins Linux/3.12
+export LANGSMITH_TRACING=true LANGSMITH_PROJECT=kerala-helpdesk-dev \
+       LANGSMITH_API_KEY="$(tr -d '[:space:]' < ~/langsmith_key.txt)"
+# EU accounts (eu.smith.langchain.com) only: export LANGSMITH_ENDPOINT=https://eu.api.smith.langchain.com
+python3 -c "from langsmith import Client; print([p.name for p in Client().list_projects(limit=5)])"   # key check
+HELPDESK_LLM=none HELPDESK_CANON=1 python3 -m helpdesk.cli "ജനന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും?"
 ```
-Each graph node (router, retrieve, answer…) is a run with its inputs and outputs, and each Gemma
-call an `llm` run with its prompt. Your own questions through the local Docker API trace only with
-`HELPDESK_TRACING=1` set for the container as well; never set it on a public host.
+Each question is one trace in the project: the graph nodes (router, calc, retrieve, answer…) with their
+inputs, outputs and timing; `HELPDESK_LLM=none` answers from the passage without Gemma. To trace Gemma's
+prompt and reply as well, run the Docker API with `docker-compose.tracing.yml` (it reads the key from your
+shell; `/health` then shows `"tracing": true`) and ask through `scripts/voice_chat.py` or `curl`:
+```bash
+HELPDESK_CACHE_MB=512 docker compose -f docker-compose.yml -f docker-compose.tracing.yml up -d
+```
+Each Gemma call is then a `gemma.chat` run under `answer`. Go back to untraced with
+`HELPDESK_CACHE_MB=512 docker compose up -d`. Never set `HELPDESK_TRACING=1` on a public host.
 
 ## Faster replies on CPU (prompt cache)
 Most reply time on a CPU is prefill (reading system prompt + passages).
