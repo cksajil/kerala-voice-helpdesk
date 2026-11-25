@@ -136,12 +136,17 @@ def _place_stems() -> list[str]:
 _GENERIC += ["നിന്ന", "കേരള", "ഇന്ത്യ", *_place_stems()]   # places say where, not which service
 
 
+_GENERIC_NORM: tuple[str, ...] | None = None
+
+
 def _content_words(text: str) -> list[str]:
+    global _GENERIC_NORM
+    if _GENERIC_NORM is None:      # normalised once: per word it took 1.6M normalise() calls and
+        _GENERIC_NORM = tuple(normalise(g) for g in _GENERIC)   # 4.8 s per first follow-up on a Mac
     t = normalise(text, strip_punct=True)
     for a, b in _CANON:
         t = t.replace(a, b)
-    return [w for w in t.split()
-            if len(w) >= 3 and not any(w.startswith(normalise(g)) for g in _GENERIC)]
+    return [w for w in t.split() if len(w) >= 3 and not w.startswith(_GENERIC_NORM)]
 
 
 _CHILLU_BASE = {"ൽ": "ല", "ർ": "ര", "ൻ": "ന", "ൾ": "ള", "ൺ": "ണ", "ൿ": "ക"}

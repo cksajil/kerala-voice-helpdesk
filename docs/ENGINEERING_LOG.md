@@ -327,3 +327,16 @@ Numbers (Intel MacBook Air, Docker Desktop 4 CPUs / 4.1 GB, `N_THREADS=2`, `HELP
   fee in code 0.03 s; off-topic decline 0.26 s.
 
 Open issues: the follow-up's router took 4.8 s (not looked at yet); 2 GB cache not tried on a 6 GB Docker.
+
+## 2026-11-25 (late): review note on the ration-card rule; slow first follow-up
+
+- **Codex review note (PR #6, `helpdesk/intent.py:98`)**: it suggested narrowing the certificate exception
+  of the ration-card decline. Tried a rule that keeps only "…പേരില്ലെന്ന സർട്ടിഫിക്കറ്റ്": it changed 1 of
+  1,866 eval questions (all `eval/*.jsonl`, tuned sets included), and that one for the worse. "റേഷൻകാർഡിൽ
+  പേര് ചേർക്കാനുള്ള ജനനത്തീയതി സർട്ടിഫിക്കറ്റിന് എന്ത് വേണം?" is a panchayat certificate (charter
+  canon-g98971f9957) and would have been declined. Kept the rule; the case is now a test.
+- **Slow first follow-up** (4.8 s router on the Mac smoke test): `retriever._content_words` normalised the
+  whole generic-word list again for every word, 1.6M `normalise()` calls to build one service's
+  vocabulary on the first follow-up. Normalised once now; same words on 399 sampled passages; router
+  1.6 s -> 0.07 s on the first follow-up (this container, CPU); the test suite 66 s -> 23 s.
+- Bots: already kept out of the evidence log by the 25 Nov Space change (non-app calls are skipped).

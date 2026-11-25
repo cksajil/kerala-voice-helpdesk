@@ -1003,6 +1003,10 @@ def test_ration_card_change_declined_but_document_mentions_kept():
     assert out_of_scope("റേഷന് കാർഡിൽ പേര് തിരുത്താൻ എന്ത് ചെയ്യണം")
     assert out_of_scope("പുതിയ റേഷൻ കാർഡ് എങ്ങനെ എടുക്കാം")
     assert not out_of_scope("റേഷൻ കാർഡിൽ പേരില്ലെന്ന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും")      # panchayat certificate
+    assert not out_of_scope("റേഷൻ കാർഡിൽ പേര് ഇല്ലെന്ന സർട്ടിഫിക്കറ്റ് വേണം")
+    # A certificate for a ration-card change is often the panchayat's (ജനനത്തീയതി സർട്ടിഫിക്കറ്റ് "റേഷൻ
+    # കാർഡിൽ പേര് ചേർക്കാൻ", charter canon-g98971f9957), so any certificate question stays in scope.
+    assert not out_of_scope("റേഷൻകാർഡിൽ പേര് ചേർക്കാനുള്ള ജനനത്തീയതി സർട്ടിഫിക്കറ്റിന് എന്ത് വേണം?")
     assert not out_of_scope("അവിവാഹിത പെൻഷൻ ലഭിക്കാൻ റേഷൻ കാർഡ് വേണമോ?")                 # a document
     assert not out_of_scope("പെൻഷൻ കിട്ടാൻ വരുമാന സർട്ടിഫിക്കറ്റ് വെക്കണോ?")
     assert not out_of_scope("വൈദ്യുതി കണക്ഷന് ഉടമസ്ഥാവകാശ സർട്ടിഫിക്കറ്റ് വേണോ")
