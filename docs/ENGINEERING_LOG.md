@@ -369,3 +369,32 @@ Open issues: the follow-up's router took 4.8 s (not looked at yet); 2 GB cache n
     Whisper's.
   - Voice (VITS on CPU, including playback) 8–23 s; the long scope reply is the slowest.
   - n = 4 turns, one speaker, an informal check rather than an eval number.
+
+## 2026-11-25 (night): Space voice test with IndicConformer; title-boost experiment (not adopted)
+
+Space test (owner, 14 turns, IndicConformer-600M RNNT): every question heard correctly, ASR 0.1–0.4 s.
+"മൂന്നാറിൽ ഇന്നത്തെ കാലാവസ്ഥ" (missed by Whisper on the Mac) answered with live weather; "വി" got the new
+"please repeat". Wrong answers came from retrieval and the KB, not ASR:
+- "വിധവാ പെൻഷന് അർഹത ആർക്കൊക്കെയാണ്" declined: the old-age entry ranks first (its title has "അർഹത", plus
+  shared letter n-grams) over ch-pen-widow-01.
+- "ജനന രജിസ്ട്രേഷനായിട്ട് എന്തൊക്കെ രേഖകൾ വേണം" answered with late-registration documents: no KB entry for
+  on-time registration documents (KB gap, needs a sourced draft).
+- A follow-up "എവിടെ രജിസ്റ്റർ ചെയ്യാം" got a garbled Kadanad charter row.
+
+Experiment: `HELPDESK_TITLE_BOOST` (retriever.py, commit 41fb4b3) multiplies BM25 by 1 + boost for each
+distinctive question word in a title. hit@1 of the first source, LLM off, cloud container CPU:
+
+| set | kind | off | 0.5 | 1.0 |
+|---|---|---|---|---|
+| heldout_v1 (n=36) | held-out | 23 (0.639) | 23 (0.639) | 22 (0.611) |
+| answer_eval (n=73) | tuned | 60 (0.822) | 57 (0.781) | 53 (0.726) |
+| synth (n=1597) | tuned, synthetic | 374 (0.234) | 401 (0.251) | 418 (0.262) |
+
+At 0.5, 105 questions change top-1: 32 fixed, 8 broken, the rest moved between wrong answers. The
+fixes are mostly charter rows on synth; the breaks include curated entries (a widow-income question went to
+exclude-03, an old-age amount question went to old-01). The held-out set does not move. Not adopted: the default
+stays 0 and the widow question stays open. A pension-type facet (widow / old-age / disability…) handled
+like the existing facets is the next idea to test.
+
+Also found: `test_12_nov_retrieval_fixes` passes only with HELPDESK_CANON=1, which the full suite gets
+from importing helpdesk.api first. It already failed this way on main, so it predates this change.
