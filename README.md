@@ -125,6 +125,8 @@ No dense model? `HELPDESK_DENSE=0` uses BM25 only.
 
 ## Run locally with Docker
 CPU only; works on an Intel Mac (Docker Desktop, give it 2 CPUs and 6 GB RAM in Settings → Resources).
+With less memory (Docker Desktop's default can be 4 GB) the app is killed during warm-up and restarts;
+then start it with a smaller prompt cache: `HELPDESK_CACHE_MB=512 docker compose up -d`.
 ```bash
 docker compose up --build -d                  # first build compiles llama-cpp-python (~10 min)
 docker compose logs -f helpdesk               # first start downloads Gemma 4 E2B Q4_0 (2.8 GB) into a volume
