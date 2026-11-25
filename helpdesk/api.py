@@ -31,6 +31,10 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from .tracing import serving_guard
+
+TRACING = serving_guard()                         # before LangGraph is imported (helpdesk/tracing.py)
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -204,7 +208,7 @@ def health():
                                                    "HELPDESK_DENSE", "HELPDESK_AUTO_BOOST",
                                                    "HELPDESK_CACHE_MB")},
             "passages": len(service.retriever.docs) if service.retriever else 0,
-            "cache": service.cache.stats() if service.cache else None, "rss_mb": rss_mb()}
+            "cache": service.cache.stats() if service.cache else None, "rss_mb": rss_mb(), "tracing": TRACING}
     if service.error:
         body["error"] = service.error
     return body

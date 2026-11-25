@@ -153,6 +153,34 @@ curl -s localhost:8000/ask -H 'Content-Type: application/json' \
   `uvicorn helpdesk.api:app --port 8000`. `HELPDESK_LLM_BACKEND=http` uses a separate
   llama-server instead; `none` runs without a model.
 
+
+## Voice test on your own computer
+`scripts/voice_chat.py` records a question from the microphone, transcribes it with the Space's Whisper
+(`sajilck/whisper-small-malayalam-v2`, CTranslate2 int8, gated: `huggingface-cli login` once), sends it
+to the local API and speaks the answer with the Space's VITS voice. Nothing leaves the computer and
+nothing is saved unless `--save-dir` is given. It uses Whisper, not the Space's IndicConformer (2.4 GB
+ONNX), so expect a few more misheard words than on the Space.
+```bash
+python3 -m venv .venv-voice && source .venv-voice/bin/activate
+pip install -r requirements-voice.txt          # Intel Mac: torch 2.2.2, numpy<2 (pinned there)
+HELPDESK_CACHE_MB=512 docker compose up -d     # the API it talks to
+python3 scripts/voice_chat.py                  # Enter, speak, Enter; Ctrl+C quits
+```
+`--no-speak` prints the answer only; `--file q.wav` asks one recorded question.
+
+## Tracing with LangSmith (local development only)
+Traces hold the questions and answers, and user logs never go to an external API, so tracing is for
+your own runs: `helpdesk.cli`, eval scripts and the notebooks on your computer. The API
+(`helpdesk/api.py`, the Docker image) switches tracing off at start-up whatever the environment says
+(`helpdesk/tracing.py`; `/health` shows `"tracing": false`), and the Space has no LangSmith key.
+```bash
+export LANGSMITH_TRACING=true LANGSMITH_API_KEY=<your key> LANGSMITH_PROJECT=kerala-helpdesk-dev
+python3 -m helpdesk.cli "ജനന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും?"
+```
+Each graph node (router, retrieve, answer…) is a run with its inputs and outputs, and each Gemma
+call an `llm` run with its prompt. Your own questions through the local Docker API trace only with
+`HELPDESK_TRACING=1` set for the container as well; never set it on a public host.
+
 ## Faster replies on CPU (prompt cache)
 Most reply time on a CPU is prefill (reading system prompt + passages).
 Start the server with a disk cache, then warm it once:

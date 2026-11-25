@@ -83,3 +83,21 @@ def test_warm_up_prefills_each_curated_passage(monkeypatch):
     prefills = [c for c in calls if c[1] == 1]
     assert s.status == "ok" and s.warm["done"] == s.warm["total"] == len(curated) == len(prefills)
     assert all(d["title"] in c[0] for d, c in zip(curated, prefills))
+
+
+def test_api_switches_tracing_off_unless_asked(monkeypatch):
+    from helpdesk.tracing import TRACE_VARS, serving_guard
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+    monkeypatch.delenv("HELPDESK_TRACING", raising=False)
+    assert serving_guard() is False and all(__import__("os").environ[k] == "false" for k in TRACE_VARS)
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+    monkeypatch.setenv("HELPDESK_TRACING", "1")
+    assert serving_guard() is True and __import__("os").environ["LANGSMITH_TRACING"] == "true"
+
+
+def test_voice_chat_imports_without_audio_libraries():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("voice_chat", "scripts/voice_chat.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)                       # heavy imports happen inside functions only
+    assert m.MAX_NEW_TOKENS == 444 and m.SR == 16000

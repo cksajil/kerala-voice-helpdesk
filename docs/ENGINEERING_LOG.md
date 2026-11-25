@@ -340,3 +340,9 @@ Open issues: the follow-up's router took 4.8 s (not looked at yet); 2 GB cache n
   vocabulary on the first follow-up. Normalised once now; same words on 399 sampled passages; router
   1.6 s -> 0.07 s on the first follow-up (this container, CPU); the test suite 66 s -> 23 s.
 - Bots: already kept out of the evidence log by the 25 Nov Space change (non-app calls are skipped).
+- **Voice on the Mac**: `scripts/voice_chat.py` (microphone -> Whisper v2 int8 -> local API -> VITS voice),
+  `requirements-voice.txt`. Not run end to end yet: the gated Whisper model needs the owner's HF login,
+  so the first run is on the owner's Mac. IndicConformer is not used locally (2.4 GB ONNX next to Docker).
+- **LangSmith, local only** (owner's decision): LangGraph traces when `LANGSMITH_TRACING=true`; Gemma calls
+  are `llm` runs (`langsmith.traceable`, a no-op without tracing). `helpdesk/tracing.py` switches tracing
+  off in the API unless `HELPDESK_TRACING=1`; `/health` reports it. 272 tests pass.

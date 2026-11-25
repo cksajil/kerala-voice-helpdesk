@@ -37,3 +37,12 @@ def chat(system: str, user: str, max_tokens: int = 200, temperature: float = 0.2
         "model": LLM_MODEL, "temperature": temperature, "max_tokens": max_tokens, "messages": messages})
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"].strip()
+
+
+# LangSmith (local development only, see README "Tracing"): with LANGSMITH_TRACING=true each model call
+# shows up as an "llm" run with its prompt and reply; without it traceable() does nothing.
+try:
+    from langsmith import traceable
+    chat = traceable(run_type="llm", name="gemma.chat")(chat)
+except ImportError:
+    pass
