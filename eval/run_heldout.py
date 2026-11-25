@@ -26,7 +26,6 @@ import argparse
 import csv
 import json
 import os
-import statistics
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -145,7 +144,6 @@ def run(items: list[dict], args) -> list[dict]:
     os.environ.setdefault("HELPDESK_CANON", "1")
     os.environ.setdefault("HELPDESK_CTX_K", "1")
     meta = setup_llm(args.llm, args.threads)
-    from helpdesk import tools
     from helpdesk.graph import build_graph
     from helpdesk.retriever import Retriever
     t = time.perf_counter()

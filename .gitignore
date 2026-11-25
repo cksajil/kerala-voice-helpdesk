@@ -10,3 +10,7 @@ data/emb-*.npy
 .DS_Store
 eval/asr_audio/
 eval/asr_bias_report.json
+# local environments, logs, secrets
+.venv*/
+*.log
+.env
