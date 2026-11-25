@@ -12,9 +12,10 @@ services:
       N_THREADS: "2"
       HELPDESK_KB_AUTO: "${HELPDESK_KB_AUTO:-0}"
       HELPDESK_WARMUP: "${HELPDESK_WARMUP:-kb}"
+      HELPDESK_CACHE_MB: "${HELPDESK_CACHE_MB:-2048}"   # with Docker Desktop at 4 GB: HELPDESK_CACHE_MB=512
       # GEMMA_GGUF: /models/gemma.gguf
     cpus: 2
-    mem_limit: 6g                       # model ~3 GB + RAM prompt cache (HELPDESK_CACHE_MB)
+    mem_limit: 6g                       # model ~3 GB + RAM prompt cache (HELPDESK_CACHE_MB); Docker Desktop needs this much
     read_only: true
     tmpfs:
       - /tmp

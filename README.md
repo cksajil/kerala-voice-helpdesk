@@ -77,8 +77,9 @@ a four-condition entry). These are spot checks, not a score: the questions were 
 - **Live tools.** Weather and news depend on Open-Meteo and RSS feeds; when they fail the reply says
   "try later". 5 of 68 towns use their district centre (the reply says so); an unknown place is said.
 - **Latency.** A service answer takes up to ~11 s on the Space's CPU; prefill dominates.
-- **Not yet done:** the Docker image has not been built on a real Docker host (the same pins ran with
-  uvicorn on Kaggle); LangSmith tracing (optional) is not set up; the 13 charter groups regrouped on
+- **Docker:** built and smoke-tested on an Intel MacBook Air (Docker Desktop, 4 CPUs, 4.1 GB,
+  `HELPDESK_CACHE_MB=512`, 25 Nov 2026): 5/5 checks pass, warm-up 924 s, 2.8 GB RSS, answers 8–16 s.
+- **Not yet done:** LangSmith tracing (optional) is not set up; the 13 charter groups regrouped on
   13 Nov need a Gemini run.
 
 ---
@@ -125,6 +126,8 @@ No dense model? `HELPDESK_DENSE=0` uses BM25 only.
 
 ## Run locally with Docker
 CPU only; works on an Intel Mac (Docker Desktop, give it 2 CPUs and 6 GB RAM in Settings → Resources).
+With less memory (Docker Desktop's default can be 4 GB) the app is killed during warm-up and restarts;
+then start it with a smaller prompt cache: `HELPDESK_CACHE_MB=512 docker compose up -d`.
 ```bash
 docker compose up --build -d                  # first build compiles llama-cpp-python (~10 min)
 docker compose logs -f helpdesk               # first start downloads Gemma 4 E2B Q4_0 (2.8 GB) into a volume

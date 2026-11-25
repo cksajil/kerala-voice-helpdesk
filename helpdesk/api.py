@@ -81,6 +81,7 @@ class Service:
         self.graph = None
         self.retriever = None
         self.model = None
+        self.cache = None
         self.lock = threading.Lock()                 # one turn at a time on the model
         self.warm = {"done": 0, "total": 0, "seconds": 0.0}
         self.started = time.time()
@@ -91,7 +92,8 @@ class Service:
         if BACKEND == "none":
             os.environ["HELPDESK_LLM"] = "none"
         elif BACKEND == "inproc" and os.getenv("HELPDESK_LLM", "llama") != "none":
-            from llama_cpp import Llama, LlamaRAMCache
+            from llama_cpp import Llama
+            from .prompt_cache import make_cache
             path = os.getenv("GEMMA_GGUF")
             if not path:
                 from huggingface_hub import hf_hub_download
@@ -99,7 +101,8 @@ class Service:
             # n_threads_batch (prefill) defaults to every core: pin it as on the Space.
             llama = Llama(model_path=path, n_ctx=N_CTX, n_threads=THREADS, n_threads_batch=THREADS, verbose=False)
             if CACHE_MB > 0:                         # 0: no cache (only the last prompt's prefix is reused)
-                llama.set_cache(LlamaRAMCache(capacity_bytes=CACHE_MB << 20))
+                self.cache = make_cache(CACHE_MB << 20)  # counts every byte it keeps (prompt_cache.py)
+                llama.set_cache(self.cache)
             llm.use_llama_cpp(llama)
             self.model = Path(path).name
         elif BACKEND == "http":
@@ -183,14 +186,25 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Kerala Voice Helpdesk", version="1.0", lifespan=lifespan)
 
 
+def rss_mb() -> float | None:
+    """Resident memory of this process (Linux /proc; None elsewhere)."""
+    try:
+        with open("/proc/self/status") as f:
+            return next(round(int(l.split()[1]) / 1024) for l in f if l.startswith("VmRSS:"))
+    except (OSError, StopIteration, ValueError):
+        return None
+
+
 @app.get("/health")
 def health():
     from . import llm
     body = {"status": service.status, "backend": BACKEND if llm.enabled() else "none",
             "model": service.model, "warmup": service.warm, "uptime_s": round(time.time() - service.started),
             "settings": {k: os.getenv(k) for k in ("HELPDESK_CANON", "HELPDESK_CTX_K", "HELPDESK_KB_AUTO",
-                                                   "HELPDESK_DENSE", "HELPDESK_AUTO_BOOST")},
-            "passages": len(service.retriever.docs) if service.retriever else 0}
+                                                   "HELPDESK_DENSE", "HELPDESK_AUTO_BOOST",
+                                                   "HELPDESK_CACHE_MB")},
+            "passages": len(service.retriever.docs) if service.retriever else 0,
+            "cache": service.cache.stats() if service.cache else None, "rss_mb": rss_mb()}
     if service.error:
         body["error"] = service.error
     return body
