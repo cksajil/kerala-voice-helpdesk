@@ -15,7 +15,7 @@ from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
-from .intent import STRICT_FACETS, detect_facet, detect_services, fix_asr
+from .intent import FACETS, STRICT_FACETS, detect_facet, detect_services, fix_asr
 from .normalise import normalise, tokens
 
 KB_PATH = Path(__file__).resolve().parent.parent / "data" / "kb.jsonl"
@@ -48,6 +48,11 @@ DENSE_MODEL = os.getenv("HELPDESK_EMBED_MODEL", "BAAI/bge-m3")
 # The question's service filters the candidates and its facet boosts entries that answer
 # it (see intent.py). Boost chosen on the eval set and the 7-8 Nov Space logs.
 FACET_BOOST = float(os.getenv("HELPDESK_FACET_BOOST", "0.6"))
+# A distinctive question word in a passage's title ("വിധവ" among the pension titles) multiplies its BM25
+# score by 1 + TITLE_BOOST per word. Without it "വിധവ പെൻഷന് അർഹത" ranked the old-age entry first on
+# "അർഹത" and shared letter n-grams (25 Nov Space test). Distinctive: in at most TITLE_DF of the pool's titles.
+TITLE_BOOST = float(os.getenv("HELPDESK_TITLE_BOOST", "0"))
+TITLE_DF = float(os.getenv("HELPDESK_TITLE_DF", "0.1"))
 
 
 def mentions_service(query: str) -> bool:
@@ -253,6 +258,9 @@ class Retriever:
               * tier_boost(self.docs[i])
               * (PROSE_WEIGHT if self.docs[i].get("kind") == "prose" else 1)
               * (CANON_WEIGHT if self.docs[i].get("kind") == "canon" else 1) for i in pool}
+        if TITLE_BOOST > 0:
+            for i, n in self._title_hits(query, pool).items():
+                bm[i] *= 1 + TITLE_BOOST * n
         order_bm = sorted(pool, key=lambda i: -bm[i])
         rrf = {i: 1 / (rrf_k + r) for r, i in enumerate(order_bm)}
         cos = None
@@ -272,6 +280,19 @@ class Retriever:
                 break
         return [Hit(self.docs[i], rrf[i], float(bm[i]),
                     None if cos is None else float(cos[i])) for i in top]
+
+    def _title_hits(self, query: str, pool: list[int]) -> dict[int, int]:
+        """{pool index: number of distinctive question words its title has}. Facet words are left out
+        (the facet boost counts them), and so are words in more than TITLE_DF of the pool's titles."""
+        facet = [normalise(st) for _, v in FACETS for st in v if " " not in st]
+        qw = [w for w in _content_words(fix_asr(query)) if not any(w.startswith(f) or f.startswith(w) for f in facet)]
+        hits: dict[int, int] = {}
+        for w in qw:
+            m = [i for i in pool if any(_stem_match(w, t) for t in self._title_words[i])]
+            if m and len(m) <= TITLE_DF * len(pool):
+                for i in m:
+                    hits[i] = hits.get(i, 0) + 1
+        return hits
 
     @staticmethod
     def title_overlap(query: str, doc: dict) -> int:
