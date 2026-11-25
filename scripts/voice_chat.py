@@ -21,10 +21,9 @@ from __future__ import annotations
 
 import os
 
-# macOS: CTranslate2 (Whisper) and PyTorch (the voice) each bring an OpenMP runtime (libomp). Loaded in
-# the order Whisper -> PyTorch, the second one could hang at start-up on an Intel Mac (25 Nov). Allow two
-# copies, keep each to a few threads, and load PyTorch first (main()).
-os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+# CTranslate2 (Whisper) and PyTorch (the voice) each bring an OpenMP runtime (libomp). In one process on an
+# Intel Mac they first hung, then (with KMP_DUPLICATE_LIB_OK) segfaulted after the first transcription
+# (25 Nov). So the voice runs in its own process (--tts-worker, PyTorch only) and this one never imports torch.
 os.environ.setdefault("OMP_NUM_THREADS", "2")
 
 import argparse
@@ -97,6 +96,56 @@ class Voice:
             with self.torch.inference_mode():
                 chunks += [self.model(**ids).waveform[0].numpy().astype(np.float32), gap]
         return np.concatenate(chunks) if chunks else None
+
+
+def tts_worker() -> int:
+    """--tts-worker: one JSON line in ({"text", "out"}), the wav written to "out", one JSON line back."""
+    import wave
+    voice = Voice()
+    print(json.dumps({"ready": True, "sr": voice.sr}), flush=True)
+    for line in sys.stdin:
+        job = json.loads(line)
+        audio = voice(job["text"])
+        if audio is not None:
+            with wave.open(job["out"], "wb") as w:
+                w.setnchannels(1), w.setsampwidth(2), w.setframerate(voice.sr)
+                w.writeframes((np.clip(audio, -1, 1) * 32767).astype("<i2").tobytes())
+        print(json.dumps({"ok": audio is not None}), flush=True)
+    return 0
+
+
+class VoiceProcess:
+    """The voice in a separate Python process (see the top of this file)."""
+
+    def __init__(self):
+        self.p = subprocess.Popen([sys.executable, __file__, "--tts-worker"], stdin=subprocess.PIPE,
+                                  stdout=subprocess.PIPE, text=True, encoding="utf-8")
+        ready = self.p.stdout.readline()
+        if not ready:
+            raise RuntimeError("the voice process did not start (see its error above)")
+        self.tmp = tempfile.mkdtemp(prefix="voice_chat_")
+
+    def say(self, text: str) -> bool:
+        out = str(Path(self.tmp) / "reply.wav")
+        self.p.stdin.write(json.dumps({"text": text, "out": out}, ensure_ascii=False) + "\n")
+        self.p.stdin.flush()
+        reply = self.p.stdout.readline()
+        if not reply:
+            print("  (the voice process stopped; continuing without voice)")
+            return False
+        if json.loads(reply).get("ok"):
+            play(out)
+        return True
+
+
+def play(path: str) -> None:
+    if sys.platform == "darwin":
+        subprocess.run(["afplay", path], check=False)       # CoreAudio directly, no PortAudio
+    else:
+        import sounddevice as sd
+        from faster_whisper.audio import decode_audio
+        sd.play(decode_audio(path, sampling_rate=22050), 22050)
+        sd.wait()
 
 
 # ---------------------------------------------------------------- audio in
@@ -200,8 +249,11 @@ def main() -> int:
     ap.add_argument("--file", help="a recorded question (wav/mp3/m4a) instead of the microphone")
     ap.add_argument("--no-speak", action="store_true")
     ap.add_argument("--threads", type=int, default=2)
+    ap.add_argument("--tts-worker", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--save-dir", help="also keep each recording and a JSON line per turn here")
     args = ap.parse_args()
+    if args.tts_worker:
+        return tts_worker()
 
     try:
         with urllib.request.urlopen(args.url + "/health", timeout=5) as r:
@@ -210,16 +262,13 @@ def main() -> int:
         print(f"API not reachable at {args.url} ({e}). Start it: HELPDESK_CACHE_MB=512 docker compose up -d")
         return 1
     voice = None
-    if not args.no_speak:                    # PyTorch before CTranslate2 (see the top of this file)
-        print("loading the voice (PyTorch)...", flush=True)
-        voice = Voice()
+    if not args.no_speak:
+        print("loading the voice (separate process)...", flush=True)
+        voice = VoiceProcess()
         print("  voice ready", flush=True)
     print("loading Whisper...", flush=True)
     asr = load_asr(args.threads)
     print("  Whisper ready", flush=True)
-    if voice or not args.file:
-        print("opening the microphone/speaker library...", flush=True)
-        import sounddevice as sd
     save = Path(args.save_dir) if args.save_dir else None
     if save:
         save.mkdir(parents=True, exist_ok=True)
@@ -250,11 +299,9 @@ def main() -> int:
         t_tts = 0.0
         if voice:
             t = time.perf_counter()
-            audio = voice(r.get("answer") or "")
-            t_tts = time.perf_counter() - t
-            if audio is not None:
-                sd.play(audio, voice.sr)
-                sd.wait()
+            if not voice.say(r.get("answer") or ""):
+                voice = None
+            t_tts = time.perf_counter() - t                 # includes playing it
         stages = ", ".join(f"{k} {v:.1f}" for k, v in (r.get("timings") or {}).items() if k != "total")
         print(f"  timings: asr {t_asr:.1f} s, answer {t_ask:.1f} s ({stages}), voice {t_tts:.1f} s")
         if save:

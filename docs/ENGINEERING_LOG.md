@@ -355,3 +355,5 @@ Open issues: the follow-up's router took 4.8 s (not looked at yet); 2 GB cache n
      It is an ASR error; IndicConformer on the Space is the better fix. Open.
   3. Answer turns took 21–31 s against 8–16 s in the smoke test; the script now prints the API's per-stage
      timings to find out where. Open.
+- voice_chat with voice on: segfault right after the first transcription (PyTorch and CTranslate2 in one
+  process, two OpenMP runtimes). The voice now runs in its own process; playback through `afplay` on macOS.
