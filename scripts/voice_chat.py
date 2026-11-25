@@ -19,6 +19,14 @@ Install (outside Docker, Python 3.11 or 3.12):  pip install -r requirements-voic
 """
 from __future__ import annotations
 
+import os
+
+# macOS: CTranslate2 (Whisper) and PyTorch (the voice) each bring an OpenMP runtime (libomp). Loaded in
+# the order Whisper -> PyTorch, the second one could hang at start-up on an Intel Mac (25 Nov). Allow two
+# copies, keep each to a few threads, and load PyTorch first (main()).
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+os.environ.setdefault("OMP_NUM_THREADS", "2")
+
 import argparse
 import json
 import re
@@ -135,12 +143,16 @@ def main() -> int:
     except OSError as e:
         print(f"API not reachable at {args.url} ({e}). Start it: HELPDESK_CACHE_MB=512 docker compose up -d")
         return 1
+    voice = None
+    if not args.no_speak:                    # PyTorch before CTranslate2 (see the top of this file)
+        print("loading the voice (PyTorch)...", flush=True)
+        voice = Voice()
+        print("  voice ready", flush=True)
     print("loading Whisper...", flush=True)
     asr = load_asr(args.threads)
-    voice = None
-    if not args.no_speak:
-        print("loading the voice...", flush=True)
-        voice = Voice()
+    print("  Whisper ready", flush=True)
+    if voice or not args.file:
+        print("opening the microphone/speaker library...", flush=True)
         import sounddevice as sd
     save = Path(args.save_dir) if args.save_dir else None
     if save:
