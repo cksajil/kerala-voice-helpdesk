@@ -245,3 +245,46 @@ Tool failures are now logged by the graph (exception type only, no question text
 
 **Kaggle use, 13 Nov:** 13 runs on 7 private CPU notebooks, ≈6 h 25 min; ≈3 h of it avoidable (three
 failed benchmark attempts, two 44-min dense index builds for a configuration that stays off).
+
+## 24–25 Nov 2026 — Core-service content from official sources; Space update
+
+**Why.** The blind held-out run and the 14 Nov live check showed the failures were mostly content (KB gaps,
+loose charter rows) and phrasing the rules never saw; the charters list services but do not explain them.
+Owner approved a list of 30 core services (`docs/CORE_SERVICES.md`) and a v1 split: answer well where
+official text exists, and give a cautious "rules changed in 2025, confirm at the panchayat" answer for
+building rules.
+
+**Sources** (fetched on Kaggle, robots.txt respected, 2 s between requests, URL / date / SHA-256 kept in
+`ingest/core/manifest_*.json`, extracted text in `ingest/core/texts/`): births and deaths rules and
+circulars, building tax rules 2011, RTI fee rules, pig and dog licence rules, Right to Service Act and
+rules, marriage rules, trade licence rules (LSGD Panchayat Wiki, 3,424 pages surveyed: ~3,150 are 2018
+law-manual scans, 177 articles, ~15 relevant); official panchayat pages for pensions, MGNREGS and
+grievances; G.O.(Rt) 41/2023/LSGD (Haritha Karma Sena); Kerala Municipality Building (Amendment) Rules
+2025. Not found or not fetchable: KPBR 2019 consolidated text with the 2021/2025 amendments, the
+civil-registration fee page, KSEB (robots.txt disallows), LIFE Mission guidelines (only a scanned 2017
+circular).
+
+**Entries.** 16 drafts, each number checked against the saved source (`ingest/check_drafts.py`, digits
+and English/Malayalam number words), titles and example questions kept below 0.4 trigram similarity to
+held-out v1. Owner review 25 Nov: all OK; promoted (`ingest/promote_drafts.py`), curated KB 50 → 63.
+3 replace old entries — the old-age pension entry had three errors (house, car and residence rules), the
+pension amount now cites an official page, the reporting entry quotes rule 6 (vehicle) — and 13 are new.
+
+**Checks** (offline, BM25, no LLM): 266 tests, 20/20 eval, route dev 43/43. Top-1 passage changed for
+39 of 1,804 questions (synth, answer eval, route dev, live-check turns; `eval/results/drafts/`): by
+Claude's judgement ~19 better, ~8 worse (vague questions caught by a shared word), the rest neutral.
+Draft wording caused most first-trial regressions ("അപേക്ഷിക്കേണ്ട വിധവും" contains "വിധവ" and pulled
+widow questions; generic title words pulled vague questions); fixed by retitling, not by rules.
+
+**Code found by this work**
+- ASR snap: "കെട്ടിടത്തിലാണ്" was snapped to a new KB word; case + copula endings added to the inflection
+  guard.
+- Out-of-scope check reads the question as heard too: the snap turned "സെക്രട്ടറിയറ്റ്" into
+  "സെക്രട്ടറിയുടെ" once entries said "secretary" (0 of 1,757 eval questions change their decline).
+
+**Space.** 9347d60 (previous 721605b): kb.jsonl, asr_snap.py, graph.py, intent.py (with the 14 Nov
+live-check fixes). Startup: 2,789 passages, prompt cache 63 passages in 109 s. Also 25 Nov: usage log no
+longer records `bad_input` calls (bots calling the endpoint; 721605b); 143 such rows removed from
+`turns_cd03ebe6.jsonl` at the owner's request (history kept).
+
+**Open.** Live check of the new entries; building rules after v1; gaps above; held-out v2 from real users.
