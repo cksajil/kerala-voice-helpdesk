@@ -100,7 +100,11 @@ def ration_card_change(query: str) -> bool:
 
 def out_of_scope(query: str) -> bool:
     q = fix_asr(query)
-    return (any(fold(normalise(s)) in fold(q) for s in OUT_OF_SCOPE + OTHER_STATES) or ration_card_change(q)
+    # Check the question as heard too: the ASR snap may turn another department's word into a
+    # knowledge-base word ("സെക്രട്ടറിയറ്റ്" -> "സെക്രട്ടറിയുടെ" once entries said "secretary", 25 Nov).
+    raw = fold(normalise(query))
+    return (any(fold(normalise(s)) in fold(q) or fold(normalise(s)) in raw for s in OUT_OF_SCOPE + OTHER_STATES)
+            or ration_card_change(q) or ration_card_change(query)
             or (bool(_COUNT_Q.search(q)) and "രേഖ" not in q)
             or bool(_ROUTE_Q.search(q)) or bool(_MEDICAL_Q.search(q)))
 

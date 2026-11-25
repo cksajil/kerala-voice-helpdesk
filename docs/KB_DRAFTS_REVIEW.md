@@ -1,5 +1,7 @@
 # KB drafts for the owner's spot check (16 entries, 24 Nov 2026)
 
+**Owner review, 25 Nov 2026: all 16 OK; promoted into data/kb.csv.**
+
 Read each entry and mark it **OK**, **fix: ...** or **drop**. Every number has been checked against the saved
 official text (`ingest/check_drafts.py`); wording and meaning are what needs your eye. Entries marked
 *verify* will tell the caller to confirm at the panchayat. Nothing here is live until promoted.
