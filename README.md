@@ -8,17 +8,17 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 | Stage | What runs |
 |---|---|
 | Speech to text | Malayalam ASR on CPU (see [malayalam-asr-eval](https://github.com/cksajil/malayalam-asr-eval) for how the models compare) |
-| **Reply (this repo)** | LangGraph agent: explicit routing, BM25 retrieval (BGE-M3 dense optional, off) over a knowledge base built from panchayat citizen charters, Gemma 4 E2B through llama.cpp |
+| **Reply (this repo)** | LangGraph agent: explicit routing, BM25 retrieval (BGE-M3 dense optional, off) over 65 hand-checked entries written from official sources plus 3,178 citizen-charter passages, Gemma 4 E2B through llama.cpp |
 | Text to speech | [sajilck/mms-tts-malayalam-sajil](https://huggingface.co/sajilck/mms-tts-malayalam-sajil) (VITS) |
 
 **Highlights**
 - Answers only from retrieved passages; when the passage does not hold the answer the model must say `UNSURE`, which becomes a polite refusal.
 - Fees with band arithmetic are computed in code, and weather and news numbers go out through templates, so the LLM never does arithmetic or copies figures.
-- `ingest/` turns citizen-charter PDFs into ~600 cited passages (Malayalam OCR with Tesseract) and checks hand-written entries against the pages they cite.
+- `ingest/` turns citizen-charter PDFs into 3,178 cited passages (Malayalam OCR with Tesseract), fetches official rules and government orders (robots.txt respected, URL and date kept), and checks that every number in a hand-written entry appears in its source.
 - An eval suite (routing, retrieval hit@3, refusals, a 100-question answer eval and multi-turn conversations) and fixes driven by real conversation logs, recorded below.
-- A whole spoken turn takes 1.7–6.2 s on the Space's shared CPU.
+- A whole spoken turn takes 0.7–10.9 s on the Space (25 Nov live checks); answers that need Gemma are the slow ones.
 
-## Results (13 Nov 2026)
+## Results (13–25 Nov 2026)
 
 **Held-out set** `eval/heldout_v1.jsonl`: 46 Malayalam questions written for evaluation only and frozen
 by hash (24 service questions, 5 the knowledge base cannot answer, 5 weather, 5 news, 7 off-topic;
@@ -45,20 +45,41 @@ Kaggle CPU with **2 threads**, BM25, curated + charter knowledge base (`HELPDESK
 - Details, per-question CSVs and hand labels: `eval/results/phase3/`, `eval/results/phase6/`,
   `docs/ENGINEERING_LOG.md`.
 
+**Content from official sources (24–25 Nov).** The blind run's misses were mostly content: gaps, and charter
+rows that list a service without explaining it. 18 entries were written from official text (births and
+deaths rules, building tax rules, RTI fee rules, pet licence rules, official panchayat pages, LSGD orders),
+every number checked against the saved source, and approved by the owner: curated entries 50 → 65. They
+corrected the old-age pension entry (house, car and residence rules were wrong) and added certificate
+corrections, demolished and vacant building tax, RTI fees, pet licence validity, the Haritha Karma Sena
+fee, MGNREGS job cards and pension exclusions. Building-rule questions get a cautious answer (the rules
+changed in 2025; confirm at the panchayat) until the current rules are in hand. Offline: 267 tests, 20/20
+eval, route dev 43/43; adding the entries changed the top passage for 39 of 1,804 test questions
+(`eval/results/drafts/`, about 19 better, 8 worse by Claude's judgement).
+
+**Live checks on the Space (owner, by voice, 25 Nov, 25 turns):** checklist 9/10 (a misheard town got the
+default district's weather silently: fixed), new entries 5/7 right, 1 partial, 1 wrong (fixed by splitting
+a four-condition entry). These are spot checks, not a score: the questions were written for this release.
+
 ### What's left / known limitations
-- **n is small.** 24 service questions: one question is 4 points. Treat differences of one or two as noise.
-- **Wrong passage, confident answer.** The open title match sometimes answers an off-topic question
-  from a loosely matching passage (an electricity-bill question got property tax).
-- **Fee bands for building permits** are read by the LLM, which got one wrong (500 instead of 150);
-  birth/death, marriage and trade-licence fees are computed in code.
-- **Charter-only services** (130 auto entries) are built from 2–6 panchayats' charters; 46% are marked
-  "may vary" because charters disagree. Fees differ by panchayat; the reply says so.
+- **n is small.** 24 service questions in held-out v1: one question is 4 points. v1 is no longer blind;
+  a held-out v2 from people other than the developers is the next measurement.
+- **Wrong passage, confident answer.** The open title match sometimes prefers a loosely matching charter
+  row (an electricity bill got property tax; a demolished-building question got a charter row instead of
+  the rule-based entry). A guard preferring curated entries made 66 other questions worse and was dropped.
+- **Building rules.** Permits, rainwater storage, wells, occupancy and house numbers get a cautious
+  answer: the Panchayat Building Rules 2019 were amended in 2021 and 2025 and no consolidated official
+  text was found. Building-permit fee bands are read by the LLM (one wrong in the blind run).
+- **Gaps without an official source:** documents for a death at home, the house-number procedure,
+  LIFE Mission, the panchayat ownership certificate for a KSEB connection, office hours.
+- **Gemma trims.** Answers are capped at 1–2 sentences, so a caution ("confirm at the panchayat") is
+  sometimes dropped.
+- **Charter-only services** (130 auto entries) stay off: no held-out gain.
 - **Live tools.** Weather and news depend on Open-Meteo and RSS feeds; when they fail the reply says
-  "try later". 5 of 68 towns have no coordinates and use their district centre (the reply says so).
-- **Latency.** A service answer takes 5–19 s on 2 CPU threads; prefill dominates.
+  "try later". 5 of 68 towns use their district centre (the reply says so); an unknown place is said.
+- **Latency.** A service answer takes up to ~11 s on the Space's CPU; prefill dominates.
 - **Not yet done:** the Docker image has not been built on a real Docker host (the same pins ran with
-  uvicorn on Kaggle); the 13 charter groups regrouped on 13 Nov need a Gemini run; 20 possible
-  duplicate auto entries need a hand check; LangSmith tracing (optional) is not set up.
+  uvicorn on Kaggle); LangSmith tracing (optional) is not set up; the 13 charter groups regrouped on
+  13 Nov need a Gemini run.
 
 ---
 
