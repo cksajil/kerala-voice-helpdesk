@@ -29,6 +29,9 @@ os.environ.setdefault("OMP_NUM_THREADS", "2")
 
 import argparse
 import json
+import shutil
+import subprocess
+import tempfile
 import re
 import sys
 import time
@@ -124,8 +127,12 @@ def record() -> np.ndarray:
         stream = sd.InputStream(samplerate=sr, channels=1, dtype="float32",
                                 callback=lambda d, *_: frames.append(d.copy()))
     except sd.PortAudioError as e:
-        sys.exit(f"cannot open the microphone ({e}). macOS: System Settings -> Privacy & Security -> "
-                 "Microphone -> allow Terminal, then open a new terminal window.")
+        if shutil.which("ffmpeg"):
+            print(f"  PortAudio cannot open it ({e}); recording with ffmpeg instead")
+            return record_ffmpeg()
+        sys.exit(f"cannot open the microphone ({e}). Install ffmpeg (brew install ffmpeg) and run again: the "
+                 "script then records through macOS AVFoundation. Or check System Settings -> Privacy & "
+                 "Security -> Microphone (Terminal on), or use --file with a recording.")
     with stream:
         t0 = time.time()
         input("  recording... Enter: stop ")
@@ -137,6 +144,29 @@ def record() -> np.ndarray:
     if level < 1e-4:
         print("  (silence: is the right microphone selected, and is Terminal allowed to use it?)")
     return wav
+
+
+def record_ffmpeg() -> np.ndarray:
+    """Fallback recorder: ffmpeg through AVFoundation (macOS) or ALSA (Linux), 16 kHz mono, until Enter.
+    PortAudio failed with AUHAL err -66740 on the owner's Intel Mac (25 Nov) even with Terminal allowed."""
+    src = ["-f", "avfoundation", "-i", os.getenv("VOICE_FFMPEG_INPUT", ":0")] if sys.platform == "darwin" \
+        else ["-f", "alsa", "-i", os.getenv("VOICE_FFMPEG_INPUT", "default")]
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "q.wav"
+        p = subprocess.Popen(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *src, "-t", str(MAX_S),
+                              "-ac", "1", "-ar", str(SR), str(out)], stdin=subprocess.PIPE)
+        try:
+            input("  recording (ffmpeg)... Enter: stop ")
+        finally:
+            try:
+                p.communicate(b"q", timeout=5)               # "q" makes ffmpeg finish the file cleanly
+            except subprocess.TimeoutExpired:
+                p.kill()
+        if not out.exists():
+            print("  (ffmpeg recorded nothing: see its error above; list devices with "
+                  "ffmpeg -f avfoundation -list_devices true -i \"\")")
+            return np.zeros(0, np.float32)
+        return load_file(str(out))
 
 
 def load_file(path: str) -> np.ndarray:
