@@ -1018,3 +1018,17 @@ def test_follow_up_asking_another_fact_leaves_the_previous_passage():
                    "previous_services": s1.get("services") or [], "previous_tool": s1.get("tool") or "",
                    "previous_topic": s1.get("topic") or ""})
     assert s2["route_by"] == "follow-up" and s2["sources"][0]["id"] == "ch-marr-docs-01"
+
+
+def test_unknown_place_in_locative_form_is_said(monkeypatch):
+    """25 Nov live check: 'കട്ടുപനിയിൽ' (misheard Kattappana) got Thiruvananthapuram's weather silently."""
+    class R:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"current": {"temperature_2m": 29, "weather_code": 3},
+                    "daily": {"temperature_2m_max": [29, 28], "temperature_2m_min": [24, 23],
+                              "precipitation_probability_max": [80, 70], "precipitation_sum": [3, 2]}}
+    monkeypatch.setattr(tools.requests, "get", lambda *a, **k: R())
+    assert tools.weather("കട്ടുപനിയിൽ നാളെ തണുപ്പുണ്ടാകുമോ")["text"].startswith("ആ സ്ഥലം")
+    for q in ["വീട്ടിൽ ഇന്ന് മഴയുണ്ടോ", "രാത്രിയിൽ മഴ പെയ്യുമോ", "ചാലക്കുടിയിൽ ഇന്ന് മഴയുണ്ടോ"]:
+        assert not tools.weather(q)["text"].startswith("ആ സ്ഥലം"), q

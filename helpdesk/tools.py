@@ -87,8 +87,14 @@ for _k, _v in _load_towns().items():
     PLACES.setdefault(_k, _v)          # the hand-written places above win
 
 # A "<place>ിലെ" word we could not resolve: say so instead of quietly answering for the default.
-_UNKNOWN_PLACE = re.compile(r"(?<![ഀ-ൿ])([ഀ-ൿ]{3,})(?:ിലെ|ത്തിലെ|യിലെ)(?![ഀ-ൿ])")
-_NOT_PLACES = ("കേരള", "ജില്ല", "നാട്", "സ്ഥല", "പ്രദേശ", "ഇവിടെ", "അവിടെ", "നഗര")
+# "<place>ിലെ" or "<place>ിൽ" (in X): a misheard town ("കട്ടുപനിയിൽ", 14 and 25 Nov live checks) got the
+# default district's weather without a word.
+_UNKNOWN_PLACE = re.compile(r"(?<![ഀ-ൿ])([ഀ-ൿ]{3,})(?:ിലെ|ത്തിലെ|യിലെ|ിൽ|യിൽ|ത്തിൽ)(?![ഀ-ൿ])")
+_NOT_PLACES = ("കേരള", "ജില്ല", "നാട്", "സ്ഥല", "പ്രദേശ", "ഇവിടെ", "അവിടെ", "നഗര",
+               # everyday "in the …" words and times, not places
+               "വീട്", "വീട്ട", "നാട്ട", "ഓഫീസ", "സ്കൂള", "കോളേജ", "ആശുപത്ര", "പറമ്പ", "ടൗണ", "പട്ടണ",
+               "രാത്ര", "പകല", "വൈകുന്നേര", "രാവില", "ഉച്ച", "ആഴ്ച", "മാസ", "ദിവസ", "വർഷ", "സമയ",
+               "മലയോര", "തീര", "കടല", "പുറത്ത", "അകത്ത", "കെടുത", "ദുരന്ത", "പ്രളയ", "വെള്ളപ്പൊക്ക")
 
 
 def find_place(query: str):
