@@ -97,18 +97,46 @@ class Voice:
 
 
 # ---------------------------------------------------------------- audio in
+def to_16k(wav: np.ndarray, sr: int) -> np.ndarray:
+    """Resample to 16 kHz (Whisper's rate). Mac microphones run at 44.1/48 kHz and CoreAudio refused
+    to open them at 16 kHz (PortAudio -9986, AUHAL err -66740, 25 Nov)."""
+    if sr == SR or not len(wav):
+        return wav.astype(np.float32)
+    try:
+        from scipy.signal import resample_poly
+        from math import gcd
+        g = gcd(SR, sr)
+        return resample_poly(wav, SR // g, sr // g).astype(np.float32)
+    except ImportError:                                   # linear, after a crude low-pass (box filter)
+        k = max(1, round(sr / SR))
+        smooth = np.convolve(wav, np.ones(k) / k, mode="same")
+        t = np.arange(0, len(wav) / sr, 1 / SR)
+        return np.interp(t, np.arange(len(wav)) / sr, smooth).astype(np.float32)
+
+
 def record() -> np.ndarray:
     import sounddevice as sd
-    input("\nEnter: start speaking ")
+    dev = sd.query_devices(kind="input")
+    sr = int(dev["default_samplerate"])
+    input(f"\nEnter: start speaking ({dev['name']}, {sr} Hz) ")
     frames = []
-    stream = sd.InputStream(samplerate=SR, channels=1, dtype="float32", callback=lambda d, *_: frames.append(d.copy()))
+    try:
+        stream = sd.InputStream(samplerate=sr, channels=1, dtype="float32",
+                                callback=lambda d, *_: frames.append(d.copy()))
+    except sd.PortAudioError as e:
+        sys.exit(f"cannot open the microphone ({e}). macOS: System Settings -> Privacy & Security -> "
+                 "Microphone -> allow Terminal, then open a new terminal window.")
     with stream:
         t0 = time.time()
         input("  recording... Enter: stop ")
     wav = np.concatenate(frames)[:, 0] if frames else np.zeros(0, np.float32)
     if time.time() - t0 > MAX_S:
         print(f"  (only the first {MAX_S} s are used)")
-    return wav[: MAX_S * SR]
+    wav = to_16k(wav[: MAX_S * sr], sr)
+    level = float(np.sqrt(np.mean(wav ** 2))) if len(wav) else 0.0
+    if level < 1e-4:
+        print("  (silence: is the right microphone selected, and is Terminal allowed to use it?)")
+    return wav
 
 
 def load_file(path: str) -> np.ndarray:
