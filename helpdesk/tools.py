@@ -8,8 +8,10 @@ needs their commercial plan.
 from __future__ import annotations
 
 import html
+import json
 import re
 import time
+from pathlib import Path
 
 import feedparser
 import requests
@@ -57,9 +59,42 @@ PLACES = {
     "thalassery": ("തലശ്ശേരി", ["തലശ്ശേരി", "തലശേരി", "thalassery"], "kannur", 11.749, 75.493),
     "bathery": ("സുൽത്താൻ ബത്തേരി", ["ബത്തേരി", "bathery"], "wayanad", 11.665, 76.263),
 }
+
+
+def _town_stem(name: str) -> str:
+    """Match form of a town name: drop a final chillu, virama or anusvara, which change when the
+    word is inflected (പുനലൂർ -> പുനലൂരിൽ, തളിപ്പറമ്പ് -> തളിപ്പറമ്പിൽ, വൈക്കം -> വൈക്കത്ത്)."""
+    return re.sub(r"(?:[ൺൻർൽൾൿ]|[ംര]?്|ം)$", "", name)
+
+
+def _load_towns() -> dict:
+    """Municipalities and towns from data/places.jsonl (ingest/places.py: geocoded, with source URL)."""
+    path = Path(__file__).resolve().parent.parent / "data" / "places.jsonl"
+    out = {}
+    if path.exists():
+        for line in path.open(encoding="utf-8"):
+            if line.strip():
+                d = json.loads(line)
+                stems = d["stems"] or [_town_stem(d["ml"])]
+                lat, lon = d["lat"], d["lon"]
+                if lat is None:                  # not geocoded: the district centre, said in the reply
+                    _, _, lat, lon = DISTRICTS[d["district"]]
+                out[d["key"]] = (d["ml"], stems + [d["en"].lower()], d["district"], lat, lon)
+    return out
+
+
+for _k, _v in _load_towns().items():
+    PLACES.setdefault(_k, _v)          # the hand-written places above win
+
 # A "<place>ിലെ" word we could not resolve: say so instead of quietly answering for the default.
-_UNKNOWN_PLACE = re.compile(r"(?<![ഀ-ൿ])([ഀ-ൿ]{3,})(?:ിലെ|ത്തിലെ|യിലെ)(?![ഀ-ൿ])")
-_NOT_PLACES = ("കേരള", "ജില്ല", "നാട്", "സ്ഥല", "പ്രദേശ", "ഇവിടെ", "അവിടെ", "നഗര")
+# "<place>ിലെ" or "<place>ിൽ" (in X): a misheard town ("കട്ടുപനിയിൽ", 14 and 25 Nov live checks) got the
+# default district's weather without a word.
+_UNKNOWN_PLACE = re.compile(r"(?<![ഀ-ൿ])([ഀ-ൿ]{3,})(?:ിലെ|ത്തിലെ|യിലെ|ിൽ|യിൽ|ത്തിൽ)(?![ഀ-ൿ])")
+_NOT_PLACES = ("കേരള", "ജില്ല", "നാട്", "സ്ഥല", "പ്രദേശ", "ഇവിടെ", "അവിടെ", "നഗര",
+               # everyday "in the …" words and times, not places
+               "വീട്", "വീട്ട", "നാട്ട", "ഓഫീസ", "സ്കൂള", "കോളേജ", "ആശുപത്ര", "പറമ്പ", "ടൗണ", "പട്ടണ",
+               "രാത്ര", "പകല", "വൈകുന്നേര", "രാവില", "ഉച്ച", "ആഴ്ച", "മാസ", "ദിവസ", "വർഷ", "സമയ",
+               "മലയോര", "തീര", "കടല", "പുറത്ത", "അകത്ത", "കെടുത", "ദുരന്ത", "പ്രളയ", "വെള്ളപ്പൊക്ക")
 
 
 def find_place(query: str):
@@ -93,6 +128,8 @@ def weather(query: str) -> dict:
     if place:
         name, key, lat, lon = place
         name_ml = f"{name} ({DISTRICTS[key][0]} ജില്ല)"
+        if (lat, lon) == DISTRICTS[key][2:]:          # town without coordinates: say whose weather it is
+            name_ml = f"{DISTRICTS[key][0]} ജില്ലാ കേന്ദ്രം ({name} അല്ല)"
     else:
         key = find_district(query) or DEFAULT_DISTRICT
         name_ml, _, lat, lon = DISTRICTS[key]

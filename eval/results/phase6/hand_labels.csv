@@ -1,0 +1,5 @@
+id,category,auto_verdict,claude_verdict,note
+h04,in_scope,wrong,correct,"Same answer as the blind run: SC/ST fee 10 given; 120 only as the general fee."
+h19,in_scope,correct,wrong,"Same garbled charter-row answer as the blind run."
+h21,in_scope,wrong,correct,"Now routed to the unemployment allowance; says a degree student does not get it (the expected fact), without the literal word 'വിദ്യാർത്ഥി'."
+h12,in_scope,wrong,partial,"As in the blind run."

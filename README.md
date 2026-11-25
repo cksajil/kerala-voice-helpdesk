@@ -8,15 +8,80 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 | Stage | What runs |
 |---|---|
 | Speech to text | Malayalam ASR on CPU (see [malayalam-asr-eval](https://github.com/cksajil/malayalam-asr-eval) for how the models compare) |
-| **Reply (this repo)** | LangGraph agent: explicit routing, BM25 + BGE-M3 retrieval over a knowledge base built from panchayat citizen charters, Gemma 4 E2B through llama.cpp |
+| **Reply (this repo)** | LangGraph agent: explicit routing, BM25 retrieval (BGE-M3 dense optional, off) over 65 hand-checked entries written from official sources plus 3,178 citizen-charter passages, Gemma 4 E2B through llama.cpp |
 | Text to speech | [sajilck/mms-tts-malayalam-sajil](https://huggingface.co/sajilck/mms-tts-malayalam-sajil) (VITS) |
 
 **Highlights**
 - Answers only from retrieved passages; when the passage does not hold the answer the model must say `UNSURE`, which becomes a polite refusal.
 - Fees with band arithmetic are computed in code, and weather and news numbers go out through templates, so the LLM never does arithmetic or copies figures.
-- `ingest/` turns citizen-charter PDFs into ~600 cited passages (Malayalam OCR with Tesseract) and checks hand-written entries against the pages they cite.
+- `ingest/` turns citizen-charter PDFs into 3,178 cited passages (Malayalam OCR with Tesseract), fetches official rules and government orders (robots.txt respected, URL and date kept), and checks that every number in a hand-written entry appears in its source.
 - An eval suite (routing, retrieval hit@3, refusals, a 100-question answer eval and multi-turn conversations) and fixes driven by real conversation logs, recorded below.
-- A whole spoken turn takes 1.7–6.2 s on the Space's shared CPU.
+- A whole spoken turn takes 0.7–10.9 s on the Space (25 Nov live checks); answers that need Gemma are the slow ones.
+
+## Results (13–25 Nov 2026)
+
+**Held-out set** `eval/heldout_v1.jsonl`: 46 Malayalam questions written for evaluation only and frozen
+by hash (24 service questions, 5 the knowledge base cannot answer, 5 weather, 5 news, 7 off-topic;
+plain, colloquial and ASR-style wording). Whole graph, Gemma 4 E2B Q4_0 through llama-cpp-python,
+Kaggle CPU with **2 threads**, BM25, curated + charter knowledge base (`HELPDESK_KB_AUTO` off).
+
+| | Blind run (first and only look) | Re-run after fixes (**not blind**: fixes were made after seeing the blind failures) |
+|---|---|---|
+| Routing | 38/46 | 44/46 |
+| Right passage first (hit@1) / in top 3 (hit@3), service questions | 19/24 / 23/24 | 20/24 / 23/24 |
+| Service answers correct: automatic / by hand (Claude's labels) | 16/24 / 16/24 | 16/24 / 17/24 |
+| Fees exactly right | 5/8 | 5/8 |
+| News | 3/5 | 5/5 |
+| Weather (routing and district right) | 1/5 | 5/5 (answer needs Open-Meteo up: 0/5 in one re-run when it was down) |
+| Off-topic questions declined | 6/7 | 6/7 |
+| Refusal precision / recall | 6/8 / 6/7 | 6/8 / 6/7 |
+| Whole turn p50 / p90 | 10.0 s / 18.5 s | 10.6 s / 19.4 s |
+
+- Knowledge-base gaps (n=5): by hand (Claude's labels), 3 handled acceptably, 2 misleading answers.
+- Expanded knowledge base (+130 charter entries): no gain on this set (all 24 service questions point at
+  curated entries) and one off-topic question answered; its gain (+22 exact hits, 1,109 questions) is on
+  the tuned-on synthetic dev split only. Dense BGE-M3: +1 hit@3, −1 answer, +0.3 s; off.
+- Prompt cache warmed at start-up (FastAPI service): LLM time p50 5.2 s warm vs 8.7 s cold (n=20).
+- Details, per-question CSVs and hand labels: `eval/results/phase3/`, `eval/results/phase6/`,
+  `docs/ENGINEERING_LOG.md`.
+
+**Content from official sources (24–25 Nov).** The blind run's misses were mostly content: gaps, and charter
+rows that list a service without explaining it. 18 entries were written from official text (births and
+deaths rules, building tax rules, RTI fee rules, pet licence rules, official panchayat pages, LSGD orders),
+every number checked against the saved source, and approved by the owner: curated entries 50 → 65. They
+corrected the old-age pension entry (house, car and residence rules were wrong) and added certificate
+corrections, demolished and vacant building tax, RTI fees, pet licence validity, the Haritha Karma Sena
+fee, MGNREGS job cards and pension exclusions. Building-rule questions get a cautious answer (the rules
+changed in 2025; confirm at the panchayat) until the current rules are in hand. Offline: 267 tests, 20/20
+eval, route dev 43/43; adding the entries changed the top passage for 39 of 1,804 test questions
+(`eval/results/drafts/`, about 19 better, 8 worse by Claude's judgement).
+
+**Live checks on the Space (owner, by voice, 25 Nov, 25 turns):** checklist 9/10 (a misheard town got the
+default district's weather silently: fixed), new entries 5/7 right, 1 partial, 1 wrong (fixed by splitting
+a four-condition entry). These are spot checks, not a score: the questions were written for this release.
+
+### What's left / known limitations
+- **n is small.** 24 service questions in held-out v1: one question is 4 points. v1 is no longer blind;
+  a held-out v2 from people other than the developers is the next measurement.
+- **Wrong passage, confident answer.** The open title match sometimes prefers a loosely matching charter
+  row (an electricity bill got property tax; a demolished-building question got a charter row instead of
+  the rule-based entry). A guard preferring curated entries made 66 other questions worse and was dropped.
+- **Building rules.** Permits, rainwater storage, wells, occupancy and house numbers get a cautious
+  answer: the Panchayat Building Rules 2019 were amended in 2021 and 2025 and no consolidated official
+  text was found. Building-permit fee bands are read by the LLM (one wrong in the blind run).
+- **Gaps without an official source:** documents for a death at home, the house-number procedure,
+  LIFE Mission, the panchayat ownership certificate for a KSEB connection, office hours.
+- **Gemma trims.** Answers are capped at 1–2 sentences, so a caution ("confirm at the panchayat") is
+  sometimes dropped.
+- **Charter-only services** (130 auto entries) stay off: no held-out gain.
+- **Live tools.** Weather and news depend on Open-Meteo and RSS feeds; when they fail the reply says
+  "try later". 5 of 68 towns use their district centre (the reply says so); an unknown place is said.
+- **Latency.** A service answer takes up to ~11 s on the Space's CPU; prefill dominates.
+- **Not yet done:** the Docker image has not been built on a real Docker host (the same pins ran with
+  uvicorn on Kaggle); LangSmith tracing (optional) is not set up; the 13 charter groups regrouped on
+  13 Nov need a Gemini run.
+
+---
 
 The rest of this README is the development log, newest sections last.
 
@@ -57,6 +122,33 @@ python -m helpdesk.cli "ട്രേഡ് ലൈസൻസ് പുതുക്
 ```
 No LLM? `HELPDESK_LLM=none` reads out the best passage instead.
 No dense model? `HELPDESK_DENSE=0` uses BM25 only.
+
+## Run locally with Docker
+CPU only; works on an Intel Mac (Docker Desktop, give it 2 CPUs and 6 GB RAM in Settings → Resources).
+```bash
+docker compose up --build -d                  # first build compiles llama-cpp-python (~10 min)
+docker compose logs -f helpdesk               # first start downloads Gemma 4 E2B Q4_0 (2.8 GB) into a volume
+python3 scripts/smoke_test.py                 # waits for /health "ok", asks 5 questions, exit 0 = pass
+```
+Ask it yourself:
+```bash
+curl -s localhost:8000/ask -H 'Content-Type: application/json' \
+  -d '{"question": "ജനന സർട്ടിഫിക്കറ്റ് എങ്ങനെ കിട്ടും?"}' | python3 -m json.tool --no-ensure-ascii
+```
+- `POST /ask` takes `{"question", "context"}` and returns `answer`, `route`, `refused`, `sources`,
+  per-stage `timings` and a `context` to send back with the next question (follow-ups such as
+  "അതിന് എത്ര ദിവസം?" stay on the same service). The service keeps no session state.
+- `GET /health` is `loading` → `warming` → `ok` (or `error`). `/ask` works while warming.
+- Warm-up: one turn, then the answer prompt of every curated passage is prefilled into
+  llama-cpp-python's RAM cache (`HELPDESK_WARMUP=kb`; `all` adds the kb_auto entries, `none` skips).
+  `HELPDESK_CACHE_MB` sizes the cache (default 2048, LRU).
+- Image: `python:3.12.16-slim-bookworm` pinned by digest, every package pinned (`requirements-api.txt`,
+  llama-cpp-python 0.3.36 built for portable AVX2), runs as a non-root user, read-only filesystem
+  in compose, port bound to 127.0.0.1. Already have the GGUF? Mount it and set `GEMMA_GGUF`
+  (commented lines in `docker-compose.yml`).
+- Without Docker: `pip install -r requirements-api.txt llama-cpp-python` then
+  `uvicorn helpdesk.api:app --port 8000`. `HELPDESK_LLM_BACKEND=http` uses a separate
+  llama-server instead; `none` runs without a model.
 
 ## Faster replies on CPU (prompt cache)
 Most reply time on a CPU is prefill (reading system prompt + passages).

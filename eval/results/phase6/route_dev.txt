@@ -1,0 +1,44 @@
+ok  r01 weather     -> weather     district kottayam കോട്ടയത്ത് ഇന്ന് മഴ പെയ്യാൻ സാധ്യതയുണ്ടോ
+ok  r02 weather     -> weather     district thrissur തൃശ്ശൂരിൽ വല്ലാത്ത ചൂടുണ്ടോ ഇപ്പോൾ
+ok  r03 weather     -> weather     district wayanad വയനാട്ടിൽ രാത്രി തണുപ്പുണ്ടാകുമോ
+ok  r04 weather     -> weather     district kannur കണ്ണൂരിലെ ഇന്നത്തെ താപനില എത്രയാണ്
+ok  r05 weather     -> weather     district kozhikode നാളത്തെ കാലാവസ്ഥ കോഴിക്കോട്
+ok  r06 weather     -> weather     district kollam കൊല്ലത്ത് ഇടിമിന്നലിന് സാധ്യതയുണ്ടോ
+ok  r07 weather     -> weather     district malappuram മലപ്പുറത്ത് വെയിലുണ്ടോ ഇന്ന്
+ok  r08 weather     -> weather     district thiruvananthapuram ഇന്ന് പുറത്ത് പോകുമ്പോ കുട വേണോ, മഴക്കോളുണ്ടോ
+ok  r09 weather     -> weather     district idukki ഇടുക്കിയിൽ എത്ര ഡിഗ്രി ചൂടുണ്ട്
+ok  r10 weather     -> weather     district ernakulam what is the weather in kochi today
+ok  r11 weather     -> weather     district pathanamthitta പത്തനംതിട്ടയിലെ കാലാവസ്ത എങ്ങനെ
+ok  r12 weather     -> weather     district kasaragod കാസർഗോഡ് ഇന്ന് മഴ ഉണ്ടാവോ
+ok  r13 weather     -> weather     district idukki തൊടുപുഴയിൽ ഇന്ന് മഴയുണ്ടോ
+ok  r14 weather     -> weather     district ernakulam ആലുവയിൽ നല്ല ചൂടാണോ
+ok  r15 weather     -> weather     district pathanamthitta തിരുവല്ലയിലെ കാലാവസ്ഥ പറയൂ
+ok  r16 weather     -> weather     district kozhikode വടകരയിൽ നാളെ മഴ പെയ്യുമോ
+ok  r17 weather     -> weather     district kannur പയ്യന്നൂരിൽ ഇപ്പോ മഴയാണോ
+ok  r18 weather     -> weather     district thrissur കൊടുങ്ങല്ലൂരിൽ ഇന്ന് ചൂട് എത്ര
+ok  r19 weather     -> weather     district wayanad മാനന്തവാടിയിൽ തണുപ്പ് കൂടുതലാണോ
+ok  r20 weather     -> weather     district malappuram നിലമ്പൂരിൽ മഴ ഉണ്ടോ
+ok  r21 weather     -> weather     district kottayam ചങ്ങനാശ്ശേരിയിലെ താപനില
+ok  r22 weather     -> weather     district alappuzha കായംകുളത്ത് ഇന്ന് മഴ
+ok  r23 weather     -> weather     district palakkad ഒറ്റപ്പാലത്ത് വല്ലാത്ത ചൂട്
+ok  r24 weather     -> weather     district thiruvananthapuram നെയ്യാറ്റിൻകരയിൽ നാളെ മഴയുണ്ടോ
+ok  r25 weather     -> weather     district kasaragod കാഞ്ഞങ്ങാട് ഇന്ന് കാലാവസ്ഥ
+ok  r26 weather     -> weather     district kollam പുനലൂരിൽ ചൂടെത്ര
+ok  r27 weather     -> weather     district idukki വാഗമണ്ണിൽ ഇപ്പോൾ തണുപ്പുണ്ടോ
+ok  r28 news        -> news        ഇന്നത്തെ പ്രധാന ന്യൂസ് എന്താ
+ok  r29 news        -> news        തലക്കെട്ടുകൾ ഒന്ന് വായിക്കൂ
+ok  r30 news        -> news        തൃശ്ശൂരിലെ പുതിയ വാർത്തകൾ
+ok  r31 news        -> news        latest kerala news please
+ok  r32 news        -> news        ഇന്ന് എന്തൊക്കെ സംഭവങ്ങളാണ് നടന്നത്
+ok  r33 news        -> news        വാര്ത്ത കേൾക്കണം
+ok  r34 service_faq -> service_faq മഴവെള്ള സംഭരണി ഇല്ലാതെ വീടിന് പെർമിറ്റ് കിട്ടുമോ
+ok  r35 service_faq -> service_faq ഡിഗ്രി പാസായ മകളുടെ വിവാഹ രജിസ്ട്രേഷന് എന്ത് രേഖ വേണം
+ok  r36 service_faq -> service_faq ജനന സർട്ടിഫിക്കറ്റിൽ പേരിൽ തെറ്റ് സംഭവിച്ചു, എങ്ങനെ തിരുത്താം
+ok  r37 service_faq -> service_faq മഴക്കാലത്ത് വീട് തകർന്നു, കെട്ടിട നികുതി ഇളവ് കിട്ടുമോ
+ok  r38 service_faq -> service_faq വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം
+ok  r39 service_faq -> service_faq ട്രേഡ് ലൈസൻസ് പുതുക്കാൻ എത്ര രൂപ
+ok  r40 service_faq -> service_faq വാർദ്ധക്യ പെൻഷന് അപേക്ഷിക്കാൻ പ്രായം എത്ര
+ok  r41 service_faq -> service_faq പട്ടിയുടെ ലൈസൻസ് എങ്ങനെ എടുക്കാം
+ok  r42 other       -> other       ഒരു പാട്ട് പാടാമോ
+ok  r43 other       -> other       മീൻ കറി വെക്കാൻ പഠിപ്പിക്കാമോ
+route 43/43   weather district 27/27

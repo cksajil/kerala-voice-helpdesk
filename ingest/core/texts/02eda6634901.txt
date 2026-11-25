@@ -1,0 +1,109 @@
+URL: https://karukachalpanchayat.lsgkerala.gov.in/en/node/74
+FETCHED: 2026-11-14
+SHA256: 02eda6634901137c1650f66ca6ef5c36475dfc0a42c43c45a3917dccf8ba7f56
+
+Information on Welfare Pensions
+Welfare Pension
+Information on Social Security / Welfare Pensions
+Various welfare pensions are being provided to eligible persons as part of the Social Security Schemes of the Government of Kerala. Procedures such as application submission, eligibility verification, field verification and mustering are implemented through the concerned Local Self Government Institutions.
+Current Pension Amount: ₹2,000 per month
+Major Welfare Pensions
+| Sl. No. | Pension Category | Monthly Amount | 
+|---|---|---|
+| 1 | Agricultural Workers Pension | ₹2,000 | 
+| 2 | Indira Gandhi National Old Age Pension | ₹2,000 | 
+| 3 | Indira Gandhi National Widow Pension | ₹2,000 | 
+| 4 | Indira Gandhi National Disability Pension | ₹2,000 | 
+| 5 | Pension for Unmarried Women Above 50 Years of Age | ₹2,000 | 
+General Eligibility Conditions
+- The annual family income should be within the prescribed limit.
+- The application should be submitted to the Local Self Government Institution where the applicant is a permanent resident.
+- The applicant should not be an income tax payer.
+- Conditions relating to service pension / family pension must be satisfied.
+- It should be verified whether the applicant is receiving any other social security pension.
+- The prescribed conditions relating to land, vehicle and building ownership must be satisfied.
+- The information furnished in the application must be correct.
+- The required documents must be produced.
+Category-wise Eligibility
+1. Indira Gandhi National Old Age Pension
+- The applicant must be 60 years of age or above.
+- The annual family income should be within the prescribed limit.
+- The applicant should be destitute / without adequate means of support.
+- The applicant should not be an income tax payer.
+- Conditions relating to service pension / family pension are applicable.
+- Conditions relating to land, vehicle, building etc. must be satisfied.
+2. Agricultural Workers Pension
+- The applicant must be 60 years of age or above.
+- The applicant must be eligible as an agricultural worker.
+- The applicant must have permanent residence in Kerala for the required period.
+- The annual family income should be within the prescribed limit.
+- The applicant should not be an income tax payer.
+3. Indira Gandhi National Widow Pension
+- Widows whose husbands have passed away may be eligible.
+- Women whose husbands have been missing for more than 7 years may be eligible subject to the prescribed conditions.
+- Women above 50 years of age who have been abandoned by their husbands for more than 7 years may be eligible subject to the prescribed conditions.
+- The applicant should not have remarried.
+- Other prescribed eligibility conditions must be satisfied.
+4. Indira Gandhi National Disability Pension
+- The applicant must have a qualifying disability.
+- The required medical / disability certificate must be produced.
+- The annual family income should be within the prescribed limit.
+- The applicant should not be an income tax payer.
+- Other prescribed eligibility conditions must be satisfied.
+5. Pension for Unmarried Women Above 50 Years of Age
+- The applicant must be 50 years of age or above.
+- The applicant must be unmarried.
+- The annual family income should be within the prescribed limit.
+- The applicant should not be an income tax payer.
+- Conditions relating to service / family pension must be satisfied.
+Commonly Required Documents
+- Aadhaar Card
+- Proof of Age
+- Income Certificate
+- Ration Card
+- Bank Account Details
+- Proof of Residence
+- Land-related Documents / Details
+- Vehicle Ownership Details
+- Documents proving marital status
+- Death Certificate of the Husband for Widow Pension
+- Medical / Disability Certificate for Disability Pension
+- Supporting documents required for Agricultural Workers Pension
+Note: The documents required may vary depending on the pension category. The instructions in the relevant official application form should be checked.
+Application Procedure
+| 1 | Submit the application for the concerned pension category. | 
+| 2 | Verify the documents submitted along with the application. | 
+| 3 | Conduct field verification, wherever necessary. | 
+| 4 | Verify eligibility according to the existing criteria. | 
+| 5 | Complete the verification and take further necessary action. | 
+Mustering
+Mustering is an important procedure for confirming the continued existence / eligibility of pension beneficiaries.
+- Follow the schedule prescribed by the Government / Sevana Pension Portal.
+- Complete mustering within the prescribed period.
+- Keep the required identification details available.
+Circumstances That May Result in Loss of Pension Eligibility
+- Exceeding the prescribed income limit.
+- Furnishing incorrect information.
+- Receiving pension from another Local Self Government Institution.
+- Becoming an income tax payer.
+- Receiving service pension / family pension.
+- Possessing land above the prescribed limit.
+- Owning a vehicle contrary to the prescribed conditions.
+- Owning a building above the prescribed limit.
+- Failure to produce documents proving eligibility.
+Panchayat Office – Application Verification Checklist
+| Sl. No. | Verification Item | Status | 
+|---|---|---|
+| 1 | Is the application complete? | □ | 
+| 2 | Has the Aadhaar been verified? | □ | 
+| 3 | Has the age been verified? | □ | 
+| 4 | Has the income certificate been verified? | □ | 
+| 5 | Has permanent residence been verified? | □ | 
+| 6 | Is the applicant receiving any other pension? | □ | 
+| 7 | Is the applicant receiving service / family pension? | □ | 
+| 8 | Is the applicant an income tax payer? | □ | 
+| 9 | Has eligibility relating to land / vehicle / building been verified? | □ | 
+| 10 | Is field verification required? | □ | 
+Official Sevana Pension Portal 
+Sevana Pension Portal 
+Disclaimer: The information provided above is intended only as general guidance. Government orders, rules and pension eligibility criteria may change. Therefore, the latest official instructions should be verified before submitting an application and taking further action.

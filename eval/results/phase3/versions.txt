@@ -1,0 +1,21 @@
+langgraph==1.2.17
+langgraph-checkpoint==4.3.0
+langgraph-prebuilt==1.1.1
+langgraph-sdk==0.4.9
+llama_cpp_python==0.3.36
+pytorch-ignite==0.5.5
+pytorch-lightning==2.6.6
+rank-bm25==0.2.2
+sentence-transformers==5.7.0
+sentencepiece==0.2.2
+torch @ https://download.pytorch.org/whl/cpu/torch-2.11.0%2Bcpu-cp313-cp313-manylinux_2_28_x86_64.whl
+torchao==0.10.0
+torchaudio @ https://download.pytorch.org/whl/cpu/torchaudio-2.11.0%2Bcpu-cp313-cp313-manylinux_2_28_x86_64.whl
+torchcodec @ https://download.pytorch.org/whl/cpu/torchcodec-0.11.0%2Bcpu-cp313-cp313-manylinux_2_28_x86_64.whl
+torchdata==0.11.0
+torchinfo==1.8.0
+torchmetrics==1.9.0
+torchsummary==1.5.1
+torchtune==0.6.1
+torchvision @ https://download.pytorch.org/whl/cpu/torchvision-0.26.0%2Bcpu-cp313-cp313-manylinux_2_28_x86_64.whl
+transformers==5.20.2

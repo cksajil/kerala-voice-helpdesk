@@ -15,6 +15,7 @@ templates; the LLM only writes service answers, only from one passage.
 """
 from __future__ import annotations
 
+import logging
 import os
 import re
 from typing import Literal, TypedDict
@@ -27,6 +28,7 @@ from .intent import (other_state, CLARIFY_FACETS, STRICT_FACETS, OTHER_ANIMAL_MS
                      other_animal, out_of_scope)
 from .retriever import BM25_MIN, Hit, Retriever
 
+log = logging.getLogger(__name__)
 Route = Literal["weather", "news", "service_faq", "other"]
 CTX_K = int(os.getenv("HELPDESK_CTX_K", "2"))           # passages sent to the LLM
 ANSWER_TOKENS = int(os.getenv("HELPDESK_ANSWER_TOKENS", "100"))   # ~0.34 s per token on a 2-core CPU
@@ -41,10 +43,18 @@ FOLLOW_UP_MAX_WORDS = 8
 ACK = re.compile(r"^(ഇല്ല|അതെ|ശരി|ശരിയാണ്|ഓക്കെ|ഓക്കേ|ok|okay|നന്ദി|താങ്ക്സ്|thanks|thank you|വേണ്ട|മതി)$")
 ACK_REPLY = "ശരി. മറ്റെന്തെങ്കിലും അറിയണമെങ്കിൽ ചോദിക്കൂ."
 
-# Stems, not full words: Malayalam inflects heavily (മഴ / മഴയുണ്ടോ, വാർത്ത / വാർത്തകൾ).
+# Stems, not full words, matched inside words after fold(normalise()), so inflected forms match: "ചൂട" covers
+# ചൂടാണോ / ചൂടുണ്ടോ, "തണുപ്പ" covers തണുപ്പുണ്ടോ, "കാലാവസ്" covers ASR's കാലാവസ്ത.
 RULES: list[tuple[Route, list[str]]] = [
-    ("weather", ["കാലാവസ്ഥ", "മഴ", "ചൂട്", "താപനില", "ഡിഗ്രി", "weather", "rain", "temperature"]),
-    ("news", ["വാർത്ത", "news", "headline", "സംഭവ"]),
+    ("weather", ["കാലാവസ്", "താപനില", "സെൽഷ്യസ", "ഇടിമിന്ന", "weather", "temperature", "forecast"]),
+    ("news", ["വാർത്ത", "ന്യൂസ", "തലക്കെട്ട", "news", "headline"]),
+]
+# Weather words with an everyday second sense: a named service wins over them ("ഡിഗ്രി സർട്ടിഫിക്കറ്റ്
+# നഷ്ടപ്പെട്ടു" is a college degree, "മഴവെള്ള സംഭരണി" is a building-permit rule).
+# "സംഭവ" (event) is also the verb "happened" (തെറ്റ് സംഭവിച്ചു).
+WEAK_RULES: list[tuple[Route, list[str]]] = [
+    ("weather", ["മഴ", "ചൂട", "തണുപ്പ", "വെയില", "ഡിഗ്രി", "rain"]),
+    ("news", ["സംഭവ"]),
 ]
 ANSWER_PROMPT = (
     "നീ കേരളത്തിലെ തദ്ദേശ സ്ഥാപന സേവനങ്ങളെക്കുറിച്ചുള്ള ഒരു വോയ്സ് ഹെൽപ്ഡെസ്ക് ആണ്. "
@@ -111,6 +121,9 @@ def answer_message(ctx: str, query: str) -> str:
 def attribution(sources: list[dict]) -> str:
     """Spoken source for Tier-2 answers: one panchayat's charter may differ from yours."""
     top = sources[0] if sources else {}
+    if top.get("kind") == "kb_auto":                 # built from charters (ingest.kb_auto), not hand-checked
+        return (" (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം. നിങ്ങളുടെ പഞ്ചായത്തിൽ വ്യത്യാസമുണ്ടാകാം.)"
+                if top.get("verify") else " (പഞ്ചായത്തുകളുടെ പൗരാവകാശ രേഖകൾ പ്രകാരം.)")
     if top.get("tier") != 2:
         return ""
     if top.get("site"):
@@ -131,7 +144,12 @@ def rule_route(query: str) -> Route | None:
     for route, stems in RULES:
         if any(fold(normalise(s)) in q for s in stems):
             return route
-    return "service_faq" if detect_services(query) else None
+    if detect_services(query):
+        return "service_faq"
+    for route, stems in WEAK_RULES:
+        if any(fold(normalise(s)) in q for s in stems):
+            return route
+    return None
 
 
 def build_graph(retriever: Retriever | None = None):
@@ -183,6 +201,11 @@ def build_graph(retriever: Retriever | None = None):
             # it ("അതിന് എത്ര ദിവസം?" after the advertisement row went to a factory licence row).
             h = retriever.open_match(s.get("previous") or "")
             pin = h.doc["id"] if h is not None and h.doc.get("service") in prev else None
+            # Not when the follow-up asks for something that passage is tagged as not covering: after
+            # "is marriage registration compulsory?", "അതിന് എന്തൊക്കെ രേഖകൾ" needs the documents entry
+            # (14 Nov live check). Untagged charter rows keep the pin, as above.
+            if pin and facet and h.doc.get("facets") and facet not in h.doc["facets"]:
+                pin = None
             return {"route": "service_faq", "route_by": "follow-up", "services": prev, "facet": facet,
                     **({"open_id": pin} if pin else {})}
         # No service: answering from the knowledge base would only find a lookalike passage
@@ -193,7 +216,8 @@ def build_graph(retriever: Retriever | None = None):
         try:
             w = tools.weather(s["query"])
             return {"context": w["text"], "sources": [{"title": w["source"]}]}
-        except Exception:
+        except Exception as e:          # the caller hears TOOL_FAIL; the log keeps why (no query text)
+            log.warning("weather tool failed: %s: %s", type(e).__name__, e)
             return {"context": ""}
 
     def news(s: State) -> State:
@@ -201,7 +225,8 @@ def build_graph(retriever: Retriever | None = None):
             n = tools.news(s["query"])
             return {"context": n["text"],
                     "sources": [{"title": i["title"], "url": i["link"]} for i in n["items"]]}
-        except Exception:
+        except Exception as e:
+            log.warning("news tool failed: %s: %s", type(e).__name__, e)
             return {"context": ""}
 
     by_id = {d["id"]: d for d in retriever.docs}
@@ -239,10 +264,11 @@ def build_graph(retriever: Retriever | None = None):
             # (10 Nov, canon on). The title of the passage that started the thread carries it.
             query = s["previous_topic"] + " " + query
         hits = retriever.search(query, k=3, services=services, facet=facet)
-        if follow and facet in STRICT_FACETS and hits and facet not in hits[0].doc.get("facets", []):
+        if follow and facet in CLARIFY_FACETS and hits and facet not in hits[0].doc.get("facets", []):
             # The topic words pull the topic's own passage to the top; when it does not answer the
-            # asked amount/time/validity, the best-ranked passage that does goes first
-            # ("തുകയെത്രയാണ്?" in a widow-pension thread: the pension-amount entry, not eligibility).
+            # asked amount/time/validity/documents, the best-ranked passage that does goes first
+            # ("തുകയെത്രയാണ്?" in a widow-pension thread: the pension-amount entry, not eligibility;
+            # documents after "is registration compulsory?": the documents entry, 14 Nov live check).
             j = next((j for j, h in enumerate(hits) if facet in h.doc.get("facets", [])), None)
             if j is not None:
                 hits = [hits[j]] + hits[:j] + hits[j + 1:]
@@ -258,7 +284,8 @@ def build_graph(retriever: Retriever | None = None):
                 # A curated entry that answers the asked amount/time stays: "തൊഴിലില്ലായ്മ വേതനം
                 # എത്ര" is the Tier-1 ₹120 entry, not a charter row about distributing it.
                 answers = (facet in STRICT_FACETS and facet in hits[0].doc.get("facets", [])
-                           and (facet not in h.doc.get("facets", []) or hits[0].doc.get("tier", 1) == 1))
+                           and (facet not in h.doc.get("facets", [])
+                                or (hits[0].doc.get("tier", 1) == 1 and hits[0].doc.get("kind") != "kb_auto")))
                 # At least one more distinctive word, matched well (>= 0.8): "വിധവ പെൻഷൻ" beats a
                 # "ഭിന്നശേഷി പെൻഷൻ" entry BM25 put first; "സർവീസുകൾ" (a 0.6 stem match) does not move
                 # an Akshaya question to the service-charge entry.

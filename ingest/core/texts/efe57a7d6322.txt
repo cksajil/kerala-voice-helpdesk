@@ -1,0 +1,268 @@
+URL: https://panchayatwiki.lsgkerala.gov.in/api.php?action=parse&format=json&prop=text&disablelimitreport=1&page=%E0%B4%AE%E0%B4%B9%E0%B4%BE%E0%B4%A4%E0%B5%8D%E0%B4%AE%E0%B4%BE%E0%B4%97%E0%B4%BE%E0%B4%A8%E0%B5%8D%E0%B4%A7%E0%B4%BF_%E0%B4%A6%E0%B5%87%E0%B4%B6%E0%B5%80%E0%B4%AF_%E0%B4%97%E0%B5%8D%E0%B4%B0%E0%B4%BE%E0%B4%AE%E0%B5%80%E0%B4%A3_%E0%B4%A4%E0%B5%8A%E0%B4%B4%E0%B4%BF%E0%B4%B2%E0%B5%81%E0%B4%B1%E0%B4%AA%E0%B5%8D%E0%B4%AA%E0%B5%81_%E0%B4%A8%E0%B4%BF%E0%B4%AF%E0%B4%AE%E0%B4%82%2C_2005
+FETCHED: 2026-11-24
+SHA256: efe57a7d6322294b211f8f775399454ccd7a07f9c4a14c52d746cd6eadc78b35
+TITLE: MGNREGA Act
+
+ഗ്രാമീണ മേഖലയിൽ തൊഴിലെടുക്കാൻ സന്നദ്ധരായ അവിദഗ്ദ്ധ തൊഴിലാളികൾ ഉള്ള ഒരു കുടുംബത്തിന് ഒരു സാമ്പത്തിക വർഷം കുറഞ്ഞത് നൂറു ദിവസമെങ്കിലും തൊഴിൽ ലഭ്യമാക്കി അവരുടെ ജീവിത നിലവാരമുയർത്തുക എന്ന ലക്ഷ്യത്തോടെ 2005 സെപ്റ്റംബർ മാസം 5-ാം തീയതി ദേശീയ ഗ്രാമീണ തൊഴിലുറപ്പു നിയമം നിലവിൽ വന്നു.
+ചുരുക്കപ്പേരും വ്യാപ്തിയും ആരംഭവും.-(1) ‘മഹാത്മാഗാന്ധി ദേശീയ ഗ്രാമീണ തൊഴിലുറപ്പ് നിയമം 2005 (Mahatma Gandhi National Rural Employment Guarantee Act, 2005) എന്നതായിരിക്കും ഈ നിയമത്തിന്റെ പേര്
+3. ഗ്രാമീണ മേഖലയിലെ തൊഴിലുറപ്പ്. (1) കേന്ദ്ര സർക്കാർ വിജ്ഞാപനം ചെയ്യുന്ന ഗ്രാമപ്രദേശങ്ങളിൽ അവിദഗ്ദ്ധ തൊഴിൽ ചെയ്യാൻ തയ്യാറുള്ള ഓരോ കുടുംബത്തിനും സംസ്ഥാന സർക്കാർ ഒരു സാമ്പത്തിക വർഷം നൂറിൽ കുറയാത്ത തൊഴിൽ കൊടുക്കണം.
+4. തൊഴിലുറപ്പു പദ്ധതിയും തൊഴിലില്ലായ്മ വേതനവും.-(1) വകുപ്പ് 3 ലെ ലക്ഷ്യങ്ങളുടെ സാക്ഷാത്ക്കാരത്തിനായി ഈ നിയമം പ്രാബല്യത്തിൽ വന്ന് *(ഒരുവർഷത്തിനകം ഓരോ സംസ്ഥാന സർക്കാരും ഈ പദ്ധതി പ്രകാരം തൊഴിൽ ചെയ്യാൻ സന്നദ്ധതയുള്ള കുടുംബങ്ങൾക്ക് ഒരു വർഷം നൂറുദിവസത്തിൽ കുറയാതെ തൊഴിൽ നൽകത്തക്കവിധം ഒരു പദ്ധതി തയ്യാറാക്കി ഈ നിയമത്തിന്റെ പരിധിക്കുള്ളിൽ നിന്ന് വിജ്ഞാപനം ചെയ്യണം.
+അങ്ങനെ വിജ്ഞാപനം ചെയ്യുന്നതുവരെ ആ പ്രദേശത്ത് നടപ്പാക്കിക്കൊണ്ടിരിക്കുന്ന SGRY, ദേശീയ ഫുഡ് ഫോർ വർക്ക് പ്രോഗ്രാം എന്നിവയുടെ വാർഷിക പദ്ധതിയോ വികസന പരിപ്രേഷ്യമോ, ഈ പദ്ധതിക്കു വേണ്ടിയുള്ള ആക്ഷൻ പ്ലാനായി കണക്കാക്കാം.
+5. തൊഴിലുറപ്പിനുള്ള ഉപാധികൾ.-(1) സംസ്ഥാന സർക്കാർ രൂപീകരിക്കേണ്ട തൊഴിലുറപ്പു പദ്ധതി പട്ടിക 2-ലെ പരാമർശ വിഷയങ്ങളിൽ നിന്ന് വ്യതിചലിക്കാതെയായിരിക്കണം.
+6. കുലി നിരക്ക്.-(1) കേന്ദ്ര സർക്കാർ ഒരു വിജ്ഞാപനത്തിലുടെ ഈ നിയമത്തിനു വേണ്ടി വരുന്ന കൂലി നിരക്കുകൾ അറിയിക്കേണ്ടതാണ്. എന്നാൽ പ്രാദേശിക വ്യത്യാസങ്ങൾക്കനുസൃതമായി വേതന നിരക്ക് വ്യത്യാസപ്പെടുത്താവുന്നതും സമയാസമയങ്ങളിൽ വേതന നിരക്ക് വ്യത്യാസപ്പെടുത്തി നിശ്ചയിക്കാമെങ്കിലും കുറഞ്ഞ കൂലി 60 രൂപയിൽ കുറയരുതാത്തതുമാണ്.
+7. തൊഴിൽ രഹിത വേതനം നൽകൽ.-(1) ഒരു അപേക്ഷകൻ തൊഴിൽ ആവശ്യപ്പെട്ടതു കൊണ്ട് അപേക്ഷ സമർപ്പിച്ച 15 ദിവസത്തിനകം തൊഴിൽ കൊടുക്കാത്തപക്ഷം അപേക്ഷകന് തൊഴിൽ രഹിത വേതനം ലഭിക്കാൻ അവകാശമുണ്ട്. മുൻകൂർ അപേക്ഷയെ സംബന്ധിച്ചിടത്തോളം തൊഴിൽ ആവശ്യപ്പെട്ട ദിനം മുതൽ പതിനഞ്ച് ദിവസങ്ങൾക്കുള്ളിൽ തൊഴിൽ നൽകിയില്ലെങ്കിൽ തൊട്ടടുത്ത ദിവസം മുതൽ തൊഴിൽ നൽകുന്ന ദിനം വരെ തൊഴിൽ രഹിത വേതനത്തിന് അർഹതയുണ്ടാകുന്നതായിരിക്കും.
+(4) തൊഴിൽ രഹിതവേതനം കുടുംബത്തിലെ എല്ലാ അംഗങ്ങൾക്കും കൂടി സംസ്ഥാനസർക്കാർ വിജ്ഞാപനം വഴി ചുമതലപ്പെടുത്തിയ ഉദ്യോഗസ്ഥനോ തദ്ദേശ സ്വയംഭരണ സ്ഥാപനങ്ങളോ വിതരണം ചെയ്യണം.
+(5) ഉപവകുപ്പ് (1) പ്രകാരം തൊഴിൽ രഹിത വേതനം കൊടുക്കാൻ സമയമായ 15 ദിവസത്തി നകം അത് വിതരണം ചെയ്യണം.
+(6) ഈ നിയമപ്രകാരം തൊഴിൽ രഹിത വേതനം നൽകുന്നതിനുള്ള നടപടിക്രമം സംസ്ഥാന സർക്കാർ നിശ്ചയിക്കേണ്ടതാണ്.
+8. തൊഴിൽ രഹിത വേതനം നൽകാൻ കഴിയാത്ത പ്രത്യേക സാഹചര്യം.-(1) തന്റേതല്ലാത്ത കാരണത്താൽ ഒരാൾക്ക് തൊഴിൽ രഹിതവേതനം നൽകാൻ പ്രോഗ്രാം ഓഫീസർക്ക് കഴിയാതെ വന്നാൽ അക്കാര്യം ജില്ലാ പ്രോഗ്രാം കോ-ഓർഡിനേറ്ററെ അറിയിക്കേണ്ടതും ആ വിവരം തന്റെ നോട്ടീസ് ബോർഡിലും ഗ്രാമപഞ്ചായത്ത് പരസ്യ ബോർഡുകളിലും ആവശ്യമെന്ന് തോന്നുന്ന മറ്റ് പൊതു സ്ഥലങ്ങളിലും പ്രസിദ്ധപ്പെടുത്തേണ്ടതുമാണ്.
+9. തൊഴിൽ രഹിത വേതനം ലഭിക്കാൻ അനർഹനാകുന്ന സാഹചര്യങ്ങൾ.- ഒരു അപേക്ഷകൻ-
+10. കേന്ദ്ര തൊഴിലുറപ്പു കൗൺസിൽ.-(1) തൊഴിലുറപ്പു നിയമം അനുശാസിക്കുന്ന ചുമ തലകൾ നടപ്പിലാക്കുന്നതിന് കേന്ദ്ര സർക്കാർ ഒരു കേന്ദ്ര തൊഴിലുറപ്പു കൗൺസിൽ (Central Employment Guarantee Council)രൂപീകരിക്കേണ്ടതാണ്.
+(3) കൗൺസിലിന്റെ ഘടന ഇനി പറയുന്നവയാണ്:-
+(4) കൗൺസിലിന്റെ നിബന്ധനകൾ, മീറ്റിംഗ് കൂടുന്നതിനുള്ള സ്ഥലം, സമയം, ക്വാറം എന്നിവ കേന്ദ്ര സർക്കാർ നിശ്ചയിക്കും.
+11. കേന്ദ്ര തൊഴിലുറപ്പ കൗൺസിലിന്റെ ചുമതലകൾ.(1) കേന്ദ്ര തൊഴിലുറപ്പ കൗൺസിൽ താഴെപറയുന്ന ചുമതലകളും കർത്തവ്യങ്ങളും നിർവഹിക്കേണ്ടതാണ്.-
+(2) കൗൺസിലിന് അതിന്റെ ചുമതലകൾ നിർവഹിക്കുന്നതിന് ഈ നിയമപ്രകാരം നടപ്പിലാ ക്കുന്ന പദ്ധതികളുടെ അവലോകനം നടത്തുക, ഇതിലേയ്ക്കായി ആവശ്യമായ ഗ്രാമീണ സമ്പദ് മേഖലയുടെയും പദ്ധതി നിർവഹണത്തിന്റെയും സ്ഥിതി വിവരക്കണക്കുകൾ ശേഖരിക്കുകയും ചെയ്യു വാൻ അധികാരമുണ്ടായിരിക്കും.
+12. സംസ്ഥാന തൊഴിലുറപ്പു കൗൺസിൽ.-(1) സംസ്ഥാനതലത്തിൽ ഈ നിയമത്തിന്റെ നടത്തിപ്പ് അവലോകനം ചെയ്യുന്നതിനും മോണിറ്ററിംഗിനുമായി സംസ്ഥാന തൊഴിലുറപ്പു കൗൺസിൽ (State Employment Guarantee Counicl) എന്ന പേരിൽ സംസ്ഥാനംതോറും തൊഴിലുറപ്പു കൗൺസിൽ രൂപീകരിക്കേണ്ടതാണ്. ആയതിന്റെ അദ്ധ്യക്ഷൻ സംസ്ഥാന സർക്കാർ തീരുമാ നിക്കുന്നതാണ്. സംസ്ഥാന സർക്കാർ നിശ്ചയിക്കുന്ന ഔദ്യോഗിക അംഗങ്ങളും അതിൽ ഉൾക്കൊ ള്ളുന്നതാണ്.
+കൂടാതെ പഞ്ചായത്തു രാജ് സ്ഥാപനങ്ങൾ, തൊഴിലാളി സംഘടനകൾ, അധികൃത വിഭാഗം എന്നിവയിൽ നിന്ന് സംസ്ഥാന സർക്കാർ നാമ നിർദ്ദേശം ചെയ്യുന്ന പതിനഞ്ചിൽ കൂടാത്ത അനൗദ്യോഗിക അംഗങ്ങൾ അതിൽ മുന്നിലൊന്ന് ഭാഗം സ്ത്രീകളും മൂന്നിലൊന്ന് ഭാഗം പട്ടികജാതി പട്ടി കവർഗ്ഗ മറ്റു പിന്നോക്ക വിഭാഗങ്ങളും ആയിരിക്കണം.
+13. പദ്ധതികളുടെ ആസൂത്രണത്തിന്റെയും നിർവ്വഹണത്തിന്റെയും മുഖ്യചുമതലക്കാർ. -(1) തൊഴിലുറപ്പു നിയമപ്രകാരമുള്ള പദ്ധതികളുടെ ആസൂത്രണത്തിന്റെയും നിർവഹണത്തിന്റെയും മുഖ്യചുമതലക്കാർ ജില്ലാ - ബ്ലോക്ക് - ഗ്രാമ പഞ്ചായത്തുകൾ ആയിരിക്കും.
+14. ജില്ലാ പ്രോഗ്രാം കോ-ഓർഡിനേറ്റർ-(1) ജില്ലാ തലത്തിൽ പദ്ധതി നടത്തിപ്പിന്റെ ചുമതല സംസ്ഥാന സർക്കാരിന്റെ തീരുമാന പ്രകാരം ജില്ലാ കളക്ടർക്കോ, തത്തല്യ പദവിയുള്ള ഒരുദ്യോഗസ്ഥനോ നൽകാവുന്നതാണ്. ഈ ഉദ്യോഗസ്ഥനെ ജില്ലാ പ്രോഗ്രാം കോ-ഓർഡിനേറ്റർ എന്നു പറയുന്നു.
+(2) ജില്ലാതല പദ്ധതി നടത്തിപ്പ് ചുമതല ഡിസ്ട്രിക്ട് പ്രോഗ്രാം കോ-ഓഡിനേറ്റർക്കായിരിക്കും.
+(3) ജില്ലാ പ്രോഗ്രാം കോ-ഓർഡിനേറ്ററിന്റെ ചുമതലകൾ താഴെ പറയുന്നവയാണ്.-
+(4)ജില്ലാ പ്രോഗ്രം കോ-ഓഡിനേറ്റർക്ക് അദ്ദേഹത്തിന്റെചുമതലകൾനിർവ്വഹിക്കുന്നതിന് ആവശ്യമായ ഭരണപരവും സാമ്പത്തികവുമായ അധികാരങ്ങൾ സംസ്ഥാന സർക്കാർ ഏൽപ്പിച്ചു കൊടുക്കണം.
+(5) 15(1) വകുപ്പ് പ്രകാരം നിയമിക്കപ്പെട്ട ജില്ലയിൽ പ്രവർത്തിക്കുന്ന പ്രോഗ്രാം ഓഫീസർമാരും ഈ പദ്ധതി പ്രകാരം പഞ്ചായത്തുകളിൽ നിയമിക്കപ്പെട്ട മറ്റ് ഉദ്യോഗസ്ഥരും ജില്ലാ പ്രോഗ്രാം കോ-ഓർഡിനേറ്റർക്ക് അദ്ദേഹത്തിന്റെ ചുമതല നിർവഹിക്കുന്നതിന് ആവശ്യമായ സഹായം നൽകാൻ ഉത്തരവാദപ്പെട്ടിരിക്കുന്നു.
+(6) എല്ലാ വർഷവും ഡിസംബർ മാസത്തിൽ ജില്ലാ പ്രോഗ്രാം കോ-ഓർഡിനേറ്റർ, അടുത്ത സാമ്പത്തിക വർഷത്തേക്കുള്ള തൊഴിൽ ബഡ്ജറ്റ് തയ്യാറാക്കി ജില്ലാ പഞ്ചായത്തിന് സമർപ്പിക്കണം. അതിൽ പ്രതീക്ഷിക്കുന്ന അവിദഗ്ദ്ധ തൊഴിലാളികളുടെ എണ്ണവും അത് വിനിയോഗിക്കുന്നതിനാവശ്യമായ പദ്ധതികളുടെ വിവരങ്ങളും ഉണ്ടായിരിക്കണം.
+15. പ്രോഗ്രാം ഓഫീസർഎല്ലാ ബ്ലോക്ക് ബ്ലോക്ക് തലത്തിൽ ബ്ലോക്ക് ഡവലപ്മെന്റ് ഓഫീസറേക്കാൾ കുറയാത്ത റാങ്കിലുള്ള ഒരു വ്യക്തിയെ പ്രോഗ്രാം ഓഫീസറായി ഗവൺമെന്റ് നിയമിക്കണം. പ്രോഗ്രാം ഓഫീസറുടെ യോഗ്യത, അനുഭവ പരിചയം എന്നിവ സംസ്ഥാന സർക്കാർ തീരുമാനിക്കേണ്ടതാണ്.
+(5) പ്രോഗ്രാം ഓഫീസറുടെ ചുമതലകൾ താഴെ പറയുന്നവയാണ്.-
+6. പ്രോഗ്രാം ഓഫീസർ ജില്ലാ പ്രോഗ്രാം കോ ഓർഡിനേറ്ററുടെ മേൽനോട്ട നിയന്ത്രണത്തിലും, നിർദ്ദേശങ്ങൾക്ക് വിധേയമായും പ്രവർത്തിക്കേണ്ടതാണ്.
+7. പ്രോഗ്രാം ഓഫീസറുടെ ഏതെങ്കിലും ചുമതലയോ എല്ലാ ചുമതലകളുമോ ഗ്രാമപഞ്ചാ യത്തോ, തദ്ദേശ സ്വയംഭരണ സ്ഥാപനമോ നിർവ്വഹിക്കാൻ ഉത്തരവു പുറപ്പെടുവിക്കാൻ സംസ്ഥാന സർക്കാരിന് അധികാരമുണ്ട്.
+16. ഗ്രാമപഞ്ചായത്തിന്റെ ഉത്തരവാദിത്തങ്ങൾ- (1) ഗ്രാമസഭയുടെ ശുപാർശ പ്രകാരം ഈ പദ്ധതിയിൽപ്പെടുത്തി ഗ്രാമപഞ്ചായത്ത് പ്രദേശത്ത് നടപ്പാക്കേണ്ട പ്രോജക്ടടുകൾ കണ്ടെത്താനുള്ള ചുമതല ഗ്രാമപഞ്ചായത്തിനാണ്.
+17. പദ്ധതികളുടെ സാമുഹിക ഓഡിറ്റ്-(1) ഗ്രാമപഞ്ചായത്ത് പ്രദേശത്ത് നടപ്പാക്കുന്ന പദ്ധതികളുടെ നിരീക്ഷണ ചുമതല ഗ്രാമസഭയ്ക്കക്കായിരിക്കും.
+18. പദ്ധതി നടത്തിപ്പിനുള്ള സംസ്ഥാന സർക്കാരിന്റെ ചുമതല.-ഈ പദ്ധതിയുടെ ഫല പ്രദമായ നടത്തിപ്പിനു വേണ്ടി ജില്ലാ പ്രോഗ്രാം കോ-ഓർഡിനേറ്റർക്കും ബ്ലോക്ക് പ്രോഗ്രാം ഓഫീ സർക്കും ആവശ്യമായ സ്റ്റാഫും സാങ്കേതിക പിന്തുണയും സംസ്ഥാന സർക്കാർ നൽകേണ്ടതാണ്.
+19. സങ്കടപരിഹാര സംവിധാനം.-പദ്ധതി നടത്തിപ്പിനെപ്പറ്റി ഉന്നയിക്കപ്പെടാവുന്ന പരാതികൾ പരിഹരിക്കുന്നതിന് അനുയോജ്യമായ സങ്കടപരിഹാര സംവിധാനവും നടപടിക്രമങ്ങളും ബ്ലോക്ക് തലത്തിലും ജില്ലാ തലത്തിലും ചട്ടങ്ങൾ വഴി സംസ്ഥാന സർക്കാർ ആവിഷ്ക്കരിക്കേണ്ട താണ്.
+20. ദേശീയ തൊഴിലുറപ്പ് ഫണ്ട്-(1) ഈ നിയമത്തിന്റെ ആവശ്യത്തിനായി കേന്ദ്ര ഗവൺമെന്റ് വിജ്ഞാപനം വഴി ഒരു ദേശീയ തൊഴിലുറപ്പ് ഫണ്ട് രൂപീകരണം.
+21. സംസ്ഥാന തൊഴിലുറപ്പ് ഫണ്ട്-(1) ഈ നിയമത്തിന്റെ നടത്തിപ്പിനായി സംസ്ഥാന സർക്കാർ വിജ്ഞാപനം വഴി സംസ്ഥാന തൊഴിലുറപ്പ് ഫണ്ട് രൂപീകരിക്കേണ്ടതാണ്.
+22, ഫണ്ട് ചെലവിന്റെ മാതൃക.-(1) കേന്ദ്ര സർക്കാർ വഹിക്കുന്ന ചെലവുകൾ താഴെ പറയുന്നവയാണ്
+(2) സംസ്ഥാന സർക്കാർ വഹിക്കേണ്ട ചെലവുകൾ താഴെ പറയുന്നവയാണ്
+(ബി) പട്ടിക രണ്ട് പ്രകാരമുള്ള സാധന സാമ്രഗികളുടെ വിലയുടെയും, വിദഗ്ദ്ധ അർദ്ധവിദഗ്ദ്ധ തൊഴിൽ വേതനത്തിന്റെയും നാലിൽ ഒരു ഭാഗം:
+(സി) സംസ്ഥാന തൊഴിലുറപ്പ് കൗൺസിലിന്റെ ഭരണചെലവുകൾ.
+23. സുതാര്യതയും ഉത്തരവാദിത്വവും.- (1) ഈ പദ്ധതി നടത്തിപ്പിന് വേണ്ടി ഏൽപ്പിക്കുന്ന തുകയുടെ ധനകാര്യ മാനേജ്മെന്റും ശരിയായ രീതിയിലുള്ള വിനിയോഗവും, ജില്ലാ കോഓർഡിനേറ്ററുടെയും മറ്റ് നിർവ്വഹണ ഏജൻസികളുടെയും ഉത്തരവാദിത്വമാണ്.
+24. കണക്കുകൾ ഓഡിറ്റ് ചെയ്യൽ.(1) കേന്ദ്ര സർക്കാർ സി.എ.ജി.യുമായി കൂടിയാലോചിച്ച് എല്ലാ തലത്തിലുമുള്ള കണക്കുകൾ ഓഡിറ്റ് ചെയ്യുന്നതിന് അനുയോജ്യമായ സംവിധാനം ഏർപ്പെടുത്തേണ്ടതാണ്.
+'
+25. വ്യവസ്ഥകൾ പാലിക്കാതിരുന്നാലുള്ള പിഴ.ഈ നിയമത്തിലെ വ്യവസ്ഥകൾ ലംഘി ക്കുന്നവർക്കുമേൽ ആയിരം രൂപ വരെ പിഴ ചുമത്താവുന്നതാണ്.
+26. (1) ഈ നിയമം മൂലം കേന്ദ്രസർക്കാരിൽ നിക്ഷിപ്തമായ അധികാരങ്ങൾ (നിയമ നിർമ്മാണം ഒഴികെ) സംസ്ഥാന സർക്കാരുകളിലോ, കേന്ദ്രസർക്കാരിലോ, കേന്ദ്ര-സംസ്ഥാന സർക്കാരുകൾക്കു കീഴിലുള്ള ഉദ്യോഗസ്ഥരിലോ വിജ്ഞാപനം വഴി നിക്ഷിപ്തമാകാം.
+27.നിർദ്ദേശം നൽകുവാനുള്ള കേന്ദ്രസർക്കാരിന്റെ അധികാരം. (1) ഈ നിയമത്തിന്റെ ഫലപ്രദമായ നടത്തിപ്പുമായി ബന്ധപ്പെട്ട ഉചിതമായ നിർദ്ദേശങ്ങൾ സംസ്ഥാന സർക്കാരുകൾക്കു നൽകുവാൻ കേന്ദ്രസർക്കാരിന് അധികാരമുണ്ട്.
+(2) ആക്ടിലെ ഉപവകുപ്പ് (1) പ്രകാരം നൽകുന്ന ഫണ്ടിന്റെ ദുരുപയോഗം സംബന്ധിച്ച പരാതി ലഭിക്കുകയും അതിൽ കഴമ്പുണ്ടെന്ന് പ്രഥമദൃഷ്ട്യാ തെളിയുകയും കൂടുതൽ അന്വേഷണം വേണ്ടി വരികയും ചെയ്യുന്ന സാഹചര്യത്തിൽ ഫണ്ട് നൽകുന്നതു നിർത്തിവച്ച പദ്ധതി നടത്തിപ്പിനു പരി ഹാരമായ നടപടികൾ നിശ്ചിത സമയത്തിനുള്ളിൽ സ്വീകരിക്കാവുന്നതാണ്.
+ഈ നിയമത്തിലെ വ്യവസ്ഥകൾക്ക് വിരുദ്ധമായി എന്തെങ്കിലും നിയമത്തിൽ എന്തെല്ലാം വ്യവസ്ഥകൾ ഉണ്ടായിരുന്നാലും ഈ നിയമത്തിലെ വ്യവസ്ഥകൾക്ക് പ്രാബല്യം ഉണ്ടായിരിക്കും;
+എന്നാൽ ഈ നിയമത്തിലെ തൊഴിലുറപ്പ് അവകാശത്തിന് സമാനമായതോ തത്തുല്യമായതോ ആയ ഒരു തൊഴിലുറപ്പ് നിയമം ഏതെങ്കിലും സംസ്ഥാനത്ത് നിലവിലുണ്ടെങ്കിൽ ആ സംസ്ഥാനത്തിന് സംസ്ഥാന നിയമം നടപ്പിലാക്കുന്നതിന് ഈ നിയമപ്രകാരം അനുവാദമുണ്ടായിരിക്കും.
+അങ്ങനെയുള്ള സംസ്ഥാനത്തിനുള്ള ധനസഹായത്തിന്റെ രീതി കേന്ദ്ര സർക്കാർ തീരുമാനിക്കുന്നതും കേന്ദ്രനിയമത്തിൽ വിവക്ഷിക്കുന്നതിൽ കൂടാത്ത തുക നൽകുന്നതുമായിരിക്കും.
+(1) അത്യാവശ്യവും അവസോരിചതവുമെന്നു കേന്ദ്ര സർക്കാരിന് ബോധ്യമായാൽ പട്ടിക 1-ഉം 2-ഉം ഒരു വിജ്ഞാപനത്തിലൂടെ ഭേദഗതി ചെയ്യുവാൻ കേന്ദ്രസർക്കാരിന് അധികാരമുണ്ട്.
+(2) ഉപവകുപ്പ് (1) പ്രകാരം ഭേദഗതി ചെയ്തതുണ്ടാക്കുന്ന ഈ വിജ്ഞാപനം താമസംവിനാ പാർലമെന്റിന്റെ ഇരുസഭകളിലും വയ്ക്കക്കേണ്ടതാണ്.
+ഒരു സർക്കാർ ഉദ്യോഗസ്ഥനെന്ന നിലയിൽ സദുദ്ദേശത്തോടും ഉത്തമ വിശ്വാസത്തോടും പ്രോഗ്രാം കോ-ഓർഡി നേറ്ററോ പ്രോഗ്രാം ഓഫീസറോ മറ്റ് ബന്ധപ്പെട്ടവരോ എടുക്കുന്ന നടപടികൾക്ക് അവരുടെ പേരിൽ ഇന്ത്യൻ ശിക്ഷാ നിയമം വകുപ്പ് 21 പ്രകാരമുള്ള ശിക്ഷാ നിയമനടപടികളോ മറ്റ് നിയമ നടപടി കളോ നിലനിൽക്കുന്നതല്ല.
+(1) മുൻകൂട്ടി പരസ്യപ്പെടുത്തിയ കരടു വിജ്ഞാപനത്തിന്റെ അടിസ്ഥാനത്തിൽ ഈ നിയമത്തിൻ കീഴിൽ ചട്ടങ്ങൾ ഉണ്ടാക്കുവാനും അന്തിമ വിജ്ഞാപനം പുറപ്പെടുവിക്കുവാനും കേന്ദ്ര സർക്കാരിന് അധികാരമുണ്ട്.
+(2) ചട്ടങ്ങൾ ആവശ്യമായ വിഷയങ്ങൾ
+(എ) 10 (3) (e) വകുപ്പിൽ പറയുന്ന സംസ്ഥാന ഗവൺമെന്റ് പ്രാതിനിധ്യം സംബന്ധിച്ച്.
+(ബി.) 10 (4) വകുപ്പ് പ്രകാരം കേന്ദ്ര തൊഴിലുറപ്പു കൗൺസിൽ ഭാരവാഹികളുടെ നിയ മനം, പ്രവർത്തനം മുതലായവ സംബന്ധിച്ച്.
+(സി.) 20 (3) വകുപ്പ് പ്രകാരം ദേശീയ തൊഴിലുറപ്പ് ഫണ്ട് രൂപീകരണം, കൈകാര്യം ചെയ്യൽ സംബന്ധിച്ച്.
+(ഡി.) 22 (1) വകുപ്പ് പ്രകാരമുള്ള ചില ഇനങ്ങളുടെ ചെലവുകൾ കൈകാര്യം ചെയ്യൽ സംബന്ധിച്ച്.
+(ഇ) നിയമത്തിൽ ചട്ടങ്ങളെക്കുറിച്ച പരാമർശമുള്ള മറ്റ് കാര്യങ്ങൾ
+(1) കേന്ദ്ര നിയമത്തിനും ചട്ടങ്ങൾക്കും വിധേയമായി പദ്ധതി സംസ്ഥാനത്ത് നടപ്പാക്കാൻ അനുയോജ്യമായ ചട്ടങ്ങൾ സംസ്ഥാന സർക്കാർ ആവിഷ്ക്കരിക്കണം.
+(2) സംസ്ഥാന ചട്ടങ്ങളിൽ ഉൾപ്പെടുത്തേണ്ട പ്രധാന കാര്യങ്ങൾ(എ) തൊഴിൽ രഹിതവേതനത്തിന് അർഹത ലഭിക്കുന്നതിന് ഉള്ള സാഹചര്യങ്ങൾ, വ്യവ സ്ഥകൾ (വകുപ്പ്7 (2)
+(ബി) തൊഴിൽ രഹിത വേതനം വിതരണം ചെയ്യുന്നതിനുള്ള നടപടിക്രമങ്ങൾ (വകുപ്പ (7), (6))
+(സി) സംസ്ഥാന തൊഴിലുറപ്പ് കൗൺസിൽ രൂപീകരണം, പ്രവർത്തനം (മീറ്റിംഗ് കൂടുന്ന തിനുള്ള സ്ഥലം, സമയം, നടപടിക്രമം, ക്വാറം തുടങ്ങിയവ) എന്നിവ സംബന്ധിച്ച് (വകുപ്പ് 12 (2)
+(ഡി) സങ്കട പരിഹാര സംവിധാനം ജില്ലാ ബ്ലോക്കു തലങ്ങളിൽ (വകുപ്പ് 19)
+(ഇ) സംസ്ഥാന തൊഴിലുറപ്പ് നിധി ഉപയോഗിക്കുന്നതിനുള്ള പരിമിതികൾ, നിബന്ധനകൾ (വകുപ്പ് 21 (2)
+(എഫ്) സംസ്ഥാന തൊഴിലുറപ്പ് ഫണ്ട് സംസ്ഥാന തലത്തിൽ കൈകാര്യം ചെയ്യാൻ ഉത്തരവാദിത്തപ്പെട്ട ഉദ്യോഗസ്ഥന്റെ ചുമതലകൾ (വകുപ്പ21 (3)
+(ജി) അക്കൗണ്ട് ബുക്കുകൾ, തൊഴിലാളികളുടെ നിയമനം സംബന്ധിച്ച കാര്യങ്ങൾ, ചെലവുകൾ (വകുപ്പ23 (2)
+(എച്ച്) പദ്ധതിയുടെ കാര്യക്ഷമമായ നടത്തിപ്പിന് ആവശ്യമായ വിശദമായ നടപടിക്രമങ്ങൾ (വകുപ്പ് 23 (3)
+(ഐ) കണക്കുകൾ എഴുതുകയും സൂക്ഷിക്കുകയും ചെയ്യുന്നത് സംബന്ധിച്ച് (വകുപ്പ് 24(2))
+(ജെ) സംസ്ഥാനത്ത് ഈ പദ്ധതിയുടെ നടത്തിപ്പിന് ആവശ്യമെന്ന് സംസ്ഥാന സർക്കാരിന് ബോധ്യമുള്ള മറ്റ് കാര്യങ്ങൾ.
+(1) ഈ ആക്ടിൻ കീഴിൽ കേന്ദ്ര സർക്കാർ ഉണ്ടാക്കുന്ന ഓരോ നിയമവും പാർലമെന്റിന്റെ ഇരു സഭകളിലും വച്ച് അംഗീകാരം നേടേണ്ടതാണ്.
+(2) അപ്രകാരം സംസ്ഥാന സർക്കാരുണ്ടാക്കുന്ന നിയമവും പദ്ധതിയും സംസ്ഥാന അസംബ്ലിയിൽ വച്ച് അംഗീകരിക്കേണ്ടതാണ്.
+(1) ഈ നിയമത്തിന്റെ നടത്തിപ്പിൽ എന്തെങ്കിലും ബുദ്ധിമുട്ടുകൾ അനുഭവപ്പെട്ടാൽ അത് പരിഹരിക്കുന്നതിന് ആവശ്യമായ നടപടികൾ സ്വീകരിക്കാൻ കേന്ദ്ര സർക്കാരിന് അധികാരമുണ്ട്. അത്തരം നടപടികൾ ഈ നിയമത്തിന്റെ അന്തസ്സത്തക്ക് എതിരായിരിക്കരുത്. എന്നാൽ ഈ നിയമം നടപ്പായി 3 വർഷം കഴിഞ്ഞാൽ അപ്രകാരമുള്ള നടപടി എടുക്കേണ്ടതില്ല.
+(2) ഇങ്ങനെയുണ്ടാക്കുന്ന ഓരോ നിയമവും പാർലമെന്റിന്റെ ഇരു സഭകളിലും വച്ച് അംഗീ കാരം നേടേണ്ടതാണ്.
+1. The Scheme notified under section 4 by all States shall be called the Mahatma Gandhi National Rural Employment Guarantee Scheme" and all documents pertaining to the said Scheme shall have a mention of the Mahatma Gandhi National Rural Employment Guarantee Act, 2005 (42 of 2005).
+2. The Mahatma Gandhi National Rural Employment Guarantee Scheme shall hereinafter be referred to as "Mahatma Gandhi NREGS" and any reference in the said scheme to the Mahatma Gandhi National Rural Employment Guarantee Act, 2005 shall be referred to as "Mahatma Gandhi NREGA".
+3. The core objectives of the Scheme shall be the following:-
+(a) Providing not less than one hundred days of unskilled manual work as a guaranteed employment in a financial year to every household in rural areas as per demand, resulting in creation of productive assets of prescribed quality and durability;
+(b) Strengthening the livelihood resource base of the poor;
+(c) Proactively ensuring social inclusion; and
+(d) Strengthening Panchayat Raj institutions:
+Provided that the said objectives are applicable where the adult members volunteer to do unskilled manual work subject to the conditions laid down by or under this Act and in the Scheme.
+4. (1) The focus of the Scheme shall be on the following works as categorised below:
+(i) Water conservation and water harvesting structures to augment and improve groundwater like underground dykes, earthen dams, stop dams, check dams with special focus on recharging ground water including drinking water sources;
+(ii) Watershed management works such as contour trenches, terracing, contour bunds, boulder checks, gabion structures and spring shed development resulting in a comprehensive treatment of a watershed;
+(iii) Micro and minor irrigation works and creation, renovation and maintenance of irrigation canals and drains;
+(iv) Renovation of traditional water bodies including desilting of irrigation tanks and other Water bodies;
+(v) Afforestation, tree plantation and horticulture in common and forest lands, road margins, canal bunds, tank foreshores and coastal belts duly providing right to usufruct to the households covered in Paragraph 5; and
+(vi) Land development works in common land.
+(i) Improving productivity of lands of households specified in Paragraph 5 through land development and by providing suitable infrastructure for irrigation including dug Wells, farm ponds and other water harvesting structures;
+(ii) Improving livelihoods through horticulture, sericulture, plantation, and farm forestry;
+(iii) Development of fallow or waste lands of households defined in Paragraph 5 to bring it under Cultivation;
+(iv) Unskilled wage component in construction of houses sanctioned under the Indira Awaas Yojana or such other State or Central Government Scheme;
+(v) Creating infrastructure for promotion of livestock such as, poultry shelter, goat shelter, piggery shelter, cattle shelter and fodder troughs for cattle; and
+(vi) Creating infrastructure for promotion of fisheries such as, fish drying yards, storage facilities, and promotion of fisheries in seasonal water bodies on public land;
+(i) Works for promoting agricultural productivity by creating durable infrastructure required for bio-fertilizers and post-harvest facilities including pucca storage facilities for agricultural produce; and
+(ii) Common work-sheds for livelihood activities of self-help groups.
+(i) Rural sanitation related works, such as, individual household latrines, school toilet units, Anganwadi toilets either independently or in convergence with schemes of other Government Departments to achieve 'open defecation free' status, and solid and liquid waste management as per prescribed norms;
+(ii) Providing all-weather rural road connectivity to unconnected villages and to connect identified rural production centres to the existing pucca road network; and construction of pucca internal roads or streets including side drains and culverts within a village;
+(iii) Construction of play fields
+(iv) Works for improving disaster preparedness or restoration of roads or restoration of other essential public infrastructure including flood control and protection works, providing drainage in water logged areas, deepening and repairing of flood channels, chaur renovation, construction of storm water drains for coastal protection;
+(v) Construction of buildings for Gram Panchayats, women self-help groups' federations, cyclone shelters, Anganwadi centres, village haats and crematoria at the village or block level;
+(vi) Construction of Food Grain Storage Structures for implementing the provisions of The National Food Security Act, 2013 (20 of 2013);
+(vii) Production of building material required for construction works under the Act as a part of the estimate of such construction works;
+(viii) Maintenance of rural public assets created under the Act; and
+(ix) any other work which may be notified by the Central Government in consultation with the State Government in this regard.
+(2) The order of priority of works shall be determined by each Grama Panchayat in the meetings of the Grama Sabha keeping in view potential of the local area, its needs, local resources and in accordance with the provisions of Paragraph 9:
+“[Provided that the District Programme Coordinator shall ensure that at least 60% of the works to be taken up in a district in terms of cost shall be for creation of productive assets directly linked to agriculture and allied activities through development of land, water and trees.]
+(3) Works which are non-tangible, not measurable, repetitive such as, removing grass, pebbles, agricultural operations, shall not be taken up.
+5. Works creating individual assets shall be prioritised on land or homestead owned by households belonging to the:
+(a) Scheduled Castes
+(b) Scheduled Tribes
+(c) nomadic tribes
+(d) denotified tribes
+(e) other families below the poverty line
+(f) women-headed households
+(g) physically handicapped headed households
+(h) beneficiaries of land reforms
+(i) the beneficiaries under the Indira Awaas Yojana
+(j) beneficiaries under the Scheduled Tribes and Other Traditional Forest
+Dwellers (Recognition of Forest Rights) Act, 2006 (2 of 2007), and
+and after exhausting the eligible beneficiaries under the above categories, on lands of the small or marginal farmers as defined in the Agriculture Debt Waiver and Debt Relief Scheme, 2008 subject to the condition that such households shall have a job card with at least one member willing to work on the project undertaken on their land or homestead.
+6. The State Government shall take concrete steps to achieve effective inter-departmental convergence till the last mile implementation level of the works under the Scheme with other Government Schemes/programmes so as to improve the quality and productivity of assets, and bring in synergy to holistically address the multiple dimensions of poverty in a sustainable manner.
+7. There shall be a systematic, participatory planning exercise at each tier of Panchayat, conducted between August to December month of-every year, as per a detailed methodology laid down by the State Government. All works to be executed by the Gram Panchayats shall be identified and placed before the
+Gram Sabha, and such works which are to be executed by the intermediate Panchayats or other implementing agencies shall be placed before the intermediate or District Panchayats, along with the expected outcomes.
+8. Demand for work, either oral or written, shall be registered as and when required by any job cardholder and in the Rozgar Diwas which is to be conducted at every Ward and Gram Panchayat level at least once a month, leading to provision of work as per demand.
+9. (1) Adequate shelf of works shall be maintained by every Gram Panchayat to meet the expected demand for work in such a way that at least one labour intensive public work with at least one work which is suitable for Particularly Vulnerable Groups especially the aged and the disabled which shall be kept open at all times to provide work as per demand.
+(2) The details of the said work(s) shall be prominently displayed through Writings on the walls of the village.
+10. While opening works in the public works category, it shall be ensured that the ongoing or incomplete works should be completed first.
+11. Work shall be provided within fifteen days, from the date of registration of the demand for work or the date from which work has been demanded in case of advance applications, whichever is later.
+12. (1) In case work could not be provided as per demand within the specified time limit, unemployment allowance shall be paid, as calculated automatically by the computer system or the Management Information System and as provided under the Act. The programme officer can reject the unemployment allowance only on grounds of force majeure.
+(2) In cases where unemployment allowance is paid, or due to be paid, the Programme Officer shall inform the concerned District Programme Coordinator in writing the reasons for not providing employment to the applicants.
+(3) The District Programme Coordinator shall, in his Annual Report to the State Council explain as to why employment could not provided in cases where payment of unemployment allowances is involved.
+13. Every work under the Scheme shall have a technical estimate duly sanctioned by an authority authorised by the State Government. While sanctioning the estimates, the following are required to be considered:
+(a) For all works involving construction, cost effective, labour intensive technologies and usage of local materials shall be employed as far as possible;
+(b) The Bill of quantities (used in the estimate) is stated in common terminology for easy understanding of all stakeholders;
+(c) Each work shall have a summary of the estimate, design and a technical note that indicate the expected outcomes from implementing the work.
+14. The works finalised at the Gram Panchayat level and consolidated at the Block or District level shall be given Block-wise administrative or financial sanction by the competent authority within thirty days from the date of finalisation of the works at the Gram Panchayat level only after confirming that the shelf of works in any Gram Panchayat is not less than two times the labour budget approved for that Gram Panchayat.
+15. The muster rolls for works taken up under the scheme shall be maintained as follows, namely:
+(a) each muster roll shall be in English or local language and have a unique identity number electronically generated by the computer System (e-Muster) along with the list of Workers applied for work. Every Muster roll shall be signed by the authorised person of the Gram Panchayat or by the Programme Officer; and shall contain such mandatory information as may be specified by the Central Government;
+(b) muster rolls shall be maintained at the worksite by marking attendance daily by a person authorised under the Scheme, details of which shall be made available in public view on a daily basis using the computer system.
+(c) the muster roll, shall be periodically checked by officials in the manner prescribed in the Scheme;
+(d) the muster roll shall be closed on the last given day, counter-signed by every worker who has worked, and shall be handed over to the technical personnel for measurement;
+(e) a detailed record of muster rolls shall be maintained in the registers as specified from time to time;
+(f) when a work is in progress, the workers engaged in that work may select from amongst themselves not less than five workers on a weekly rotational basis to verify and certify all the bills or vouchers of their worksite at least, once in a week;
+(g) any person shall have access to muster rolls on the worksite on demand all days during all working hours;
+16. Payment shall only be made based on the measurements taken at the worksite by the authorised personnel within three days of closure of the muster roll. The State Government shall ensure that adequate technical personnel are deployed to complete this work within the stipulated period. Suitable persons from the families of workers may be trained or skilled and deployed as barefoot engineers with appropriate delegation of technical powers and paid wages as skilled workers.
+17. The State Government shall link the wages, without any gender bias, with the quantity of Work done and it shall be paid according to the rural schedule of rates fixed after time and motion studies for different types of work and different seasons and revised periodically.
+18. A separate Schedule of rates shall be finalised for women, the elderly, people with disabilities and people with debilitating ailments so to improve their participation through productive work.
+19. (a) The schedule of rates of wages for various unskilled labourers shall be fixed up so that an adult person worked for eight hours which include an hour of rest will earn a wage which is equal to the stipulated wage rate;
+(b) The working hours of an adult worker shall be flexible but shall not spread over more than twelve hours on any day.
+20. For all works taken up by the Gram Panchayats, the cost of the material component including the wages of the skilled and semi-skilled workers shall not exceed forty per cent, at the Gram Panchayat level. For works taken up by the implementing agencies other than Gram Panchayats, the overall material component including the wages of the skilled and semi-skilled workers shall not exceed forty per cent, at the district level.)
+21. The Works executed shall be done without engaging any contractor. Implementing agencies under the Scheme shall execute the Works in conformity with the processes specified under the Act and after complying with the mandatory proactive disclosures and social audit.
+22. As far as practicable, works executed by the programme implementation agencies shall be performed by using manual labour and no labour displacing machines shall be used.
+23. Allmaterial required for the works shall be procured by the Gram Panchayator the implementing agency using a transparent tender process as specified by the State Government.
+24. Out of the administrative costs allowed under the Scheme, at least one-third (1/3rd) shall be utilised at the Gram Panchayat level to employ and pay the Gram Rozgar Sahayak, other technical personnel as per the Work done and for other administrative expenses.
+25. Every Scheme to contain adequate provisions for ensuring transparency and accountability at all levels of implementation shall consist of the following measures, namely:-
+(a) Mandatory Proactive disclosure of basic information to all common people and stakeholders using a 'Janata Information System' consisting of:
+(1) Display at each worksite the 'Janata' estimate of the work - showing the details of the work, estimated labour days, quantities of materials to be used in local terminology and item-wise cost of the estimate.
+(2) Display on prominent walls or public boards in the village: job cards list, number of days of work provided and the wages paid to each job card holder; and entitlements provided under the Act.
+(3) Display through boards at the Gram Panchayat Office: shelf of projects approved, year-wise works taken up or completed by Gram Panchayats and Line Departments, employment provided, funds received and expenditure, list of materials with quantities used in each Work, rates at which the material was procured.
+(4) Display on the website: The Ministry of Rural Development and the State Departments of Rural Development shall ensure that their websites are updated to fully comply with all the seventeen provisions of section 4(1)(b) of the Right to Information Act (22 of 2005) and all information about the Act is available in public domain, through free downloadable electronic form.
+(b) Concurrent social audit shall be done for all works every month. For this purpose, Programme Officer shall make available free of cost, details of works done and expenditure made during the past one month to the Bharat Nirman Volunteers, village social auditors, self-help groups, youth organisations and such other village level organisations for verification and report deviations if any.
+(c) Social audit: Implementation of all conditions for guaranteed rural employment under the Scheme and provision of minimum entitlements of labourers, including all expenditure under the Act shall be subjected to social audit in the manner prescribed by Central Government at least once in every six months consisting of the following:
+i. Identification, training of local youth as social auditors; and formation of trained social auditor teams for each Gram Panchayat with youth from outside the Gram Panchayat to conduct social audit, provided that at least 25% of village social auditors are from SC/ST groups. For services rendered by such youth, each one of them shall be paid an honorarium at a rate not less than the remuneration payable to the skilled labour under MGNREGA.
+ii. Provision of records (muster rolls, M-Books, pay orders) to the social audit teams free of cost.
+iii. Verification of every work site to cross-check the measurements in the field with that on M-Books; and to assess the utility and outcomes of the work so executed.
+iv. Verification of every disbursement on record with the concerned beneficiaries.
+v. Verification of Outcomes with that of estimated outcomes.
+vi. Verification of provision of entitlements in the field,
+vii. Review the implementation of MGNREGA for vulnerable groups.
+viii. Conduct of Public hearings by the social auditors at the Ward/Gram Panchayat and Block level to read out the findings.
+ix. Systematic follow up action on the reports of the social audit and completing recovery of amounts found misappropriated, and completing suitable disciplinary/criminal action on the irregularities brought out in Social audits within 6 months from the date of conduct of social audit.
+26. Any misappropriation of amounts spent under the Act shall be recoverable under the Revenue Laws for recovery prevailing in the State.
+27. Provisions for regular inspection and supervision of works by quality control teams to ensure proper quality of work as well as to ensure that the total wages paid for the completion of the work is as per the quality and quantity of work done.
+28. The State Government shall take steps to organize, either through its own machinery or working with Civil Society Organisations, the workers into formal groups labour collectives to improve their participation in implementation and to ensure provision of entitlements provided under the Act.
+29. Establish an effective grievance redressal mechanism consisting of:
+(a) Institutional mechanisms for receiving grievances as and when they arise, while fixing one day each week during which all officials shall be necessarily present for receiving grievances at Ward/GP/Block and District level;
+(b) issuance of dated receipt to complaints accepted in writing, phone, internet and orally by all personnel authorized to receive complaints;
+(c) Enquiry through spot verification, inspection and disposal to be completed within 7 working days;
+(d) On completion of the enquiry, immediate steps shall be taken by the concerned authority to redress the grievance within 15 days;
+(e) Failure to dispose of a complaint within seven days shall be considered as a contravention as per section 25 of the Act;
+(f) In case of a prima facie evidence regarding financial irregularities are noticed after preliminary enquiry of the complaint or of findings in the social audit report, the District Programme Coordinator after obtaining legal advice will ensure that a First Information Report is lodged;
+(g) The concerned authority shall be responsible for informing the person or party aggrieved of the conclusion of enquiry and steps being taken for the redressal of his/her grievance, in writing:
+(h) The action taken on the complaints received by all agencies shall be placed before the meetings of the intermediate Panchayat and the District Panchayat respectively,
+(i) Appeals against the orders of the Gram Panchayat shall be made to the Programme Officer; those against the orders of the Programme Officer shall be made to District Programme Coordinator; those against the District Programme Coordinator shall be made to State Commissioner (NREGS), Divisional Commissioner (NREGS) and State Grievance Redressal Officer.
+(j) All Appeals shall be made within forty-five days from the date of the issuance of the order.
+(k) All Appeals shall be disposed off within one month.
+(l) There shall be a system of escalation of the grievances registered at ward/ GP/Block/ District level if not resolved within 15 days to the next higher level; and monitoring the same "electronically.
+30. Ombudsperson: There shall be an Ombudsperson for each District for receiving grievances, enquiring into and passing awards as per guidelines issued.
+31. State Government shall coordinate the activities of Programme Officer, District Programme Coordinator, Ombudsmen, Social Audits Units, call centres or help Lines, Vigilance and Monitoring Committees, National Level Monitors, Rozgar Sahayata Kendras and any other entity authorised by the appropriate Government for an effective monitoring of the programme and redressal of grievances.
+32. Wherever contravention of the provisions of the Act has been proved after due enquiry by the State Government or the District Programme Coordinator or the Programme Officer or the Ombudsperson or any other authority authorized by the State Government, action in accordance with the provisions of section 25 of the Act shall be taken.
+33. The District Programme Coordinator, the programme officer and the Gram Panchayat shall prepare a report annually containing the facts and figures and achievements relating to the implementation of the scheme within his or its jurisdiction and a copy of the same shall be made available to the public on demand on payment of such fee as may be specified in the Scheme.
+34. All accounts and records including muster rolls relating to the scheme shall be made available for public Scrutiny free of cost. Any person desirous of obtaining a copy or relevant extracts therefrom may be provided such copies or extracts on demand not later than three working days from the date of receipt of application.
+35. There shall be a Capacity Building Plan, Information Education Communication plan and a plan for strengthening Panchayats as a part of the scheme.
+1. The adult member of every household residing in any rural area and willing to do unskilled manual Work may submit the names, age and the address of the household to the Gram Panchayat at the village level, in whose jurisdiction they reside, for registration of their household for issuance of a job card. If the job seeker is a single Woman or disabled person or aged person or released bonded labour or belonging to Particularly Vulnerable Tribal Group, they must be given a special job card of a distinct colour which will ensure them a special protection in providing work, work evaluation and work site facilitates, as the case may be.
+2. It shall be the duty of the Grama Panchayat, after making such enquiry, as it deems fit, to issue a job card within fifteen days from the date of receipt of such application, containing therein a unique job card number with details of the registered adult members of the household, their photos, Bank or Post office account number, insurance policy number and the Aadhaar numbers if any.
+3. The job card issued shall be valid for atleast five years after which, it may be renewed after due verification.
+4. No job card can be cancelled except where it is found to be a duplicate, or if the entire household has permanently migrated to a place outside the Gram Panchayat and no longer lives in the village.
+5. The State Government shall make arrangements for updating the following details in the job card regularly while mentioning the key entitlements under the Act are clearly listed as follows:-
+(i) number of days for which work was demanded;
+(ii) number of days of work allocated;
+(iii) description of the work allocated along with the muster roll number;
+(iv) measurement details;
+(v) unemployment allowance, if any, paid;
+(vi) dates and number of days Worked;
+(vii) date-wise amount of Wages paid;
+(viii) delay Compensation paid if any.
+6. Every adult member of a registered household whose name appears in the job card shall be entitled to apply for unskilled manual work under the Scheme; and every such application shall be compulsorily registered, and a receipt issued with the date, which shall be entered in the computer system.
+7. The State shall proactively verify the requirements of the Vulnerable Groups and provide them Work.
+8. Application for work can be oral or written and made to the Ward member or to the Gram Panchayat or to the Programme Officer or any person authorised by the State Government or through a telephone or mobile or Interactive Voice Response System or through a call centre or through web site orthrough a kiosk set up for this purpose orthrough any other means authorised by the State Government.
+9. Applications for work can be filed individually or for a group together.
+10. There shall be no limit on the number of days of employment for which a person may apply, or on the number of days of employment actually provided to him subject to the aggregate entitlement of the household.
+11. Normally, applications for work must be for at least fourteen days of continuous work, other than the works relating to access to sanitation facilities, for which application for work shall be for atleast six days of continuous work.
+12. Provision shall be made in the Scheme for advance application, that is, application which may be submitted earlier than the date from which employment is sought.
+13. Provision shall be made in the Scheme for submission of multiple applications by the same person provided that the corresponding periods for which employment is sought do not overlap.
+14. The Gram Panchayat and Programme Officer shall ensure that every applicant shall be provided unskilled manual work in accordance with the provisions of the Scheme within fifteen days of receipt of an application or the date from which he seeks work in case of advance application, whichever is later,
+15. Priority shall be given to women in such a way that at least one-third of the beneficiaries shall be women who have registered and requested for work. Efforts to increase participation of single women and the disabled shall be made.
+16. Applicants who are provided with work shall be so intimated in writing, by means of a letter sent to him at the address given in the job card or by a public notice displayed at the office of the Panchayats at district, intermediate or village level.
+17. A list of persons who are provided with the work shall be displayed on the notice board of the Gram Panchayat and at the office of the Programme Officer and at such other place as the Programme Officer may deem necessary and the list shall be open for inspection by the State Government and any interested person.
+18. As far as possible, the employment shall be provided within a radius of five kilometres of the village where the applicant resides at the time of applying.
+19. A new work under the Scheme can be commenced if atleast ten labourers become available for work, provided that this condition shall not be applicable for new works, as determined by the State Government, in hilly areas and in respect of afforestation works.
+20. In case the employment is provided outside the radius specified in Paragraph 18, it shall be provided within the Block, and the labourers shall be paid ten percent of the wage rate as extra wages to meet additional transportation and expenses for living.
+21. A period of employment shall be for atleast fourteen days continuously with not more than six days in a week.
+22. For the purpose of transparency at the work site, the following shall be ensured:-
+(i) there shall be a project initiation meeting in which various provisions of the work shall be explained to the workers;
+(ii) a copy of the sanction work order shall be available for public inspection at the worksite,
+(iii) measurement record of each work and details of the workers shall be available for public inspection;
+(iv) a Citizens' Information Board Shall be put up at every worksite and updated regularly in the manner specified by the Central Government; Government may check all works and its evaluation report will be recorded in the Works Register in the format specified by the Central Government and submitted to the Gram Sabha during the Social Audit.
+23. The facilities of safe drinking water, shade for children and periods of rest, first aid box with adequate material for emergency treatment for minor injuries and other health hazards connected with the work being performed shall be provided at the work site.
+24. In case the number of children below the age of five years accompanying the women working at any site is five or more, provisions shall be made to depute one of such Women workers to look after such children. The person so deputed shall be paid wage rate. The most marginalized women in the locality, women in exploitative conditions or bonded labour or those vulnerable to being trafficked or liberated manual Scavengers should be employed for providing child care services.
+25. If any personal injury is caused to any person employed under the Scheme by any accident arising out of and in the course of his employment, he shall be entitled to such medical treatment as required, free of cost.
+26. Where hospitalisation of the injured worker is necessary, the State Government shall arrange for such hospitalisation including accommodation, treatment, medicines and payment of daily allowance which is not less than half of the wage rate.
+27. If a person employed under the Scheme meets with death or becomes permanently disabled by accident arising out of and in the course of employment, he or his legal heirs, as the case may be, shall be paid by the implementing agency an ex gratia as per entitlements under the Aam AadmiBima Yojana or as may be notified by the Central Government.
+28. If any personal injury is caused by accident to a child accompanying a person who is employed under the Scheme, such person shall be entitled to medical treatment free of cost; and in case of death or disablement of the child due to the said accident, ex gratia shall be paid to the legal guardians as determined by the State Government.
+29. (1) In case the payment of wages is not made within fifteen days from the date of closure of the muster roll, the wage seekers shall be entitled to receive payment of compensation for the delay, at the rate of 0.05% of the unpaid wages per day of delay beyond the sixteenth day of closure of muster roll.
+(a) Any delay in payment of compensation beyond a period of fifteen days from the date it becomes payable, shall be considered in the same manner as the delay in payment of wages.
+(b) For the purpose of ensuring accountability in payment of wages and to calculate culpability of various functionaries or agencies, the States shall divide the processes leading to determination and payment of Wages into various stages such as-
+i. measurement of work;
+ii. Computerising the muster rolls;
+iii. computerising the measurements;
+iv. generation of wage lists; and
+v. uploading Fund Transfer Orders (FTOs),
+and specify stage-wise maximum time limits along with the functionary or agency which is responsible for discharging the specific function.
+(c) The computer system shall have a provision to automatically calculate the compensation payable based on the date of closure of the muster roll and the date of deposit of wages in the accounts of the wage Seekers.
+(d) The State Government shall pay the compensation upfront after due verification within the time limits as specified above and recover the compensation amount from the functionaries or agencies who is responsible for the delay in payment.
+(e) It shall be the duty of that District Programme Coordinator or Programme Officer to ensure that the system is operationalised.
+(f) The number of days of delay, the compensation payable and actually paid shall be reflected in the Monitoring and Information System and the Labour Budget.
+(2) Effective implementation of sub-paragraph (1) shall be considered necessary for the purposes of the section 27 of the Act.
+30. The payment of wages shall, unless so exempted by the Central Government, be made through the individual savings accounts of the workers in the relevant Banks or Post Offices.
+31. In case of employment provided under the Scheme, there shall be no discrimination solely on the ground of gender and the provisions of the Equal Remuneration Act, 1976 (25 of 1976), shall be complied with.
+32. The Gram Panchayat shall prepare and maintain or cause to be prepared and maintained such registers, vouchers and other documents in such form and in such manner as may be specified in the Scheme containing particulars of job cards and pass books issued, name, age and address of the head of the household and the adult members of the households registered with the Gram Panchayat.
+33. The Gram Panchayat shall send such list or lists of the names and addresses of households and their adult members registered with it and supply such other information to the concerned Programme Officer at such periods and in such form as may be specified in the Scheme.
+34. (1)Notwithstanding anything contained in this Schedule, in the event of any national calamity such as flood, cyclone, tsunami and earthquake resulting inmass dislocation of rural population, the adult members of rural households of areas so affected may-
+(a) seek for registration and get job card issued by the Gram Panchayat or Programme Officer of the area of temporary relocation;
+(b) submit written or oral applications for work to the Programme Officer or the Gram Panchayat of the area of temporary relocation; and
+(c) apply for re-registration and re-issuance of job card in the event of any loss or destruction.
+(2) The details of such job cards shall be intimated to the District Programme Coordinator.
+(3) In the event of restoration of normalcy, the job card so issued shall be re-endorsed at original place of habitation and clubbed with the original job card on being retrieved.
+(4) The number of days of employment so provided shall be counted while computing 100 days of guaranteed employment per household.
+35. Every worker shall have an opportunity of-being heard and register any grievance either orally or in writing, at all implementation levels for disposal as per the provisions of the Grievance Redressal Mechanism under the scheme.

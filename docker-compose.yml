@@ -1,0 +1,25 @@
+# docker compose up --build   then   scripts/smoke_test.sh
+services:
+  helpdesk:
+    build: .
+    image: kerala-voice-helpdesk:1.0
+    ports:
+      - "127.0.0.1:8000:8000"          # local only; put a reverse proxy in front to publish it
+    volumes:
+      - models:/models                  # the GGUF download survives rebuilds
+      # - ./gemma-4-E2B-it-Q4_0.gguf:/models/gemma.gguf:ro   # or use a file you already have,
+    environment:                        #   with GEMMA_GGUF=/models/gemma.gguf below
+      N_THREADS: "2"
+      HELPDESK_KB_AUTO: "${HELPDESK_KB_AUTO:-0}"
+      HELPDESK_WARMUP: "${HELPDESK_WARMUP:-kb}"
+      # GEMMA_GGUF: /models/gemma.gguf
+    cpus: 2
+    mem_limit: 6g                       # model ~3 GB + RAM prompt cache (HELPDESK_CACHE_MB)
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+volumes:
+  models:

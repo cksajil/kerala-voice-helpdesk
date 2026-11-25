@@ -1,0 +1,68 @@
+{
+ "tag": "old_dense",
+ "kb": "old",
+ "dense": true,
+ "llm": "inproc",
+ "threads": 2,
+ "canon": "1",
+ "ctx_k": "1",
+ "auto_boost": "default",
+ "n": 46,
+ "answer_in_scope": "15/24",
+ "answer_kb_gap": "0/5",
+ "answer_news": "3/5",
+ "answer_out_of_scope": "6/7",
+ "answer_weather": "1/5",
+ "fee_ok": "5/8",
+ "hit1": "18/24",
+ "hit3": "24/24",
+ "route_ok": "38/46",
+ "refusal_precision": "6/9",
+ "refusal_recall": "6/7",
+ "kb_gap": {
+  "declined": 1,
+  "answered": 4
+ },
+ "latency_s": {
+  "answer": {
+   "p50": 12.41,
+   "p90": 18.38,
+   "n": 34
+  },
+  "calc": {
+   "p50": 0.0,
+   "p90": 0.0,
+   "n": 34
+  },
+  "news": {
+   "p50": 0.48,
+   "p90": 0.65,
+   "n": 3
+  },
+  "other": {
+   "p50": 0.0,
+   "p90": 0.0,
+   "n": 6
+  },
+  "retrieve": {
+   "p50": 0.57,
+   "p90": 0.78,
+   "n": 28
+  },
+  "router": {
+   "p50": 0.03,
+   "p90": 0.2,
+   "n": 46
+  },
+  "total": {
+   "p50": 10.17,
+   "p90": 18.9,
+   "n": 46
+  },
+  "weather": {
+   "p50": 0.09,
+   "p90": 0.11,
+   "n": 3
+  }
+ }
+}

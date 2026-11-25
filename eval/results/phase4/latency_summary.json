@@ -1,0 +1,16 @@
+{
+ "warm": {
+  "n": 20,
+  "answer_p50": 5.21,
+  "answer_p90": 8.85,
+  "total_p50": 5.4,
+  "total_p90": 9.02
+ },
+ "cold": {
+  "n": 20,
+  "answer_p50": 8.68,
+  "answer_p90": 12.32,
+  "total_p50": 8.84,
+  "total_p90": 12.55
+ }
+}

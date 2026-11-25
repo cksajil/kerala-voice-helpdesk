@@ -1,0 +1,15 @@
+[     5s] health: loading warm-up {'done': 0, 'total': 0, 'seconds': 0.0}
+[    40s] health: warming warm-up {'done': 0, 'total': 0, 'seconds': 0.0}
+[   280s] health: ok warm-up {'done': 50, 'total': 50, 'seconds': 238.8}
+{"status": "ok", "backend": "inproc", "model": "gemma-4-E2B-it-Q4_0.gguf", "warmup": {"done": 50, "total": 50, "seconds": 238.8}, "uptime_s": 280, "settings": {"HELPDESK_CANON": "1", "HELPDESK_CTX_K": "1", "HELPDESK_KB_AUTO": null, "HELPDESK_DENSE": "0", "HELPDESK_AUTO_BOOST": null}, "passages": 2776}
+PASS service answer: route=service_faq by=rule refused=False timings={'router': 0.01, 'calc': 0.001, 'retrieve': 0.158, 'answer': 4.201, 'total': 4.369}
+      ജനന സർട്ടിഫിക്കറ്റ് K-SMART വഴി Civil Registration സേവനത്തിലാണ് ലഭിക്കുന്നത്. അപേക്ഷ ഓൺലൈനായി നൽകി സർട്ടിഫിക്കറ്റുകൾ ഓൺലൈനായി ഡൗൺലോഡ് ചെയ്യാം.
+PASS fee in code: route=service_faq by=rule refused=False timings={'router': 0.008, 'calc': 0.001, 'total': 0.009}
+      30 ദിവസത്തിനു ശേഷം ഒരു വർഷത്തിനുള്ളിൽ ആയതിനാൽ രജിസ്ട്രേഷൻ ഫീസ് 5 രൂപ. ഓൺലൈനായോ അക്ഷയ വഴിയോ അപേക്ഷിക്കുമ്പോൾ 40 രൂപ സർവീസ് ചാർജ് കൂടി ഉണ്ട്.
+PASS follow-up via context: route=service_faq by=follow-up refused=True timings={'router': 1.157, 'calc': 0.001, 'retrieve': 0.871, 'answer': 2.179, 'total': 4.208}
+      ക്ഷമിക്കണം, ഇതിനെക്കുറിച്ച് എനിക്ക് ഉറപ്പുള്ള വിവരം ഇല്ല. നിങ്ങളുടെ പഞ്ചായത്ത് അല്ലെങ്കിൽ നഗരസഭ ഓഫീസിലോ അക്ഷയ കേന്ദ്രത്തിലോ ചോദിക്കൂ.
+PASS off-topic declined: route=other by=none refused=True timings={'router': 0.08, 'other': 0.0, 'total': 0.081}
+      ഞാൻ പഞ്ചായത്ത്, നഗരസഭ സേവനങ്ങൾ, കാലാവസ്ഥ, വാർത്ത എന്നിവയിൽ സഹായിക്കാം. ഉദാഹരണത്തിന്, വിവാഹ രജിസ്ട്രേഷന് എന്തൊക്കെ രേഖകൾ വേണം എന്ന് ചോദിക്കാം.
+PASS empty question rejected: route=422 by=None refused=None timings=None
+      {"route": 422}
+all checks passed

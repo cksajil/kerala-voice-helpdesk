@@ -1,0 +1,11 @@
+# The HTTP service (helpdesk/api.py) and its Docker image: CPU only, every version pinned.
+# llama-cpp-python is built in the Dockerfile (CMAKE_ARGS there), not from this file.
+fastapi==0.115.14
+uvicorn==0.54.0
+pydantic==2.13.5
+langgraph==1.2.21
+rank-bm25==0.2.2
+numpy==2.5.3
+feedparser==6.0.14
+requests==2.34.2
+huggingface_hub==2.4.0
