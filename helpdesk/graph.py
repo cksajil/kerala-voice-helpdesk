@@ -42,6 +42,7 @@ CLARIFY = "ഏത് സേവനത്തെക്കുറിച്ചാണ�
 FOLLOW_UP_MAX_WORDS = 8
 ACK = re.compile(r"^(ഇല്ല|അതെ|ശരി|ശരിയാണ്|ഓക്കെ|ഓക്കേ|ok|okay|നന്ദി|താങ്ക്സ്|thanks|thank you|വേണ്ട|മതി)$")
 ACK_REPLY = "ശരി. മറ്റെന്തെങ്കിലും അറിയണമെങ്കിൽ ചോദിക്കൂ."
+UNCLEAR_REPLY = "ക്ഷമിക്കണം, ചോദ്യം വ്യക്തമായി കേട്ടില്ല. ഒന്നുകൂടി ചോദിക്കാമോ?"
 
 # Stems, not full words, matched inside words after fold(normalise()), so inflected forms match: "ചൂട" covers
 # ചൂടാണോ / ചൂടുണ്ടോ, "തണുപ്പ" covers തണുപ്പുണ്ടോ, "കാലാവസ്" covers ASR's കാലാവസ്ത.
@@ -174,6 +175,10 @@ def build_graph(retriever: Retriever | None = None):
         if ACK.match(normalise(q, strip_punct=True)):
             # "ഇല്ല", "ശരി", "നന്ദി": a reply to us, not a question ("ഇല്ല" got a vaccination passage).
             return {"route": "other", "route_by": "ack", "facet": None}
+        if not any(len(w) >= 3 for w in normalise(q, strip_punct=True).split()):
+            # Nothing of three letters or more ("പി", "ഈ"): a fragment of speech, not a question. The 25 Nov
+            # Mac voice test answered "പി" as a follow-up from another panchayat's charter row (31 s).
+            return {"route": "other", "route_by": "unclear", "facet": None}
         follow = (bool(prev) and s.get("previous_route") == "service_faq"
                   and len(q.split()) <= FOLLOW_UP_MAX_WORDS and not out_of_scope(q)
                   and "lsgd_other" not in prev and s.get("previous_tool") != "other_animal"
@@ -316,6 +321,8 @@ def build_graph(retriever: Retriever | None = None):
     def other(s: State) -> State:
         if s.get("route_by") == "ack":
             return {"answer": ACK_REPLY, "refused": True, "tool": "ack"}
+        if s.get("route_by") == "unclear":
+            return {"answer": UNCLEAR_REPLY, "refused": True, "tool": "unclear"}
         # "തുക എത്രയാണ്?" with no service and nothing to follow: ask which service.
         if s.get("facet") in CLARIFY_FACETS and not out_of_scope(s["query"]):
             return {"answer": CLARIFY, "refused": True, "tool": "clarify"}

@@ -1036,3 +1036,16 @@ def test_unknown_place_in_locative_form_is_said(monkeypatch):
     assert tools.weather("കട്ടുപനിയിൽ നാളെ തണുപ്പുണ്ടാകുമോ")["text"].startswith("ആ സ്ഥലം")
     for q in ["വീട്ടിൽ ഇന്ന് മഴയുണ്ടോ", "രാത്രിയിൽ മഴ പെയ്യുമോ", "ചാലക്കുടിയിൽ ഇന്ന് മഴയുണ്ടോ"]:
         assert not tools.weather(q)["text"].startswith("ആ സ്ഥലം"), q
+
+
+def test_speech_fragment_is_asked_again_not_answered():
+    """25 Nov Mac voice test: "പി" (a fragment) was answered as a follow-up from a charter row."""
+    from helpdesk.graph import build_graph
+    from helpdesk.retriever import Retriever
+    g = build_graph(Retriever(dense=False))
+    q1 = "ജനന സർട്ടിഫിക്കറ്റിന് എങ്ങനെ അപേക്ഷിക്കാം"
+    s1 = g.invoke({"query": q1})
+    prev = {"previous": q1, "previous_route": s1["route"], "previous_services": s1.get("services") or []}
+    s = g.invoke({"query": "പി", **prev})
+    assert s["route_by"] == "unclear" and s["refused"] and s.get("tool") == "unclear"
+    assert g.invoke({"query": "ഫീസ്?", **prev})["route_by"] == "follow-up"

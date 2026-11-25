@@ -117,7 +117,14 @@ def to_16k(wav: np.ndarray, sr: int) -> np.ndarray:
         return np.interp(t, np.arange(len(wav)) / sr, smooth).astype(np.float32)
 
 
+_USE_FFMPEG = False                 # set after PortAudio fails once: don't retry it every turn
+
+
 def record() -> np.ndarray:
+    global _USE_FFMPEG
+    if _USE_FFMPEG:
+        input("\nEnter: start speaking (ffmpeg) ")
+        return record_ffmpeg()
     import sounddevice as sd
     dev = sd.query_devices(kind="input")
     sr = int(dev["default_samplerate"])
@@ -128,7 +135,8 @@ def record() -> np.ndarray:
                                 callback=lambda d, *_: frames.append(d.copy()))
     except sd.PortAudioError as e:
         if shutil.which("ffmpeg"):
-            print(f"  PortAudio cannot open it ({e}); recording with ffmpeg instead")
+            print(f"  PortAudio cannot open it ({e}); recording with ffmpeg from now on")
+            _USE_FFMPEG = True
             return record_ffmpeg()
         sys.exit(f"cannot open the microphone ({e}). Install ffmpeg (brew install ffmpeg) and run again: the "
                  "script then records through macOS AVFoundation. Or check System Settings -> Privacy & "
@@ -247,7 +255,8 @@ def main() -> int:
             if audio is not None:
                 sd.play(audio, voice.sr)
                 sd.wait()
-        print(f"  timings: asr {t_asr:.1f} s, answer {t_ask:.1f} s, voice {t_tts:.1f} s")
+        stages = ", ".join(f"{k} {v:.1f}" for k, v in (r.get("timings") or {}).items() if k != "total")
+        print(f"  timings: asr {t_asr:.1f} s, answer {t_ask:.1f} s ({stages}), voice {t_tts:.1f} s")
         if save:
             stamp = time.strftime("%Y%m%d-%H%M%S")
             import wave

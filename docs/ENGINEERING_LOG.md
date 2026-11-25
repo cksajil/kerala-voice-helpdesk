@@ -346,3 +346,12 @@ Open issues: the follow-up's router took 4.8 s (not looked at yet); 2 GB cache n
 - **LangSmith, local only** (owner's decision): LangGraph traces when `LANGSMITH_TRACING=true`; Gemma calls
   are `llm` runs (`langsmith.traceable`, a no-op without tracing). `helpdesk/tracing.py` switches tracing
   off in the API unless `HELPDESK_TRACING=1`; `/health` reports it. 272 tests pass.
+- **First local voice test** (owner's Intel Mac, 5 turns, Whisper v2 int8; PortAudio could not open the
+  microphone, AUHAL err -66740, so the script now records with ffmpeg/AVFoundation): ASR 3.9–5.1 s a turn.
+  1. Fragment "പി" was answered as a follow-up from another panchayat's charter row (31 s). Fixed in the
+     router: a question with no word of 3+ letters gets "please repeat" (0 of 1,854 eval questions affected).
+  2. "മൂന്നാറിലെ കാലാസ്ഥ എന്താണ്?" (Whisper dropped "വ") was declined. Not fixed: the snap layer cannot
+     restore a dropped syllable without loosening its cost limit, which earlier rewrote correct words.
+     It is an ASR error; IndicConformer on the Space is the better fix. Open.
+  3. Answer turns took 21–31 s against 8–16 s in the smoke test; the script now prints the API's per-stage
+     timings to find out where. Open.
