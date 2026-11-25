@@ -1,5 +1,7 @@
 # Kerala Voice Helpdesk
 
+[![tests](https://github.com/cksajil/kerala-voice-helpdesk/actions/workflows/tests.yml/badge.svg)](https://github.com/cksajil/kerala-voice-helpdesk/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **Ask a question in Malayalam, hear the answer in Malayalam, all on a CPU.**
 A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's weather and today's news.
 
@@ -7,7 +9,7 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 
 | Stage | What runs |
 |---|---|
-| Speech to text | Malayalam ASR on CPU (see [malayalam-asr-eval](https://github.com/cksajil/malayalam-asr-eval) for how the models compare) |
+| Speech to text | [AI4Bharat IndicConformer-600M](https://huggingface.co/ai4bharat/indic-conformer-600m-multilingual) (RNNT, ONNX, CPU) with chillu restoration; Whisper [v2](https://huggingface.co/sajilck/whisper-small-malayalam-v2) as the fallback and in `scripts/voice_chat.py` (see [malayalam-asr-eval](https://github.com/cksajil/malayalam-asr-eval) for how the models compare) |
 | **Reply (this repo)** | LangGraph agent: explicit routing, BM25 retrieval (BGE-M3 dense optional, off) over 65 hand-checked entries written from official sources plus 3,178 citizen-charter passages, Gemma 4 E2B through llama.cpp |
 | Text to speech | [sajilck/mms-tts-malayalam-sajil](https://huggingface.co/sajilck/mms-tts-malayalam-sajil) (VITS) |
 
@@ -79,8 +81,8 @@ a four-condition entry). These are spot checks, not a score: the questions were 
 - **Latency.** A service answer takes up to ~11 s on the Space's CPU; prefill dominates.
 - **Docker:** built and smoke-tested on an Intel MacBook Air (Docker Desktop, 4 CPUs, 4.1 GB,
   `HELPDESK_CACHE_MB=512`, 25 Nov 2026): 5/5 checks pass, warm-up 924 s, 2.8 GB RSS, answers 8–16 s.
-- **Not yet done:** LangSmith tracing (optional) is not set up; the 13 charter groups regrouped on
-  13 Nov need a Gemini run.
+- **Not yet done:** the 13 charter groups regrouped on 13 Nov need a Gemini run. LangSmith tracing is
+  set up for local runs only (see "Tracing with LangSmith").
 
 ---
 
@@ -393,3 +395,10 @@ conversation turn ("പരസ്യ ബോൾ വെക്കാൻ അനുക
 (family planning, gobar gas, job card age): word count cannot tell a distinctive shared word from a generic one.
 Still wrong (17): mostly retrieval, a charter row read instead of the KB entry (10); LIFE Mission and a joke
 answered from lookalike rows; "ആർ ടി ഐ" not recognised; Gemma misreading a passage (2).
+
+---
+
+## License
+Code: [MIT](LICENSE). The models keep their own licences (Gemma terms of use, AI4Bharat IndicConformer,
+the Whisper and VITS fine-tunes); the knowledge-base entries cite public government sources (URL and fetch
+date kept for each).

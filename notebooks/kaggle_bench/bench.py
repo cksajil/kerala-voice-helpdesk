@@ -6,7 +6,7 @@ Space's share; dense passage embeddings are built beforehand with 4 threads and 
 2. eval.bench_llama: llama-cpp-python vs llama-server (latest llama.cpp release) on identical prompts
 Outputs: /kaggle/working/out (results CSV/JSON, logs, versions).
 """
-import glob, json, os, shutil, subprocess, sys, tarfile, time, zipfile
+import glob, os, shutil, subprocess, sys, tarfile, time
 from pathlib import Path
 
 OUT = Path("/kaggle/working/out"); OUT.mkdir(parents=True, exist_ok=True)
