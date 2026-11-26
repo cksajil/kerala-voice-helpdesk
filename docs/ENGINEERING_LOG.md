@@ -407,3 +407,15 @@ from importing helpdesk.api first. It already failed this way on main, so it pre
 - `pip install -r requirements-api.txt` fails on the Mac's Python 3.11 (numpy 2.5.3); the README now uses
   the unpinned packages for local tracing. Added `docker-compose.tracing.yml` (key from the shell, no secret
   in the file) for Gemma traces through the local Docker API.
+
+## 2026-11-26: launch
+
+- Usage log (sajilck/tts-demo-evidence-log) cleared before the public announcement at the owner's request:
+  151 audio files and 7 turns files deleted (commit 1254ac3), history kept. The Space was restarted first so
+  the old session's file could not be re-uploaded.
+- Demo video v4 (1920×1080, ~150 s): the owner's phone recording of five questions (two grounded answers,
+  fee calculator, live weather, out of scope) in a split screen with progressive English captions, plus
+  picture-led cards. Build scripts in `docs/video/`. Posted on LinkedIn with the Space and GitHub links.
+- Open after v1: the widow-pension ranking (next idea: a pension-type facet), an on-time birth-registration
+  documents entry, building-rule entries, a held-out v2 from real users' questions in the fresh log, a
+  learned router, fine-tuning. The Space API reports `zero-a10g` hardware: check Settings → Hardware.
