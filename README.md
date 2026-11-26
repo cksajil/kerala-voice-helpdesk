@@ -11,12 +11,7 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 
 <!-- VIDEO: on github.com, edit this README, drag kerala_voice_helpdesk_v4_github.mp4 onto the next line, commit. -->
 
-
 https://github.com/user-attachments/assets/0a578c48-94f7-4e27-aa00-c431c1811a7a
-
-
-
-[![Demo: a Malayalam question, the grounded answer and its source](docs/video/poster.jpg)](https://huggingface.co/spaces/sajilck/malayalam-voice-assistant)
 
 *Two and a half minutes: five spoken questions (grounded answers, a fee calculation, live weather, an
 off-topic question) and how the system is built. Built with `docs/video/build.py`.*
