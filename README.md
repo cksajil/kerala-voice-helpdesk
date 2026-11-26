@@ -9,8 +9,6 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 
 ## Demo video
 
-<!-- VIDEO: on github.com, edit this README, drag kerala_voice_helpdesk_v4_github.mp4 onto the next line, commit. -->
-
 https://github.com/user-attachments/assets/0a578c48-94f7-4e27-aa00-c431c1811a7a
 
 *Two and a half minutes: five spoken questions (grounded answers, a fee calculation, live weather, an
