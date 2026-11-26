@@ -7,6 +7,15 @@ A voice assistant for Kerala local-body (panchayat / K-SMART) services, today's 
 
 🎙️ **[Try the live demo](https://sajilck-malayalam-voice-assistant.hf.space)** ([Hugging Face Space](https://huggingface.co/spaces/sajilck/malayalam-voice-assistant))
 
+## Demo video
+
+<!-- VIDEO: on github.com, edit this README, drag kerala_voice_helpdesk_v4_github.mp4 onto the next line, commit. -->
+
+[![Demo: a Malayalam question, the grounded answer and its source](docs/video/poster.jpg)](https://huggingface.co/spaces/sajilck/malayalam-voice-assistant)
+
+*Two and a half minutes: five spoken questions (grounded answers, a fee calculation, live weather, an
+off-topic question) and how the system is built. Built with `docs/video/build.py`.*
+
 | Stage | What runs |
 |---|---|
 | Speech to text | [AI4Bharat IndicConformer-600M](https://huggingface.co/ai4bharat/indic-conformer-600m-multilingual) (RNNT, ONNX, CPU) with chillu restoration; Whisper [v2](https://huggingface.co/sajilck/whisper-small-malayalam-v2) as the fallback and in `scripts/voice_chat.py` (see [malayalam-asr-eval](https://github.com/cksajil/malayalam-asr-eval) for how the models compare) |
